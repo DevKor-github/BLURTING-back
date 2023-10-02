@@ -4,14 +4,19 @@ import User from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import axios from 'axios';
 import AuthPhoneNumberEntity from 'src/entities/authPhoneNumber.entity';
+import { MailerService } from '@nestjs-modules/mailer';
 import crypto from 'crypto';
+import AuthMailEntity from 'src/entities/authMail.entity';
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly mailerService: MailerService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(AuthPhoneNumberEntity)
     private readonly authPhoneNumberRepository: Repository<AuthPhoneNumberEntity>,
+    @InjectRepository(AuthMailEntity)
+    private readonly authMailRepository: Repository<AuthMailEntity>,
   ) {}
 
   async validateUser() {}
@@ -94,5 +99,34 @@ export class AuthService {
     phone.isValid = true;
     await this.authPhoneNumberRepository.save(phone);
     return true;
+  }
+
+  async sendVerificationCode(userId: number, to: string) {
+    const code = crypto.randomBytes(32).toString('hex');
+
+    await this.mailerService.sendMail({
+      from: process.env.MAIL_USER,
+      to: to,
+      subject: '블러팅 이메일을 인증해주세요.',
+      html: `아래 링크에 접속하면 인증이 완료됩니다. <br /> <a href="${'api'}?code=${code}">인증하기</a>`,
+    });
+    const entity = this.authMailRepository.create({
+      code,
+      user: { userId },
+      isValid: false,
+    });
+
+    await this.authMailRepository.save(entity);
+  }
+
+  async verifyEmail(email: string, code: string) {
+    const mailEntity = await this.authMailRepository.findOne({
+      where: { code, user: {} },
+    });
+    if (!mailEntity) {
+      throw new Error('인증번호가 일치하지 않습니다.');
+    }
+
+    // verify
   }
 }
