@@ -1,4 +1,5 @@
+/* eslint-disable no-unused-vars */
 export enum Sex {
-    Female = 0,
-    Male = 1,
+  Female = 'F',
+  Male = 'M',
 }
