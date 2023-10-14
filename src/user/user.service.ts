@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from 'src/entities/user.entity';
+import { UserEntity } from 'src/entities/users.entity';
 import { UserInfoEntity } from 'src/entities/userInfo.entity';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from 'src/dtos/createUser.dto';
-import { CreateUserInfoDto } from 'src/dtos/createUserInfo.dto';
-import * as bcrypt from 'bcrypt';
+import { Nickname } from 'src/common/enums/nickname.enum';
+import { Character, CharacterMask } from 'src/common/enums/character.enum';
+import { Hobby, HobbyMask } from 'src/common/enums/hobby.enum';
 
 @Injectable()
 export class UserService {
@@ -18,60 +18,59 @@ export class UserService {
 
   private readonly logger = new Logger(UserService.name);
 
-  async createUser(user: CreateUserDto){
-    let { userId, userHash, userName, email, phoneNumber } = user;
-    const nickname = "츄츄";
-    userHash = bcrypt.hashSync(userHash, 10);
-    return await this.userRepository.save({
-      userId: userId, 
-      userHash: userHash, 
-      userName: userName, 
-      userNickname: nickname, 
-      email: email, 
-      phoneNumber: phoneNumber 
+  async createUser() {
+    const nicknames = Object.values(Nickname);
+    const rand = Math.floor(Math.random() * 100000);
+    const index = rand % nicknames.length;
+    const nickname = nicknames[index].toString() + rand.toString();
+    const user = this.userRepository.create({ userNickname: nickname });
+    return this.userRepository.save(user);
+  }
+
+  async createUserInfo(user: UserEntity) {
+    const userInfo = this.userInfoRepository.create({ user: user });
+    return this.userInfoRepository.save(userInfo);
+  }
+
+  async updateUser(id: number, field: string, value: string) {
+    this.userRepository.update(id, { [field]: value });
+  }
+
+  async updateUserInfo(
+    id: number,
+    field: string,
+    value: string | Array<Character> | Array<Hobby>,
+  ) {
+    let maskedValue: number = 0;
+
+    switch (field) {
+      case 'character':
+        for (const item of value) {
+          maskedValue |=
+            CharacterMask[
+              Object.keys(Character).find((key) => Character[key] == item)
+            ];
+        }
+        this.userInfoRepository.update(id, { character: maskedValue });
+        break;
+      case 'hobby':
+        for (const item of value) {
+          maskedValue |=
+            HobbyMask[Object.keys(Hobby).find((key) => Hobby[key] == item)];
+        }
+        this.userInfoRepository.update(id, { hobby: maskedValue });
+        break;
+      case 'image':
+        break;
+      default:
+        this.userInfoRepository.update(id, { [field]: value });
+    }
+  }
+
+  async findUser(field: string, value: string | number) {
+    const user = await this.userRepository.findOne({
+      where: { [field]: value },
     });
-  }
-
-  async createUserInfo(info: CreateUserInfoDto, user: UserEntity){
-    const { sex, sexOrient, region, religion, drink, cigarette, height, major, mbti, character, hobby, university } = info;
-    return await this.userInfoRepository.save({
-      sex: sex, 
-      sexOrient: sexOrient, 
-      region: region, 
-      religion: religion, 
-      drink: drink, 
-      cigarette: cigarette, 
-      height: height, 
-      major: major, 
-      mbti: mbti, 
-      character: character, 
-      hobby: hobby, 
-      university: university,
-      user: user,
-    });
-  }
-
-  async findUserById(userId: string) {
-    const user = await this.userRepository.findOne({where: { userId }});
-    if (user) {
-      throw new BadRequestException('이미 사용 중인 아이디입니다.');
-    }
-    return user;
-  }
-
-  async findUserByEmail(email: string) {
-    const user = await this.userRepository.findOne({where: { email }});
-    if (user) {
-      throw new BadRequestException('이미 사용 중인 이메일입니다.');
-    }
-    return user;
-  }
-
-  async findUserByPhone(phoneNumber: string) {
-    const user = await this.userRepository.findOne({where: { phoneNumber }});
-    if (user) {
-      throw new BadRequestException('이미 사용 중인 전화번호입니다.');
-    }
     return user;
   }
 }
