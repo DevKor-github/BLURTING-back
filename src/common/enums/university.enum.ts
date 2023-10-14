@@ -180,6 +180,7 @@ export enum University {
   경상대학교 = 'gnu.ac.kr',
   경성대학교 = 'ks.ac.kr',
   경운대학교 = 'ikw.ac.kr',
+  /*
   경운대학교산업대 = 'ikw.ac.kr',
   경인교육대학교 = 'ginue.ac.kr',
   경일대학교 = 'kiu.kr',
@@ -190,6 +191,7 @@ export enum University {
   고려대학교 = 'korea.ac.kr',
   고려대학교세종 = 'korea.ac.kr',
   고려사이버대학교 = 'cuk.edu',
+  */
 }
 
 export const UnivMap = {
