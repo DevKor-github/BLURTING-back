@@ -1,5 +1,6 @@
+/* eslint-disable no-unused-vars */
 export enum SexOrient {
-    Heterosexual = 0,
-    Homosexual = 1,
-    Bisexual = 2,
+  Heterosexual = 'hetero',
+  Homosexual = 'homo',
+  Bisexual = 'bi',
 }

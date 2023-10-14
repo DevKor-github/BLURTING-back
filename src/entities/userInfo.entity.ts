@@ -1,70 +1,74 @@
-import { UserEntity } from 'src/entities/user.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
+import { UserEntity } from 'src/entities/users.entity';
 import { Sex } from 'src/common/enums/sex.enum';
 import { SexOrient } from 'src/common/enums/sexOrient.enum';
-import { Religion } from 'src/common/enums/religion.enum';
 import { Mbti } from 'src/common/enums/mbti.enum';
-import { Habit } from 'src/common/enums/habit.enum';
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
+import { Degree } from 'src/common/enums/degree.enum';
+import { Major } from 'src/common/enums/major.enum';
+import { University } from 'src/common/enums/university.enum';
 
 @Entity('userInfo')
 export class UserInfoEntity {
   @PrimaryGeneratedColumn()
-  InfoId: number;
+  id: number;
 
   @Column({
+    nullable: true,
     type: 'enum',
     enum: Sex,
   })
-  sex: Sex;
+  sex?: Sex;
 
   @Column({
+    nullable: true,
     type: 'enum',
     enum: SexOrient,
   })
-  sexOrient: SexOrient;
+  sexOrient?: SexOrient;
 
-  @Column()
-  region: string;
+  @Column({ nullable: true })
+  region?: string;
 
-  @Column({
-    type: 'enum',
-    enum: Religion,
-  })
-  religion: Religion;
+  @Column({ nullable: true })
+  religion?: string;
 
   @Column({
+    nullable: true,
     type: 'enum',
-    enum: Habit,
+    enum: Degree,
   })
-  drink: Habit;
+  drink?: Degree;
 
   @Column({
+    nullable: true,
     type: 'enum',
-    enum: Habit,
+    enum: Degree,
   })
-  cigarette: Habit;
+  cigarette?: Degree;
 
-  @Column()
-  height: number;
+  @Column({ nullable: true })
+  height?: number;
 
-  @Column()
-  major: string;
+  @Column({ nullable: true, type: 'enum', enum: Major })
+  major?: Major;
 
-  @Column({
-    type: 'enum',
-    enum: Mbti,
-  })
-  mbti: Mbti;
+  @Column({ nullable: true, type: 'enum', enum: Mbti })
+  mbti?: Mbti;
 
-  @Column()
-  character: string;
+  @Column({ nullable: true })
+  character?: number;
 
-  @Column()
-  hobby: string;
+  @Column({ nullable: true })
+  hobby?: number;
 
-  @Column()
-  university: string;
-
+  @Column({ nullable: true })
+  university?: University;
 
   @OneToOne(() => UserEntity)
   @JoinColumn()
