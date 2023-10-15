@@ -4,7 +4,7 @@ import {
   UserEntity,
   AuthPhoneNumberEntity,
   AuthMailEntity,
-} from 'src/entities/index';
+} from 'src/entities';
 import { Repository } from 'typeorm';
 import axios from 'axios';
 import { MailerService } from '@nestjs-modules/mailer';
