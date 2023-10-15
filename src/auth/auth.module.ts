@@ -4,18 +4,17 @@ import { UserEntity } from 'src/entities/users.entity';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
-import { JwtAccessStrategy } from './passport/jwt-access.strategy';
-import { JwtRefreshStrategy } from './passport/jwt-refresh.strategy';
-import { PassportModule } from '@nestjs/passport';
-import { UserModule } from 'src/user/user.module';
-import { JwtSignupStrategy } from './passport/jwt-signup.strategy';
+import { JwtStrategy } from './passport/refreshToken.strategy';
+import { LocalStrategy } from './passport/local.strategy';
+import AuthMailEntity from 'src/entities/authMail.entity';
+import AuthPhoneNumberEntity from 'src/entities/authPhoneNumber.entity';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
-    UserModule,
-    TypeOrmModule.forFeature([UserEntity]),
-    PassportModule.register({ session: false }),
+    TypeOrmModule.forFeature([User, AuthMailEntity, AuthPhoneNumberEntity]),
     JwtModule.register({}),
+    MailerModule,
   ],
   controllers: [AuthController],
   providers: [
