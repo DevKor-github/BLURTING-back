@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 export enum Major {
   Humanities = '인문계열',
   SocialSciences = '사회계열',

@@ -5,10 +5,10 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { UserInfoEntity } from './userInfo.entity';
+import { UserInfoEntity } from 'src/entities';
 
 @Entity('users')
-export default class UserEntity {
+export class UserEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

@@ -1,19 +1,24 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
-import User from 'src/entities/user.entity';
+import {
+  UserEntity,
+  AuthMailEntity,
+  AuthPhoneNumberEntity,
+} from 'src/entities';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './passport/refreshToken.strategy';
 import { LocalStrategy } from './passport/local.strategy';
-import AuthMailEntity from 'src/entities/authMail.entity';
-import AuthPhoneNumberEntity from 'src/entities/authPhoneNumber.entity';
 import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, AuthMailEntity, AuthPhoneNumberEntity]),
+    TypeOrmModule.forFeature([
+      UserEntity,
+      AuthMailEntity,
+      AuthPhoneNumberEntity,
+    ]),
     JwtModule.register({}),
     MailerModule,
   ],

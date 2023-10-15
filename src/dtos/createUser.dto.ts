@@ -7,15 +7,14 @@ import {
   IsEnum,
   ValidateIf,
 } from 'class-validator';
-import { Sex } from 'src/common/enums/sex.enum';
-import { SexOrient } from 'src/common/enums/sexOrient.enum';
-import { Mbti } from 'src/common/enums/mbti.enum';
-import { Degree } from 'src/common/enums/degree.enum';
-import { University } from 'src/common/enums/university.enum';
-import { Major } from 'src/common/enums/major.enum';
-import { Character } from 'src/common/enums/character.enum';
-import { Hobby } from 'src/common/enums/hobby.enum';
-
+import {
+  Sex,
+  SexOrient,
+  Mbti,
+  Degree,
+  Major,
+  University,
+} from 'src/common/enums';
 export class CreateUserDto {
   @ValidateIf((o) => o.userName !== undefined && o.userName !== null)
   @IsString()

@@ -1,18 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import User from 'src/entities/users.entity';
+import {
+  UserEntity,
+  AuthPhoneNumberEntity,
+  AuthMailEntity,
+} from 'src/entities/index';
 import { Repository } from 'typeorm';
 import axios from 'axios';
-import AuthPhoneNumberEntity from 'src/entities/authPhoneNumber.entity';
 import { MailerService } from '@nestjs-modules/mailer';
 import crypto from 'crypto';
-import AuthMailEntity from 'src/entities/authMail.entity';
+
 @Injectable()
 export class AuthService {
   constructor(
     private readonly mailerService: MailerService,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(AuthPhoneNumberEntity)
     private readonly authPhoneNumberRepository: Repository<AuthPhoneNumberEntity>,
     @InjectRepository(AuthMailEntity)

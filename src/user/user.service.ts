@@ -1,12 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from 'src/entities/users.entity';
-import { UserInfoEntity } from 'src/entities/userInfo.entity';
 import { Repository } from 'typeorm';
-import { Nickname } from 'src/common/enums/nickname.enum';
-import { Character, CharacterMask } from 'src/common/enums/character.enum';
-import { Hobby, HobbyMask } from 'src/common/enums/hobby.enum';
-
+import { Hobby, Character, Nickname } from 'src/common/enums';
+import { CharacterMask, HobbyMask } from 'src/common/const';
+import { UserEntity, UserInfoEntity } from 'src/entities';
 @Injectable()
 export class UserService {
   constructor(
