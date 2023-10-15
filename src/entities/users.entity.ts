@@ -8,7 +8,7 @@ import {
 import { UserInfoEntity } from './userInfo.entity';
 
 @Entity('users')
-export class UserEntity {
+export default class UserEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
