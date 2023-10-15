@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { UserModule } from './user/user.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
@@ -18,6 +19,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    UserModule,
     MailerModule.forRoot({
       transport: {
         host: 'smtp.gmail.com',

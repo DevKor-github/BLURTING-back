@@ -1,0 +1,17 @@
+export enum Page {
+  phoneNumber = 1,
+  sex = 2,
+  region = 3,
+  religion = 4,
+  sexOrient = 5,
+  drink = 6,
+  cigarette = 7,
+  height = 8,
+  major = 9,
+  mbti = 10,
+  character = 11,
+  hobby = 12,
+  image = 13,
+  university = 14,
+  email = 15,
+}
