@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/entities/users.entity';
 import { UserInfoEntity } from 'src/entities/userInfo.entity';
@@ -15,8 +15,6 @@ export class UserService {
     @InjectRepository(UserInfoEntity)
     private readonly userInfoRepository: Repository<UserInfoEntity>,
   ) {}
-
-  private readonly logger = new Logger(UserService.name);
 
   async createUser() {
     const nicknames = Object.values(Nickname);
@@ -59,8 +57,6 @@ export class UserService {
             HobbyMask[Object.keys(Hobby).find((key) => Hobby[key] == item)];
         }
         this.userInfoRepository.update(id, { hobby: maskedValue });
-        break;
-      case 'image':
         break;
       default:
         this.userInfoRepository.update(id, { [field]: value });
