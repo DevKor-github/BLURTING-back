@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { GeocodingModule } from './geocoding/geocoding.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
         },
       },
     }),
+    GeocodingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
