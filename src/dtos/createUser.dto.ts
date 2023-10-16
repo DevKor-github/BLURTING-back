@@ -14,6 +14,8 @@ import {
   Degree,
   Major,
   University,
+  Character,
+  Hobby,
 } from 'src/common/enums';
 export class CreateUserDto {
   @ValidateIf((o) => o.userName !== undefined && o.userName !== null)
