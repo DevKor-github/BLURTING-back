@@ -6,12 +6,14 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { UserEntity } from 'src/entities/users.entity';
-import { Sex } from 'src/common/enums/sex.enum';
-import { SexOrient } from 'src/common/enums/sexOrient.enum';
-import { Mbti } from 'src/common/enums/mbti.enum';
-import { Degree } from 'src/common/enums/degree.enum';
-import { Major } from 'src/common/enums/major.enum';
-import { University } from 'src/common/enums/university.enum';
+import {
+  Sex,
+  SexOrient,
+  Mbti,
+  Degree,
+  Major,
+  University,
+} from 'src/common/enums';
 
 @Entity('userInfo')
 export class UserInfoEntity {

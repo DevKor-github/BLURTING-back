@@ -3,10 +3,10 @@ import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { UserService } from 'src/user/user.service';
-import { RefreshJwtPayload, SignupPayload } from 'src/interfaces/auth';
+import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
 import { SignupGuard } from './guard/signup.guard';
 import { Page } from 'src/common/enums/page.enum';
-import { CreateUserDto } from 'src/dtos/createUser.dto';
+import { CreateUserDto, LoginDto } from 'src/dtos/createUser.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -37,7 +37,6 @@ export class AuthController {
 
     const pageName = Object.keys(Page).find((key) => Page[key] == page);
 
-    console.log(page, pageName);
     switch (pageName) {
       case 'email':
         // email 인증
@@ -60,7 +59,8 @@ export class AuthController {
   }
 
   @Post('/login')
-  async login(@Body() id: number, @Res() res: Response) {
+  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
+    const { id } = loginDto;
     const user = await this.authService.validateUser(id);
     const refreshToken = await this.authService.getRefreshToken({
       id: user.id,
@@ -75,7 +75,7 @@ export class AuthController {
   @UseGuards(AuthGuard('refresh'))
   @Post('/refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
-    const { id } = req.user as RefreshJwtPayload;
+    const { id } = req.user as JwtPayload;
     const accessToken = await this.authService.getAccessToken({ id: id });
     return res.json({
       accessToken: accessToken,

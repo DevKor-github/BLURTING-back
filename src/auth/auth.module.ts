@@ -1,20 +1,31 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from 'src/entities/users.entity';
+import { PassportModule } from '@nestjs/passport';
+import {
+  UserEntity,
+  AuthMailEntity,
+  AuthPhoneNumberEntity,
+} from 'src/entities';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
-import { JwtStrategy } from './passport/refreshToken.strategy';
-import { LocalStrategy } from './passport/local.strategy';
-import AuthMailEntity from 'src/entities/authMail.entity';
-import AuthPhoneNumberEntity from 'src/entities/authPhoneNumber.entity';
+import { JwtSignupStrategy } from './passport/jwt-signup.strategy';
+import { JwtAccessStrategy } from './passport/jwt-access.strategy';
+import { JwtRefreshStrategy } from './passport/jwt-refresh.strategy';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, AuthMailEntity, AuthPhoneNumberEntity]),
+    TypeOrmModule.forFeature([
+      UserEntity,
+      AuthMailEntity,
+      AuthPhoneNumberEntity,
+    ]),
+    PassportModule.register({ session: false }),
     JwtModule.register({}),
     MailerModule,
+    UserModule,
   ],
   controllers: [AuthController],
   providers: [

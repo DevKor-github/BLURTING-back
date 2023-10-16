@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Injectable, ExecutionContext } from '@nestjs/common';
 import { AuthService } from '../auth.service';
 import { UserService } from 'src/user/user.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -26,7 +26,7 @@ export class SignupGuard extends AuthGuard('signup') {
       const newToken = await this.authService.getSignupToken({
         id: user.id,
         infoId: userInfo.id,
-        page: 1,
+        page: 0,
       });
       res.json({ signupToken: newToken });
       return false;
