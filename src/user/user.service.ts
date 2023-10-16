@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from 'src/entities/users.entity';
-import { UserInfoEntity } from 'src/entities/userInfo.entity';
+import { UserEntity, UserInfoEntity } from 'src/entities';
 import { Repository } from 'typeorm';
 import { Nickname } from 'src/common/enums/nickname.enum';
 import { Character, CharacterMask } from 'src/common/enums/character.enum';
@@ -57,6 +56,8 @@ export class UserService {
             HobbyMask[Object.keys(Hobby).find((key) => Hobby[key] == item)];
         }
         this.userInfoRepository.update(id, { hobby: maskedValue });
+        break;
+      case 'image':
         break;
       default:
         this.userInfoRepository.update(id, { [field]: value });
