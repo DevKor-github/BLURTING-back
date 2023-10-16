@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { UnprocessableEntityException } from '@nestjs/common/exceptions';
+import { UnauthorizedException } from '@nestjs/common/exceptions';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
@@ -59,7 +59,7 @@ export class AuthService {
     const user = await this.userService.findUser('id', id);
 
     if (!user) {
-      throw new UnprocessableEntityException('등록되지 않은 사용자입니다.');
+      throw new UnauthorizedException('등록되지 않은 사용자입니다.');
     }
     return user;
   }

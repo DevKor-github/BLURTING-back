@@ -79,3 +79,7 @@ export class CreateUserDto {
   @IsEnum(University)
   university: University;
 }
+
+export class LoginDto {
+  id: number;
+}
