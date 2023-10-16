@@ -1,4 +1,4 @@
-import UserEntity from 'src/entities/user.entity';
+import { UserEntity } from 'src/entities';
 import {
   Column,
   CreateDateColumn,
@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-class AuthMailEntity {
+export class AuthMailEntity {
   @PrimaryGeneratedColumn()
   id: string;
 
@@ -24,5 +24,3 @@ class AuthMailEntity {
   @ManyToOne(() => UserEntity, () => undefined)
   user: UserEntity;
 }
-
-export default AuthMailEntity;

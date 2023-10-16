@@ -1,18 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import User from 'src/entities/user.entity';
+import {
+  UserEntity,
+  AuthPhoneNumberEntity,
+  AuthMailEntity,
+} from 'src/entities';
 import { Repository } from 'typeorm';
 import axios from 'axios';
-import AuthPhoneNumberEntity from 'src/entities/authPhoneNumber.entity';
 import { MailerService } from '@nestjs-modules/mailer';
 import crypto from 'crypto';
-import AuthMailEntity from 'src/entities/authMail.entity';
+
 @Injectable()
 export class AuthService {
   constructor(
     private readonly mailerService: MailerService,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(AuthPhoneNumberEntity)
     private readonly authPhoneNumberRepository: Repository<AuthPhoneNumberEntity>,
     @InjectRepository(AuthMailEntity)
@@ -23,7 +26,7 @@ export class AuthService {
 
   async validatePhoneNumber(phoneNumber: string, userId: number) {
     const phone = await this.authPhoneNumberRepository.findOne({
-      where: { user: { userId }, isValid: false },
+      where: { user: { id: userId }, isValid: false },
       order: { createdAt: 'DESC' },
     });
     if (
@@ -49,7 +52,7 @@ export class AuthService {
     };
 
     const phoneEntity = this.authPhoneNumberRepository.create({
-      user: { userId },
+      user: { id: userId },
       code: number,
       isValid: false,
     });
@@ -83,7 +86,7 @@ export class AuthService {
 
   async checkCode(userId: number, code: string) {
     const phone = await this.authPhoneNumberRepository.findOne({
-      where: { user: { userId }, code },
+      where: { user: { id: userId }, code },
     });
     if (!phone) {
       throw new Error('인증번호가 일치하지 않습니다.');
@@ -112,7 +115,7 @@ export class AuthService {
     });
     const entity = this.authMailRepository.create({
       code,
-      user: { userId },
+      user: { id: userId },
       isValid: false,
     });
 
