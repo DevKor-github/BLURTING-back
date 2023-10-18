@@ -17,7 +17,7 @@ import crypto from 'crypto';
 @Injectable()
 export class AuthService {
   constructor(
-     private readonly mailerService: MailerService,
+    private readonly mailerService: MailerService,
     @InjectRepository(UserEntity)
     @InjectRepository(AuthPhoneNumberEntity)
     private readonly authPhoneNumberRepository: Repository<AuthPhoneNumberEntity>,
@@ -71,21 +71,6 @@ export class AuthService {
     return signupJwt;
   }
 
-
-  async getSignupToken(signupPayload: SignupPayload) {
-    const payload: SignupPayload = {
-      id: signupPayload.id,
-      infoId: signupPayload.infoId,
-      page: signupPayload.page + 1,
-    };
-
-    const signupJwt = await this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET_KEY,
-    });
-
-    return signupJwt;
-  }
-
   async validateUser(id: number) {
     const user = await this.userService.findUser('id', id);
 
@@ -93,7 +78,8 @@ export class AuthService {
       throw new UnauthorizedException('등록되지 않은 사용자입니다.');
     }
     return user;
-     async validatePhoneNumber(phoneNumber: string, userId: number) {
+  }
+  async validatePhoneNumber(phoneNumber: string, userId: number) {
     const phone = await this.authPhoneNumberRepository.findOne({
       where: { user: { id: userId }, isValid: false },
       order: { createdAt: 'DESC' },
@@ -189,17 +175,5 @@ export class AuthService {
     });
 
     await this.authMailRepository.save(entity);
-  }
-
-  async validateUser(id: number) {
-    const user = await this.userService.findUser('id', id);
-
-    if (!user) {
-      throw new UnauthorizedException('등록되지 않은 사용자입니다.');
-    }
-
-
-    return user;
-
   }
 }

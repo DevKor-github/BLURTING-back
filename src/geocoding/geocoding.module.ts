@@ -4,6 +4,6 @@ import { GeocodingService } from './geocoding.service';
 
 @Module({
   controllers: [GeocodingController],
-  providers: [GeocodingService]
+  providers: [GeocodingService],
 })
 export class GeocodingModule {}

@@ -633,5 +633,4 @@ export const UnivMailMap = {
   홍익대학교(세종) hongik.ac.kr
   화신사이버대학교: 'hscu.ac.kr'
   */
-
 };
