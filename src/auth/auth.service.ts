@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   UserEntity,
@@ -8,23 +9,77 @@ import {
 import { Repository } from 'typeorm';
 import axios from 'axios';
 import { MailerService } from '@nestjs-modules/mailer';
+import { JwtService } from '@nestjs/jwt';
+import { UserService } from 'src/user/user.service';
+import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
 import crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly mailerService: MailerService,
+     private readonly mailerService: MailerService,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(AuthPhoneNumberEntity)
     private readonly authPhoneNumberRepository: Repository<AuthPhoneNumberEntity>,
     @InjectRepository(AuthMailEntity)
     private readonly authMailRepository: Repository<AuthMailEntity>,
+    private readonly jwtService: JwtService,
+    private readonly userService: UserService,
   ) {}
 
-  async validateUser() {}
+  private readonly logger = new Logger(AuthService.name);
 
-  async validatePhoneNumber(phoneNumber: string, userId: number) {
+  async getRefreshToken({ id }) {
+    const payload: JwtPayload = {
+      id: id,
+      signedAt: new Date().toISOString(),
+    };
+
+    const refreshJwt = await this.jwtService.sign(payload, {
+      secret: process.env.REFRESH_TOKEN_SECRET_KEY,
+    });
+    this.userService.updateUser(id, 'token', refreshJwt);
+
+    return refreshJwt;
+  }
+
+  async getAccessToken({ id }) {
+    const payload: JwtPayload = {
+      id: id,
+      signedAt: new Date().toISOString(),
+    };
+
+    const accessJwt = await this.jwtService.sign(payload, {
+      secret: process.env.ACCESS_TOKEN_SECRET_KEY,
+      expiresIn: '1h',
+    });
+
+    return accessJwt;
+  }
+
+  async getSignupToken(signupPayload: SignupPayload) {
+    const payload: SignupPayload = {
+      id: signupPayload.id,
+      infoId: signupPayload.infoId,
+      page: signupPayload.page + 1,
+    };
+
+    const signupJwt = await this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET_KEY,
+    });
+
+    return signupJwt;
+  }
+
+  async validateUser(id: number) {
+    const user = await this.userService.findUser('id', id);
+
+    if (!user) {
+      throw new UnauthorizedException('등록되지 않은 사용자입니다.');
+    }
+    return user;
+     async validatePhoneNumber(phoneNumber: string, userId: number) {
     const phone = await this.authPhoneNumberRepository.findOne({
       where: { user: { id: userId }, isValid: false },
       order: { createdAt: 'DESC' },
@@ -130,6 +185,5 @@ export class AuthService {
       throw new Error('인증번호가 일치하지 않습니다.');
     }
 
-    // verify
   }
 }

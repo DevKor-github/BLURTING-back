@@ -6,6 +6,7 @@ export interface JwtPayload extends User {
   signedAt: string;
 }
 
-export interface RefreshTokenPayload extends JwtPayload {
-  refreshToken: string;
+export interface SignupPayload extends User {
+  infoId: number;
+  page: number;
 }
