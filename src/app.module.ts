@@ -7,6 +7,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { S3Module } from './s3/s3.module';
+import { GeocodingModule } from './geocoding/geocoding.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { S3Module } from './s3/s3.module';
         },
       },
     }),
+    GeocodingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

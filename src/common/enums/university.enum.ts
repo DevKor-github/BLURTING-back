@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 export enum University {
   가천대학교 = '가천대학교',
   가톨릭상지대학교 = '가톨릭상지대학교',

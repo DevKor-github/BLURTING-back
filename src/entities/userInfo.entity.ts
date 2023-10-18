@@ -5,7 +5,7 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { UserEntity } from 'src/entities/users.entity';
+import { UserEntity } from 'src/entities';
 import {
   Sex,
   SexOrient,

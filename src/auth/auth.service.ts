@@ -1,19 +1,24 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable, Logger } from '@nestjs/common';
 import { UnauthorizedException } from '@nestjs/common/exceptions';
+import { InjectRepository } from '@nestjs/typeorm';
+import {
+  UserEntity,
+  AuthPhoneNumberEntity,
+  AuthMailEntity,
+} from 'src/entities';
 import { Repository } from 'typeorm';
-import { JwtService } from '@nestjs/jwt';
-import { MailerService } from '@nestjs-modules/mailer';
-import crypto from 'crypto';
 import axios from 'axios';
+import { MailerService } from '@nestjs-modules/mailer';
+import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
-import { AuthMailEntity, AuthPhoneNumberEntity } from 'src/entities';
+import crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly mailerService: MailerService,
+     private readonly mailerService: MailerService,
+    @InjectRepository(UserEntity)
     @InjectRepository(AuthPhoneNumberEntity)
     private readonly authPhoneNumberRepository: Repository<AuthPhoneNumberEntity>,
     @InjectRepository(AuthMailEntity)
@@ -21,6 +26,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
   ) {}
+
+  private readonly logger = new Logger(AuthService.name);
 
   async getRefreshToken({ id }) {
     const payload: JwtPayload = {
@@ -64,7 +71,29 @@ export class AuthService {
     return signupJwt;
   }
 
-  async validatePhoneNumber(phoneNumber: string, userId: number) {
+
+  async getSignupToken(signupPayload: SignupPayload) {
+    const payload: SignupPayload = {
+      id: signupPayload.id,
+      infoId: signupPayload.infoId,
+      page: signupPayload.page + 1,
+    };
+
+    const signupJwt = await this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET_KEY,
+    });
+
+    return signupJwt;
+  }
+
+  async validateUser(id: number) {
+    const user = await this.userService.findUser('id', id);
+
+    if (!user) {
+      throw new UnauthorizedException('등록되지 않은 사용자입니다.');
+    }
+    return user;
+     async validatePhoneNumber(phoneNumber: string, userId: number) {
     const phone = await this.authPhoneNumberRepository.findOne({
       where: { user: { id: userId }, isValid: false },
       order: { createdAt: 'DESC' },
@@ -169,6 +198,8 @@ export class AuthService {
       throw new UnauthorizedException('등록되지 않은 사용자입니다.');
     }
 
+
     return user;
+
   }
 }
