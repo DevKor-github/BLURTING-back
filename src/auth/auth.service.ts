@@ -19,7 +19,6 @@ export class AuthService {
   constructor(
      private readonly mailerService: MailerService,
     @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(AuthPhoneNumberEntity)
     private readonly authPhoneNumberRepository: Repository<AuthPhoneNumberEntity>,
     @InjectRepository(AuthMailEntity)
@@ -57,6 +56,21 @@ export class AuthService {
 
     return accessJwt;
   }
+
+  async getSignupToken(signupPayload: SignupPayload) {
+    const payload: SignupPayload = {
+      id: signupPayload.id,
+      infoId: signupPayload.infoId,
+      page: signupPayload.page + 1,
+    };
+
+    const signupJwt = await this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET_KEY,
+    });
+
+    return signupJwt;
+  }
+
 
   async getSignupToken(signupPayload: SignupPayload) {
     const payload: SignupPayload = {
@@ -177,13 +191,15 @@ export class AuthService {
     await this.authMailRepository.save(entity);
   }
 
-  async verifyEmail(email: string, code: string) {
-    const mailEntity = await this.authMailRepository.findOne({
-      where: { code, user: {} },
-    });
-    if (!mailEntity) {
-      throw new Error('인증번호가 일치하지 않습니다.');
+  async validateUser(id: number) {
+    const user = await this.userService.findUser('id', id);
+
+    if (!user) {
+      throw new UnauthorizedException('등록되지 않은 사용자입니다.');
     }
+
+
+    return user;
 
   }
 }

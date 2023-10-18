@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Hobby, Character, Nickname } from 'src/common/enums';
@@ -12,8 +12,6 @@ export class UserService {
     @InjectRepository(UserInfoEntity)
     private readonly userInfoRepository: Repository<UserInfoEntity>,
   ) {}
-
-  private readonly logger = new Logger(UserService.name);
 
   async createUser() {
     const nicknames = Object.values(Nickname);
