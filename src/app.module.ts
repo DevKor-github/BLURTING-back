@@ -4,7 +4,9 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { S3Module } from './s3/s3.module';
 import { GeocodingModule } from './geocoding/geocoding.module';
 
 @Module({
@@ -21,6 +23,8 @@ import { GeocodingModule } from './geocoding/geocoding.module';
       synchronize: true,
     }),
     UserModule,
+    AuthModule,
+    S3Module,
     MailerModule.forRoot({
       transport: {
         host: 'smtp.gmail.com',

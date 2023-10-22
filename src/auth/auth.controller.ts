@@ -1,5 +1,12 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Body, Req, Res, Post, UseGuards } from '@nestjs/common';
+import { Request, Response } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
+import { UserService } from 'src/user/user.service';
+import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
+import { SignupGuard } from './guard/signup.guard';
+import { Page } from 'src/common/enums/page.enum';
+import { CreateUserDto, LoginDto } from 'src/dtos/createUser.dto';
 
 @Controller('auth')
 export class AuthController {

@@ -17,6 +17,7 @@ import {
   Character,
   Hobby,
 } from 'src/common/enums';
+
 export class CreateUserDto {
   @ValidateIf((o) => o.userName !== undefined && o.userName !== null)
   @IsString()
@@ -79,4 +80,8 @@ export class CreateUserDto {
   @ValidateIf((o) => o.university !== undefined && o.university !== null)
   @IsEnum(University)
   university: University;
+}
+
+export class LoginDto {
+  id: number;
 }

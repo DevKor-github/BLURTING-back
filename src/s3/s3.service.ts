@@ -13,6 +13,7 @@ export class S3Service {
 
   async uploadImage(file: Express.Multer.File) {
     const key = `${Date.now() + file.originalname}`;
+
     const params: PutObjectCommandInput = {
       Bucket: process.env.AWS_BUCKET_NAME,
       ACL: process.env.AWS_ACL as ObjectCannedACL,
