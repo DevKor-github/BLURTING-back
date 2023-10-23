@@ -8,6 +8,8 @@ import { AuthModule } from './auth/auth.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { S3Module } from './s3/s3.module';
 import { GeocodingModule } from './geocoding/geocoding.module';
+import { ChatModule } from './chat/chat.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
@@ -22,6 +24,7 @@ import { GeocodingModule } from './geocoding/geocoding.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    MongooseModule.forRoot(process.env.MONGO_URI),
     UserModule,
     AuthModule,
     S3Module,
@@ -36,6 +39,7 @@ import { GeocodingModule } from './geocoding/geocoding.module';
       },
     }),
     GeocodingModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
