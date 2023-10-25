@@ -26,18 +26,26 @@ export class ChatGateway
 
   handleConnection(@ConnectedSocket() client: Socket) {
     //소켓 유저 설정
-    const userId = parseInt(client.handshake.query['userId'][0], 10);
+    let id = client.handshake.query['id'];
+    if (Array.isArray(id)) {
+      id = id[0];
+    }
+    const userId = parseInt(id, 10);
     this.chatService.updateSocketUser(userId, client.id);
   }
 
   handleDisconnect(@ConnectedSocket() client: Socket) {
     //소켓 유저 socket 비우기
-    const userId = parseInt(client.handshake.query['userId'][0], 10);
+    let id = client.handshake.query['id'];
+    if (Array.isArray(id)) {
+      id = id[0];
+    }
+    const userId = parseInt(id, 10);
     this.chatService.updateSocketUser(userId, null);
   }
 
-  @SubscribeMessage('join_chat')
-  async handleJoinChat(
+  @SubscribeMessage('create_room')
+  async handleCreateRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody() users: number[],
   ) {
@@ -45,14 +53,20 @@ export class ChatGateway
     client.join(roomId);
 
     const socketId = await this.chatService.findUserSocketId(users[1]);
-    if (socketId == null) {
-    } else {
-      const targetSocket = this.server.sockets.sockets.get(socketId);
-      targetSocket.join(roomId);
+    if (socketId) {
+      client.to(socketId).emit('invite_chat', roomId);
     }
   }
 
-  @SubscribeMessage('chatting')
+  @SubscribeMessage('join_chat')
+  async handleJoinChat(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() roomId: string,
+  ) {
+    client.join(roomId);
+  }
+
+  @SubscribeMessage('send_chat')
   handleChatting(
     @ConnectedSocket() client: Socket,
     @MessageBody() chatData: ChatDto,

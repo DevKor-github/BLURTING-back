@@ -27,5 +27,5 @@ export class ChatUserDto {
   readonly hasRead: Date;
 
   @IsBoolean()
-  readonly isDeleted: Date;
+  readonly isDeleted: boolean;
 }

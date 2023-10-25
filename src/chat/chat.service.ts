@@ -38,29 +38,45 @@ export class ChatService {
   }
 
   async newChatRoom(users: number[]) {
+    const room = await this.findCreatedRoom(users);
+
+    if (room) {
+      return room.id;
+    }
+
     const userObj: ChatUserDto[] = [];
     const roomId =
-      Math.floor(Math.random() * 100000).toString() + userObj[0] + userObj[1];
+      Math.floor(Math.random() * 100000).toString() + users[0] + users[1];
 
-    users.forEach(async (id) => {
+    for (const id of users) {
       const userImage = await this.userService.getUserImage(id);
       userObj.push({
         userId: id,
         userImage: userImage,
         hasRead: new Date(),
-        isDeleted: new Date(),
-      });
-    });
-    const exist = await this.roomModel.exists({ users: userObj });
-    if (!exist) {
-      await this.roomModel.create({
-        id: roomId,
-        users: userObj,
-        connected: true,
+        isDeleted: false,
       });
     }
-    console.log(roomId);
+
+    await this.roomModel.create({
+      id: roomId,
+      users: userObj,
+      connected: true,
+    });
     return roomId;
+  }
+
+  async findCreatedRoom(users: number[]): Promise<Room | null> {
+    return this.roomModel
+      .findOne({
+        users: {
+          $all: [
+            { $elemMatch: { userId: users[0] } },
+            { $elemMatch: { userId: users[1] } },
+          ],
+        },
+      })
+      .exec();
   }
 
   addChat(chatData: ChatDto) {

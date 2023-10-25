@@ -4,7 +4,7 @@ import { Schema as MongooseSchema, Document, SchemaOptions } from 'mongoose';
 import { ChatUserDto } from 'src/dtos/chat.dto';
 
 const options: SchemaOptions = {
-  _id: false,
+  id: false,
   collection: 'room',
 };
 
