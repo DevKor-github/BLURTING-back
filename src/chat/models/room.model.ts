@@ -4,15 +4,16 @@ import { Schema as MongooseSchema, Document, SchemaOptions } from 'mongoose';
 import { ChatUserDto } from 'src/dtos/chat.dto';
 
 const options: SchemaOptions = {
-  id: false,
+  _id: false,
   collection: 'room',
-  timestamps: true,
 };
 
 const ChatUser = new MongooseSchema(
   {
     userId: { required: true, type: Number },
-    userNickname: { required: true, type: String },
+    userImage: { type: String },
+    hasRead: { required: true, type: Date },
+    isDeleted: { required: true, type: Boolean },
   },
   { _id: false },
 );

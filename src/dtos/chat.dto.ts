@@ -1,6 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsDate, IsNumber, IsString } from 'class-validator';
-import { PickType } from '@nestjs/swagger';
+import { IsBoolean, IsDate, IsNumber, IsString } from 'class-validator';
 
 export class ChatDto {
   @IsString()
@@ -10,9 +9,6 @@ export class ChatDto {
   readonly userId: number;
 
   @IsString()
-  readonly userNickname: string;
-
-  @IsString()
   readonly chat: string;
 
   @Type(() => Date)
@@ -20,7 +16,16 @@ export class ChatDto {
   readonly createdAt: Date;
 }
 
-export class ChatUserDto extends PickType(ChatDto, [
-  'userId',
-  'userNickname',
-] as const) {}
+export class ChatUserDto {
+  @IsNumber()
+  readonly userId: number;
+
+  @IsString()
+  readonly userImage: string;
+
+  @IsDate()
+  readonly hasRead: Date;
+
+  @IsBoolean()
+  readonly isDeleted: Date;
+}

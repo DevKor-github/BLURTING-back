@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { UserEntity } from 'src/entities';
 
 @Entity('userImage')
@@ -13,5 +19,6 @@ export class UserImageEntity {
   no: number;
 
   @ManyToOne(() => UserEntity)
+  @JoinColumn()
   user: UserEntity;
 }

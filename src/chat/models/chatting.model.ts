@@ -1,12 +1,12 @@
-import { Type } from 'class-transformer';
-import { IsDate, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsDate } from 'class-validator';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaOptions } from 'mongoose';
 import { Room } from './room.model';
+import { Type } from 'class-transformer';
 
 const options: SchemaOptions = {
   collection: 'chatting',
-  timestamps: true,
+  timestamps: false,
 };
 
 @Schema(options)
@@ -33,14 +33,6 @@ export class Chatting extends Document {
   })
   @IsNotEmpty()
   @IsString()
-  userNickname: string;
-
-  @Prop({
-    required: true,
-    type: String,
-  })
-  @IsNotEmpty()
-  @IsString()
   chat: string;
 
   @Prop({
@@ -48,6 +40,7 @@ export class Chatting extends Document {
     type: Date,
   })
   @Type(() => Date)
+  @IsNotEmpty()
   @IsDate()
   createdAt: Date;
 }
