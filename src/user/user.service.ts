@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Hobby, Character, Nickname } from 'src/common/enums';
 import { CharacterMask, HobbyMask } from 'src/common/const';
-import { UserEntity, UserInfoEntity } from 'src/entities';
+import { UserEntity, UserInfoEntity, UserImageEntity } from 'src/entities';
 @Injectable()
 export class UserService {
   constructor(
@@ -11,6 +11,8 @@ export class UserService {
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(UserInfoEntity)
     private readonly userInfoRepository: Repository<UserInfoEntity>,
+    @InjectRepository(UserImageEntity)
+    private readonly userImageRepository: Repository<UserImageEntity>,
   ) {}
 
   async createUser() {
@@ -67,5 +69,14 @@ export class UserService {
       where: { [field]: value },
     });
     return user;
+  }
+
+  async getUserImage(userId: number) {
+    const userImage = await this.userImageRepository.find({
+      where: { user: { id: userId }, no: 1 },
+      relations: ['user'],
+    });
+
+    return userImage ? userImage['url'] : null;
   }
 }

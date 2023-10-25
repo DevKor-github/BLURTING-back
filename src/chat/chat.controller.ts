@@ -12,7 +12,7 @@ import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtPayload } from 'src/interfaces/auth';
 import { ChatService } from './chat.service';
-import { ChatDto, ChatUserDto } from 'src/dtos/chat.dto';
+import { ChatDto } from 'src/dtos/chat.dto';
 
 @Controller('chat')
 export class ChatController {
@@ -20,7 +20,7 @@ export class ChatController {
 
   // new room test
   @Post('/join')
-  async joinChat(@Body() users: ChatUserDto[], @Res() res: Response) {
+  async joinChat(@Body() users: number[], @Res() res: Response) {
     return await res.send(this.chatService.newChatRoom(users));
   }
 
@@ -36,7 +36,6 @@ export class ChatController {
   async getChatRooms(@Req() req: Request, @Res() res: Response) {
     const { id } = req.user as JwtPayload;
     const rooms = await this.chatService.getChatRooms(id);
-    console.log(rooms);
     return res.json(rooms);
   }
 
@@ -50,7 +49,6 @@ export class ChatController {
   ) {
     const { id } = req.user as JwtPayload;
     const chats = await this.chatService.getChats(roomId, id);
-    console.log(chats);
     return await res.json(chats);
   }
 

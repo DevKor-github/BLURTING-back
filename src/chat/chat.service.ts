@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose/dist/common';
-import { Room, Chatting } from './models';
+import { Room, Chatting, SocketUser } from './models';
 import { Model } from 'mongoose';
 import { ChatDto, ChatUserDto } from 'src/dtos/chat.dto';
 import { UnauthorizedException } from '@nestjs/common/exceptions';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class ChatService {
@@ -11,14 +12,45 @@ export class ChatService {
     @InjectModel(Chatting.name) private readonly chattingModel: Model<Chatting>,
     @InjectModel(Room.name)
     private readonly roomModel: Model<Room>,
+    @InjectModel(SocketUser.name)
+    private readonly socketUserModel: Model<SocketUser>,
+    private readonly userService: UserService,
   ) {}
 
-  async newChatRoom(userObj: ChatUserDto[]) {
-    const roomId =
-      Math.floor(Math.random() * 100000).toString() +
-      userObj[0].userId +
-      userObj[1].userId;
+  async updateSocketUser(userId: number, socketId: string) {
+    const socketUser = await this.socketUserModel.findOne({ userId: userId });
+    if (socketUser == null) {
+      await this.socketUserModel.create({
+        socketId: socketId,
+        userId: userId,
+      });
+    } else {
+      await this.socketUserModel.updateOne(
+        { userId: userId },
+        { socketId: socketId },
+      );
+    }
+  }
 
+  async findUserSocketId(userId: number) {
+    const socketUser = await this.socketUserModel.findOne({ userId: userId });
+    return socketUser.socketId;
+  }
+
+  async newChatRoom(users: number[]) {
+    const userObj: ChatUserDto[] = [];
+    const roomId =
+      Math.floor(Math.random() * 100000).toString() + userObj[0] + userObj[1];
+
+    users.forEach(async (id) => {
+      const userImage = await this.userService.getUserImage(id);
+      userObj.push({
+        userId: id,
+        userImage: userImage,
+        hasRead: new Date(),
+        isDeleted: new Date(),
+      });
+    });
     const exist = await this.roomModel.exists({ users: userObj });
     if (!exist) {
       await this.roomModel.create({
