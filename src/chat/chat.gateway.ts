@@ -8,10 +8,9 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { ChatDto } from 'src/dtos/chat.dto';
 import { ChatService } from './chat.service';
-import { Server } from 'socket.io';
 
 @WebSocketGateway({ namespace: 'whisper' })
 export class ChatGateway
@@ -24,24 +23,23 @@ export class ChatGateway
 
   afterInit() {}
 
-  handleConnection(@ConnectedSocket() client: Socket) {
-    //소켓 유저 설정
-    let id = client.handshake.query['id'];
-    if (Array.isArray(id)) {
-      id = id[0];
+  async handleConnection(@ConnectedSocket() client: Socket) {
+    const validated = await this.chatService.validateSocket(client);
+    if (!validated) return;
+
+    this.chatService.updateSocketUser(client.data.userId, client.id);
+
+    const chatRooms = await this.chatService.getChatRooms(client.data.userId);
+    for (const room of chatRooms) {
+      client.join(room.id);
     }
-    const userId = parseInt(id, 10);
-    this.chatService.updateSocketUser(userId, client.id);
   }
 
-  handleDisconnect(@ConnectedSocket() client: Socket) {
-    //소켓 유저 socket 비우기
-    let id = client.handshake.query['id'];
-    if (Array.isArray(id)) {
-      id = id[0];
-    }
-    const userId = parseInt(id, 10);
-    this.chatService.updateSocketUser(userId, null);
+  async handleDisconnect(@ConnectedSocket() client: Socket) {
+    const validated = await this.chatService.validateSocket(client);
+    if (!validated) return;
+
+    this.chatService.updateSocketUser(client.data.userId, null);
   }
 
   @SubscribeMessage('create_room')

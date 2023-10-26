@@ -83,5 +83,6 @@ export class CreateUserDto {
 }
 
 export class LoginDto {
+  @IsNumber()
   id: number;
 }

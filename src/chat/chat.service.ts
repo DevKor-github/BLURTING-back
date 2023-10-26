@@ -5,6 +5,8 @@ import { Model } from 'mongoose';
 import { ChatDto, ChatUserDto } from 'src/dtos/chat.dto';
 import { UnauthorizedException } from '@nestjs/common/exceptions';
 import { UserService } from 'src/user/user.service';
+import { Socket } from 'socket.io';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class ChatService {
@@ -16,6 +18,24 @@ export class ChatService {
     private readonly socketUserModel: Model<SocketUser>,
     private readonly userService: UserService,
   ) {}
+
+  async validateSocket(client: Socket) {
+    const authHeader = client.handshake.headers['authorization'];
+    if (!authHeader) {
+      client.disconnect(true);
+      return false;
+    }
+    try {
+      const token = authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET_KEY);
+      client.data.userId = decoded['id'];
+    } catch (error) {
+      client.disconnect(true);
+      return false;
+    }
+
+    return true;
+  }
 
   async updateSocketUser(userId: number, socketId: string) {
     const socketUser = await this.socketUserModel.findOne({ userId: userId });
@@ -85,9 +105,7 @@ export class ChatService {
 
   async getChatRooms(userId: number) {
     const rooms = await this.roomModel
-      .find()
-      .where('users.userId')
-      .equals(userId)
+      .find({ 'users.userId': userId })
       .select('id users -_id');
     return rooms;
   }
