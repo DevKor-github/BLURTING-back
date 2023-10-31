@@ -1,4 +1,9 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  PutObjectCommandInput,
+  ObjectCannedACL,
+} from '@aws-sdk/client-s3';
 
 const s3 = new S3Client({
   credentials: {
@@ -10,9 +15,9 @@ const s3 = new S3Client({
 
 export const uploadImage = async (file: Express.Multer.File) => {
   const key = `${Date.now() + file.originalname}`;
-  const params = {
+  const params: PutObjectCommandInput = {
     Bucket: process.env.AWS_BUCKET_NAME,
-    ACL: '',
+    ACL: '' as ObjectCannedACL,
     Key: key,
     Body: file.buffer,
   };

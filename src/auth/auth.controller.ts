@@ -1,4 +1,13 @@
-import { Controller, Body, Req, Res, Post, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Body,
+  Req,
+  Res,
+  Post,
+  UseGuards,
+  Query,
+  Get,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
@@ -16,6 +25,28 @@ export class AuthController {
   ) {}
 
   @UseGuards(SignupGuard)
+  @Post('/check/phone')
+  async checkCode(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Query('code') code: string,
+    @Body() number: string,
+  ) {
+    const { id } = req.user as SignupPayload;
+
+    this.authService.checkCode(id, code, number);
+    const signupToken = await this.authService.getSignupToken(
+      req.user as SignupPayload,
+    );
+
+    return res.json({ signupToken: signupToken });
+  }
+
+  @Get('/check/email')
+  async checkMail(@Query('code') code: string, @Query('email') email: string) {
+    await this.authService.checkMail(code, email);
+  }
+  @UseGuards(SignupGuard)
   @Post('/signup')
   async signup(
     @Req() req: Request,
@@ -23,7 +54,7 @@ export class AuthController {
     @Res() res: Response,
   ) {
     const { id, infoId, page } = req.user as SignupPayload;
-    if (page > 15) {
+    if (page > 16) {
       // email, phoneNumber 저장
       return res.json({
         refreshToken: await this.authService.getRefreshToken({
@@ -39,10 +70,13 @@ export class AuthController {
 
     switch (pageName) {
       case 'email':
-        // email 인증
+        this.authService.sendVerificationCode(id, info.email);
         break;
       case 'phoneNumber':
-        // phone 인증
+        this.authService.validatePhoneNumber(info.phoneNumber, id);
+        break;
+      case 'checkPhoneNumber':
+        // TODO: err
         break;
       case 'userName':
         this.userService.updateUser(id, 'userName', info['userName']);
@@ -61,6 +95,7 @@ export class AuthController {
   @Post('/login')
   async login(@Body() loginDto: LoginDto, @Res() res: Response) {
     const { id } = loginDto;
+
     const user = await this.authService.validateUser(id);
     const refreshToken = await this.authService.getRefreshToken({
       id: user.id,
