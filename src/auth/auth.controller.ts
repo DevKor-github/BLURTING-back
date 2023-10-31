@@ -7,7 +7,6 @@ import {
   UseGuards,
   Query,
   Get,
-  Header,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
@@ -23,8 +22,12 @@ import {
   ApiOperation,
   ApiQuery,
   ApiTags,
+  ApiBody,
 } from '@nestjs/swagger';
-import { TokenResponseDto } from './dtos/tokenResponseDto';
+import {
+  SignupTokenResponseDto,
+  TokenResponseDto,
+} from './dtos/tokenResponseDto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -81,6 +84,24 @@ export class AuthController {
 
   @UseGuards(SignupGuard)
   @Post('/signup')
+  @ApiCreatedResponse({
+    description: 'new signup token',
+    type: SignupTokenResponseDto,
+  })
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiBody({
+    description: '유저 정보 차례대로 하나씩',
+    type: CreateUserDto,
+  })
+  @ApiOperation({
+    summary: '회원가입',
+    description:
+      'signup token과 body의 정보로 회원가입 진행 및 signup token 재발행',
+  })
   async signup(
     @Req() req: Request,
     @Body() info: CreateUserDto,
