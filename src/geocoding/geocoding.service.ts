@@ -32,6 +32,7 @@ export class GeocodingService {
       return response.data.response;
     } catch (err) {
       //TODO: error alram..
+      console.log(err);
     }
   }
 
@@ -75,19 +76,22 @@ export class GeocodingService {
       return response.data.response;
     } catch (err) {
       //TODO: error alram..
+      console.log(err);
     }
   }
 
   async getAdjGeoList(sigungu: string) {
     try {
+      console.log(process.env.VWORLD_API_KEY);
       const district = await this.searchOneDistrictByName(sigungu);
-
+      console.log(district);
       if (district.status === 'NOT_FOUND') return [];
 
       const geo = `POINT(${district.result.featureCollection.features[0].geometry.coordinates[0][0][0][0]} ${district.result.featureCollection.features[0].geometry.coordinates[0][0][0][1]})`;
       return await this.searchDistrictByGeo(geo);
     } catch (err) {
       //TODO: error alram..
+      console.log(err);
     }
   }
 }

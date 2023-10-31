@@ -1,11 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { UnauthorizedException } from '@nestjs/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  UserEntity,
-  AuthPhoneNumberEntity,
-  AuthMailEntity,
-} from 'src/entities';
+import { AuthPhoneNumberEntity, AuthMailEntity } from 'src/entities';
 import { Repository } from 'typeorm';
 import axios from 'axios';
 import { MailerService } from '@nestjs-modules/mailer';
@@ -17,12 +13,11 @@ import crypto from 'crypto';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly mailerService: MailerService,
-    @InjectRepository(UserEntity)
     @InjectRepository(AuthPhoneNumberEntity)
     private readonly authPhoneNumberRepository: Repository<AuthPhoneNumberEntity>,
     @InjectRepository(AuthMailEntity)
     private readonly authMailRepository: Repository<AuthMailEntity>,
+    private readonly mailerService: MailerService,
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
   ) {}
@@ -139,9 +134,10 @@ export class AuthService {
       throw new Error('올바르지 않은 전화번호입니다. 다시 시도해주세요.');
   }
 
-  async checkCode(userId: number, code: string) {
+  async checkCode(userId: number, code: string, phoneNumber: string) {
     const phone = await this.authPhoneNumberRepository.findOne({
       where: { user: { id: userId }, code },
+      relations: ['user'],
     });
     if (!phone) {
       throw new Error('인증번호가 일치하지 않습니다.');
@@ -155,6 +151,7 @@ export class AuthService {
     }
 
     phone.isValid = true;
+    phone.user.phoneNumber = phoneNumber;
     await this.authPhoneNumberRepository.save(phone);
     return true;
   }
@@ -166,7 +163,7 @@ export class AuthService {
       from: process.env.MAIL_USER,
       to: to,
       subject: '블러팅 이메일을 인증해주세요.',
-      html: `아래 링크에 접속하면 인증이 완료됩니다. <br /> <a href="${'api'}?code=${code}">인증하기</a>`,
+      html: `아래 링크에 접속하면 인증이 완료됩니다. <br /> <a href="${'api'}?code=${code}&email=${to}">인증하기</a>`,
     });
     const entity = this.authMailRepository.create({
       code,
@@ -175,5 +172,21 @@ export class AuthService {
     });
 
     await this.authMailRepository.save(entity);
+  }
+
+  async checkMail(code: string, email: string) {
+    const mail = await this.authMailRepository.findOne({
+      where: {
+        code: code,
+        isValid: false,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+      relations: ['user'],
+    });
+    mail.user.email = email;
+    mail.isValid = true;
+    await this.authMailRepository.save(mail);
   }
 }
