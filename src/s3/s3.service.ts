@@ -3,6 +3,8 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  PutObjectCommandInput,
+  ObjectCannedACL,
 } from '@aws-sdk/client-s3';
 
 @Injectable()
@@ -11,9 +13,10 @@ export class S3Service {
 
   async uploadImage(file: Express.Multer.File) {
     const key = `${Date.now() + file.originalname}`;
-    const params = {
+
+    const params: PutObjectCommandInput = {
       Bucket: process.env.AWS_BUCKET_NAME,
-      ACL: process.env.AWS_ACL,
+      ACL: process.env.AWS_ACL as ObjectCannedACL,
       Key: key,
       Body: file.buffer,
     };
@@ -23,7 +26,7 @@ export class S3Service {
   }
 
   async deleteImage(key: string) {
-    const params = {
+    const params: PutObjectCommandInput = {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: key,
     };

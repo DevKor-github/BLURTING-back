@@ -1,8 +1,22 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
+import { GeocodingService } from './geocoding.service';
 
 @Controller('geocoding')
 export class GeocodingController {
-  // TODO: GET 시/구,군 list
-  // TODO: 가까운 시,구군 list
-  // TODO: gps of geocoding 기반 listing
+  constructor(private readonly geocodingService: GeocodingService) {}
+
+  @Get('/search/district/by-name')
+  async getDistrictListByName(@Query('name') name: string) {
+    return await this.geocodingService.searchDistrictByName(name);
+  }
+
+  @Get('/search/district/by-geo')
+  async getDistrictListByGeo(@Query('geo') geo: string) {
+    return await this.geocodingService.searchDistrictByGeo(geo);
+  }
+
+  @Get('/search/district/adjacent')
+  async getAdjacentDistrictListByName(@Query('name') name: string) {
+    return await this.geocodingService.getAdjGeoList(name);
+  }
 }
