@@ -1,34 +1,12 @@
-import {
-  Controller,
-  Param,
-  Req,
-  Res,
-  Get,
-  Post,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Param, Req, Res, Get, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtPayload } from 'src/interfaces/auth';
 import { ChatService } from './chat.service';
-import { ChatDto } from 'src/dtos/chat.dto';
 
 @Controller('chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
-
-  // new room test
-  @Post('/join')
-  async joinChat(@Body() users: number[], @Res() res: Response) {
-    return await res.send(this.chatService.newChatRoom(users));
-  }
-
-  // add chat test
-  @Post('/add')
-  async addChat(@Body() chatData: ChatDto, @Res() res: Response) {
-    return await res.send(this.chatService.addChat(chatData));
-  }
 
   // 내 채팅방 가져오기
   @UseGuards(AuthGuard('access'))

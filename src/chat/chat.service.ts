@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose/dist/common';
 import { Room, Chatting, SocketUser } from './models';
 import { Model } from 'mongoose';
-import { ChatDto, ChatUserDto } from 'src/dtos/chat.dto';
+import { AddChatDto, ChatUserDto } from 'src/dtos/chat.dto';
 import { UnauthorizedException } from '@nestjs/common/exceptions';
 import { UserService } from 'src/user/user.service';
 import { Socket } from 'socket.io';
@@ -59,7 +59,6 @@ export class ChatService {
 
   async newChatRoom(users: number[]) {
     const room = await this.findCreatedRoom(users);
-
     if (room) {
       return room.id;
     }
@@ -99,7 +98,7 @@ export class ChatService {
       .exec();
   }
 
-  addChat(chatData: ChatDto) {
+  addChat(chatData: AddChatDto) {
     this.chattingModel.create(chatData);
   }
 

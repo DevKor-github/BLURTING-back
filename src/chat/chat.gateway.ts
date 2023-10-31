@@ -9,7 +9,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { ChatDto } from 'src/dtos/chat.dto';
+import { AddChatDto, ChatDto } from 'src/dtos/chat.dto';
 import { ChatService } from './chat.service';
 
 @WebSocketGateway({ namespace: 'whisper' })
@@ -45,12 +45,13 @@ export class ChatGateway
   @SubscribeMessage('create_room')
   async handleCreateRoom(
     @ConnectedSocket() client: Socket,
-    @MessageBody() users: number[],
+    @MessageBody() user: number,
   ) {
+    const users: number[] = [user, client.data.userId];
     const roomId = await this.chatService.newChatRoom(users);
     client.join(roomId);
 
-    const socketId = await this.chatService.findUserSocketId(users[1]);
+    const socketId = await this.chatService.findUserSocketId(user);
     if (socketId) {
       client.to(socketId).emit('invite_chat', roomId);
     }
@@ -69,7 +70,8 @@ export class ChatGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() chatData: ChatDto,
   ) {
-    this.chatService.addChat(chatData);
-    client.broadcast.to(chatData.roomId).emit('new_chat', chatData);
+    const addChat: AddChatDto = { ...chatData, userId: client.data.userId };
+    this.chatService.addChat(addChat);
+    client.broadcast.to(chatData.roomId).emit('new_chat', addChat);
   }
 }
