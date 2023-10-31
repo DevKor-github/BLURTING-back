@@ -7,6 +7,7 @@ import {
   UseGuards,
   Query,
   Get,
+  Header,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
@@ -16,8 +17,17 @@ import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
 import { SignupGuard } from './guard/signup.guard';
 import { Page } from 'src/common/enums/page.enum';
 import { CreateUserDto, LoginDto } from 'src/dtos/createUser.dto';
+import {
+  ApiCreatedResponse,
+  ApiHeader,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
+import { TokenResponseDto } from './dtos/tokenResponseDto';
 
 @Controller('auth')
+@ApiTags('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -25,6 +35,12 @@ export class AuthController {
   ) {}
 
   @UseGuards(SignupGuard)
+  @ApiQuery({
+    name: 'code',
+    description: '인증번호',
+    type: String,
+    example: '010123',
+  })
   @Post('/check/phone')
   async checkCode(
     @Req() req: Request,
@@ -43,9 +59,26 @@ export class AuthController {
   }
 
   @Get('/check/email')
+  @ApiOperation({
+    summary: '이메일 인증',
+    description: '이메일 인증',
+  })
+  @ApiQuery({
+    name: 'code',
+    description: '인증 코드',
+    type: String,
+    example: '123456',
+  })
+  @ApiQuery({
+    name: 'email',
+    description: '이메일',
+    type: String,
+    example: '123456@korea.ac.kr',
+  })
   async checkMail(@Query('code') code: string, @Query('email') email: string) {
     await this.authService.checkMail(code, email);
   }
+
   @UseGuards(SignupGuard)
   @Post('/signup')
   async signup(
@@ -93,6 +126,7 @@ export class AuthController {
   }
 
   @Post('/login')
+  @ApiOperation({ deprecated: true })
   async login(@Body() loginDto: LoginDto, @Res() res: Response) {
     const { id } = loginDto;
 
@@ -109,11 +143,24 @@ export class AuthController {
 
   @UseGuards(AuthGuard('refresh'))
   @Post('/refresh')
-  async refresh(@Req() req: Request, @Res() res: Response) {
+  @ApiCreatedResponse({
+    description: 'new access token',
+    type: TokenResponseDto,
+  })
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiOperation({
+    summary: 'accesstoken 갱신',
+    description: 'refresh token으로 access token 갱신',
+  })
+  async refresh(@Req() req: Request): Promise<TokenResponseDto> {
     const { id } = req.user as JwtPayload;
     const accessToken = await this.authService.getAccessToken({ id: id });
-    return res.json({
+    return {
       accessToken: accessToken,
-    });
+    };
   }
 }

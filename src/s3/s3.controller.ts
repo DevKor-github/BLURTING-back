@@ -11,6 +11,7 @@ import {
   ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
+  ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
 import { FileUploadDto, FileUploadResponseDto } from './dtos/fileUploadDto';
@@ -23,6 +24,10 @@ export class S3Controller {
   @Post('')
   @UseInterceptors(FilesInterceptor('files', 10))
   @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    summary: '이미지 업로드',
+    description: '이미지 파일 S3에 업로드 후 링크 반환',
+  })
   @ApiBody({
     description: '이미지 파일 리스트',
     type: FileUploadDto,
