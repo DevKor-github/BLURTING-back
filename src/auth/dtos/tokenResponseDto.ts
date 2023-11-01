@@ -7,3 +7,11 @@ export class TokenResponseDto {
   })
   accessToken: string;
 }
+
+export class SignupTokenResponseDto {
+  @ApiProperty({
+    description: 'new singup token',
+    example: 'asda.123asc.asd123',
+  })
+  signupToken: string;
+}
