@@ -35,7 +35,7 @@ export class GeocodingController {
     name: 'geo',
     description: '검색할 지역 위도, 경도',
     type: String,
-    example: 'POINT(127.0164, 37.4984)',
+    example: 'point(127.0164 37.4984)',
   })
   @ApiOperation({
     summary: '좌표 기반 시군구 검색',
