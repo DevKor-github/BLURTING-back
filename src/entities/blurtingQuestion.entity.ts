@@ -1,13 +1,13 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { BlurtingGroup } from '../entities';
+import { BlurtingGroupEntity } from '../entities';
 
 @Entity()
-export class BlurtingQuestion {
+export class BlurtingQuestionEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => BlurtingGroup)
-  group: BlurtingGroup;
+  @ManyToOne(() => BlurtingGroupEntity)
+  group: BlurtingGroupEntity;
 
   @Column()
   no: number;

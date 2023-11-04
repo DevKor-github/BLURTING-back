@@ -6,7 +6,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { BlurtingGroup, UserInfoEntity } from 'src/entities';
+import { BlurtingGroupEntity, UserInfoEntity } from 'src/entities';
 
 @Entity('users')
 export class UserEntity {
@@ -32,7 +32,7 @@ export class UserEntity {
   @JoinColumn()
   userInfo: UserInfoEntity;
 
-  @ManyToOne(() => BlurtingGroup)
+  @ManyToOne(() => BlurtingGroupEntity)
   @JoinColumn()
-  group: BlurtingGroup;
+  group: BlurtingGroupEntity;
 }
