@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose/dist/common';
 import { Room, Chatting, SocketUser } from './models';
 import { Model } from 'mongoose';
-import { AddChatDto, ChatUserDto } from 'src/dtos/chat.dto';
+import { AddChatDto, RoomInfoDto, ChatUserDto } from 'src/dtos/chat.dto';
 import { UnauthorizedException } from '@nestjs/common/exceptions';
 import { UserService } from 'src/user/user.service';
 import { Socket } from 'socket.io';
@@ -20,7 +20,7 @@ export class ChatService {
   ) {}
 
   async validateSocket(client: Socket) {
-    const authHeader = client.handshake.auth['authorization'];
+    const authHeader = client.handshake.headers['authorization'];
 
     if (!authHeader || authHeader == undefined) {
       client.disconnect(true);
@@ -41,12 +41,18 @@ export class ChatService {
 
   async updateSocketUser(userId: number, socketId: string) {
     const socketUser = await this.socketUserModel.findOne({ userId: userId });
+
     if (socketUser == null) {
+      // create socketUser
+      const user = await this.userService.findUser('id', userId);
       await this.socketUserModel.create({
         socketId: socketId,
         userId: userId,
+        userNickname: user.userNickname,
+        userSex: user.sex,
       });
     } else {
+      // update socketId for user
       await this.socketUserModel.updateOne(
         { userId: userId },
         { socketId: socketId },
@@ -104,27 +110,52 @@ export class ChatService {
     this.chattingModel.create(chatData);
   }
 
-  async getChatRooms(userId: number) {
+  async getChatRooms(userId: number): Promise<RoomInfoDto[]> {
     const rooms = await this.roomModel
       .find({ 'users.userId': userId })
       .select('id users -_id');
-    return rooms;
+
+    const roomInfo = await Promise.all(
+      rooms.map(async (room) => {
+        const user = room.users.find((user) => user.userId == userId);
+        const otherUser = room.users.find((user) => user.userId != userId);
+        const otherUserInfo = await this.socketUserModel.findOne({
+          userId: otherUser.userId,
+        });
+        const latestChat = await this.chattingModel
+          .findOne({ roomId: room.id })
+          .sort({ createdAt: -1 })
+          .limit(1);
+
+        return RoomInfoDto.ToDto(
+          room.id,
+          user.hasRead,
+          otherUserInfo,
+          latestChat,
+        );
+      }),
+    );
+
+    return roomInfo;
   }
 
   async getChats(roomId: string, userId: number) {
-    const exist = this.roomModel.exists({
-      roomId: roomId,
+    const room = await this.roomModel.findOne({
+      id: roomId,
       'users.userId': userId,
     });
-
-    if (!exist) {
+    if (room == null) {
       throw new UnauthorizedException();
     }
+
+    const otherUser = room.users.find((user) => user.userId != userId);
+
     const chats = await this.chattingModel
       .find()
       .where('roomId')
       .equals(roomId)
       .select('userId userNickname chat createdAt -_id');
-    return chats;
+
+    return { userId: otherUser.userId, userImage: otherUser.userImage, chats };
   }
 }

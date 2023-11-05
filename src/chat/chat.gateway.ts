@@ -30,7 +30,7 @@ export class ChatGateway
     this.chatService.updateSocketUser(client.data.userId, client.id);
     const chatRooms = await this.chatService.getChatRooms(client.data.userId);
     for (const room of chatRooms) {
-      client.join(room.id);
+      client.join(room.roomId);
     }
   }
 
@@ -49,10 +49,11 @@ export class ChatGateway
     const users: number[] = [user, client.data.userId];
     const roomId = await this.chatService.newChatRoom(users);
     client.join(roomId);
+    client.emit('create_room', roomId);
 
     const socketId = await this.chatService.findUserSocketId(user);
     if (socketId) {
-      client.to(socketId).emit('invite_chat', roomId);
+      this.server.to(socketId).emit('invite_chat', roomId);
     }
   }
 

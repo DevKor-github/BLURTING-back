@@ -1,6 +1,8 @@
 import { PickType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsDate, IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsDate, IsNumber, IsString, IsEnum } from 'class-validator';
+import { Chatting, SocketUser } from 'src/chat/models';
+import { Sex } from 'src/common/enums';
 
 export class AddChatDto {
   @IsString()
@@ -35,4 +37,40 @@ export class ChatUserDto {
 
   @IsBoolean()
   readonly isDeleted: boolean;
+}
+
+export class RoomInfoDto {
+  @IsString()
+  readonly roomId: string;
+
+  @IsDate()
+  readonly hasRead: Date;
+
+  @IsString()
+  readonly nickname: string;
+
+  @IsEnum(Sex)
+  readonly sex: Sex;
+
+  @IsString()
+  readonly latest_chat: string;
+
+  @IsDate()
+  readonly latest_time: Date;
+
+  static ToDto(
+    roomId: string,
+    hasRead: Date,
+    otherUserSchema: SocketUser,
+    chattingSchema: Chatting,
+  ): RoomInfoDto {
+    return {
+      roomId: roomId,
+      hasRead: hasRead,
+      nickname: otherUserSchema.userNickname,
+      sex: otherUserSchema.userSex,
+      latest_chat: chattingSchema ? chattingSchema.chat : null,
+      latest_time: chattingSchema ? chattingSchema.createdAt : null,
+    };
+  }
 }

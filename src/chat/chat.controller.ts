@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtPayload } from 'src/interfaces/auth';
 import { ChatService } from './chat.service';
+import { RoomInfoDto } from 'src/dtos/chat.dto';
 
 @Controller('chat')
 export class ChatController {
@@ -13,7 +14,7 @@ export class ChatController {
   @Get('/rooms')
   async getChatRooms(@Req() req: Request, @Res() res: Response) {
     const { id } = req.user as JwtPayload;
-    const rooms = await this.chatService.getChatRooms(id);
+    const rooms: RoomInfoDto[] = await this.chatService.getChatRooms(id);
     return res.json(rooms);
   }
 

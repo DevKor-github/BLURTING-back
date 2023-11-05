@@ -68,7 +68,10 @@ export class UserService {
     const user = await this.userRepository.findOne({
       where: { [field]: value },
     });
-    return user;
+    const userInfo = await this.userInfoRepository.findOne({
+      where: { [field]: value },
+    });
+    return { ...user, ...userInfo };
   }
 
   async getUserImage(userId: number) {
