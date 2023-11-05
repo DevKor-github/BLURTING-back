@@ -20,11 +20,13 @@ export class ChatService {
   ) {}
 
   async validateSocket(client: Socket) {
-    const authHeader = client.handshake.headers['authorization'];
-    if (!authHeader) {
+    const authHeader = client.handshake.auth['authorization'];
+
+    if (!authHeader || authHeader == undefined) {
       client.disconnect(true);
       return false;
     }
+
     try {
       const token = authHeader.split(' ')[1];
       const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET_KEY);

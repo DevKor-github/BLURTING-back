@@ -28,7 +28,6 @@ export class ChatGateway
     if (!validated) return;
 
     this.chatService.updateSocketUser(client.data.userId, client.id);
-
     const chatRooms = await this.chatService.getChatRooms(client.data.userId);
     for (const room of chatRooms) {
       client.join(room.id);
@@ -72,6 +71,6 @@ export class ChatGateway
   ) {
     const addChat: AddChatDto = { ...chatData, userId: client.data.userId };
     this.chatService.addChat(addChat);
-    client.broadcast.to(chatData.roomId).emit('new_chat', addChat);
+    this.server.to(chatData.roomId).emit('new_chat', addChat);
   }
 }
