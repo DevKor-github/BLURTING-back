@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Hobby, Character, Nickname } from 'src/common/enums';
 import { CharacterMask, HobbyMask } from 'src/common/const';
-import { UserEntity, UserInfoEntity } from 'src/entities';
+import { BlurtingGroupEntity, UserEntity, UserInfoEntity } from 'src/entities';
 @Injectable()
 export class UserService {
   constructor(
@@ -27,8 +27,14 @@ export class UserService {
     return this.userInfoRepository.save(userInfo);
   }
 
-  async updateUser(id: number, field: string, value: string) {
-    this.userRepository.update(id, { [field]: value });
+  async updateUser(
+    id: number,
+    field: string,
+    value: string | BlurtingGroupEntity,
+  ) {
+    const user = await this.userRepository.findOne({ where: { id: id } });
+    user[field] = value;
+    return this.userRepository.save(user);
   }
 
   async updateUserInfo(
@@ -65,6 +71,7 @@ export class UserService {
   async findUser(field: string, value: string | number) {
     const user = await this.userRepository.findOne({
       where: { [field]: value },
+      relations: ['userInfo', 'group'],
     });
     return user;
   }
