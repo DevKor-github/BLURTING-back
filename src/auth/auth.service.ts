@@ -243,8 +243,8 @@ export class AuthService {
       (key) => University[key] == domain,
     );
 
-    await this.authMailRepository.delete(mail);
     await this.userService.updateUser(mail.user.id, 'email', email);
-    await this.userService.updateUser(mail.user.id, 'university', univ);
+    await this.userService.updateUserInfo(mail.user.id, 'university', univ);
+    await this.authMailRepository.delete(mail);
   }
 }
