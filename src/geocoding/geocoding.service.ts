@@ -70,7 +70,7 @@ export class GeocodingService {
         `&size=${size}` +
         `&request=${operation}` +
         '&data=LT_C_ADSIGG_INFO' +
-        `&attrFilter=full_nm:=:${name}`;
+        `&attrFilter=full_nm:like:${name}`;
 
       const response = await axios.get(requestURL);
       return response.data.response;

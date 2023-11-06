@@ -1,5 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { UnauthorizedException } from '@nestjs/common/exceptions';
+import {
+  BadRequestException,
+  ConflictException,
+  NotAcceptableException,
+  RequestTimeoutException,
+  UnauthorizedException,
+} from '@nestjs/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthPhoneNumberEntity, AuthMailEntity } from 'src/entities';
 import { Repository } from 'typeorm';
@@ -8,7 +14,10 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
-import crypto from 'crypto';
+import { University } from 'src/common/enums';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const crypto = require('crypto');
 
 @Injectable()
 export class AuthService {
@@ -79,11 +88,20 @@ export class AuthService {
       where: { user: { id: userId }, isValid: false },
       order: { createdAt: 'DESC' },
     });
-    if (
-      phone &&
-      phone.createdAt.getTime() + 180000 > Date.now() - 1000 * 60 * 60 * 9 // 1000 * 60 * 60 * 9 : 시차데스 ..
-    ) {
-      throw new Error('잠시 후에 다시 인증번호를 요청해주세요.');
+
+    const existingUser = await this.userService.findUser(
+      'phoneNumber',
+      phoneNumber,
+    );
+    if (existingUser)
+      throw new ConflictException('이미 가입된 전화번호입니다.');
+    if (phone && phone.createdAt.getTime() + 1000 * 10 > Date.now()) {
+      throw new NotAcceptableException(
+        '잠시 후에 다시 인증번호를 요청해주세요.',
+      );
+    }
+    if (phone) {
+      await this.authPhoneNumberRepository.delete(phone);
     }
 
     const API_URL = `https://sens.apigw.ntruss.com/sms/v2/services/${process.env.SENS_SERVICE_ID}/messages`;
@@ -121,17 +139,24 @@ export class AuthService {
     hmac.update('\n');
     hmac.update(`${accessKey}`);
     const hash = hmac.digest('base64');
-
-    const response = await axios.post(API_URL, body, {
-      headers: {
-        'Content-Type': 'application/json',
-        'x-ncp-apigw-timestamp': timestamp,
-        'x-ncp-iam-access-key': accessKey,
-        'x-ncp-apigw-signature-v2': hash,
-      },
-    });
+    let response;
+    try {
+      response = await axios.post(API_URL, body, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-ncp-apigw-timestamp': timestamp,
+          'x-ncp-iam-access-key': accessKey,
+          'x-ncp-apigw-signature-v2': hash,
+        },
+      });
+    } catch (err) {
+      console.log(err);
+      throw new BadRequestException(err.response.data);
+    }
     if (Number(response.data.statusCode) !== 202)
-      throw new Error('올바르지 않은 전화번호입니다. 다시 시도해주세요.');
+      throw new BadRequestException(
+        '올바르지 않은 전화번호입니다. 다시 시도해주세요.',
+      );
   }
 
   async checkCode(userId: number, code: string, phoneNumber: string) {
@@ -140,31 +165,53 @@ export class AuthService {
       relations: ['user'],
     });
     if (!phone) {
-      throw new Error('인증번호가 일치하지 않습니다.');
+      throw new UnauthorizedException('인증번호가 일치하지 않습니다.');
     }
-    if (phone.createdAt.getTime() + 180000 < Date.now() - 1000 * 60 * 60 * 9) {
-      throw new Error('유효 시간이 지났습니다. 인증번호를 다시 요청해주세요.');
+    if (phone.createdAt.getTime() + 3 * 60 * 1000 < Date.now()) {
+      throw new RequestTimeoutException(
+        '유효 시간이 지났습니다. 인증번호를 다시 요청해주세요.',
+      );
     }
 
     if (phone.isValid) {
-      throw new Error('이미 인증된 번호입니다.');
+      throw new ConflictException('이미 인증된 번호입니다.');
     }
 
-    phone.isValid = true;
-    phone.user.phoneNumber = phoneNumber;
-    await this.authPhoneNumberRepository.save(phone);
+    await this.authPhoneNumberRepository.delete(phone);
+    await this.userService.updateUser(userId, 'phoneNumber', phoneNumber);
     return true;
   }
 
   async sendVerificationCode(userId: number, to: string) {
+    const existingUser = await this.userService.findUser('email', to);
+    if (existingUser) throw new ConflictException('이미 가입된 이메일입니다.');
+    const mail = await this.authMailRepository.findOne({
+      where: { user: { id: userId } },
+      order: { createdAt: 'DESC' },
+    });
+    if (mail && mail.createdAt.getTime() + 1000 * 60 * 10 > Date.now())
+      throw new NotAcceptableException('잠시 후에 다시 시도해주세요');
+    if (mail) await this.authMailRepository.delete(mail);
+
     const code = crypto.randomBytes(32).toString('hex');
 
-    await this.mailerService.sendMail({
-      from: process.env.MAIL_USER,
-      to: to,
-      subject: '블러팅 이메일을 인증해주세요.',
-      html: `아래 링크에 접속하면 인증이 완료됩니다. <br /> <a href="${'api'}?code=${code}&email=${to}">인증하기</a>`,
-    });
+    const domain = to.split('@')[1];
+    const univ = Object.keys(University).find(
+      (key) => University[key] == domain,
+    );
+    if (!univ) throw new BadRequestException('올바르지 않은 이메일입니다.');
+
+    try {
+      await this.mailerService.sendMail({
+        from: process.env.MAIL_USER,
+        to: to,
+        subject: '블러팅 이메일을 인증해주세요.',
+        html: `아래 링크에 접속하면 인증이 완료됩니다. <br /> <a href="${'api'}?code=${code}&email=${to}">인증하기</a>`,
+      });
+    } catch (err) {
+      throw new BadRequestException('올바르지 않은 이메일입니다.');
+    }
+
     const entity = this.authMailRepository.create({
       code,
       user: { id: userId },
@@ -172,6 +219,11 @@ export class AuthService {
     });
 
     await this.authMailRepository.save(entity);
+  }
+
+  async checkComplete(id: number) {
+    const user = await this.userService.findUser('id', id);
+    return user.phoneNumber && user.email;
   }
 
   async checkMail(code: string, email: string) {
@@ -185,8 +237,14 @@ export class AuthService {
       },
       relations: ['user'],
     });
-    mail.user.email = email;
-    mail.isValid = true;
-    await this.authMailRepository.save(mail);
+
+    const domain = email.split('@')[1];
+    const univ = Object.keys(University).find(
+      (key) => University[key] == domain,
+    );
+
+    await this.authMailRepository.delete(mail);
+    await this.userService.updateUser(mail.user.id, 'email', email);
+    await this.userService.updateUser(mail.user.id, 'university', univ);
   }
 }
