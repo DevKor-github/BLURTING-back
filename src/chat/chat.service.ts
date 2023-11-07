@@ -117,26 +117,32 @@ export class ChatService {
 
     const roomInfo = await Promise.all(
       rooms.map(async (room) => {
-        const user = room.users.find((user) => user.userId == userId);
-        const otherUser = room.users.find((user) => user.userId != userId);
-        const otherUserInfo = await this.socketUserModel.findOne({
-          userId: otherUser.userId,
-        });
-        const latestChat = await this.chattingModel
-          .findOne({ roomId: room.id })
-          .sort({ createdAt: -1 })
-          .limit(1);
-
-        return RoomInfoDto.ToDto(
-          room.id,
-          user.hasRead,
-          otherUserInfo,
-          latestChat,
-        );
+        return await this.getChatRoom(room, userId);
       }),
     );
 
-    return roomInfo;
+    return roomInfo.sort((a, b) => {
+      return b.latest_time.getTime() - a.latest_time.getTime();
+    });
+  }
+
+  async getChatRoom(room: Room, userId: number) {
+    const user = room.users.find((user) => user.userId == userId);
+    const otherUser = room.users.find((user) => user.userId != userId);
+    const otherUserInfo = await this.socketUserModel.findOne({
+      userId: otherUser.userId,
+    });
+    const latestChat = await this.chattingModel
+      .find({ roomId: room.id })
+      .sort({ createdAt: -1 })
+      .limit(1);
+
+    return RoomInfoDto.ToDto(
+      room.id,
+      user.hasRead,
+      otherUserInfo,
+      latestChat[0],
+    );
   }
 
   async getChats(roomId: string, userId: number) {
@@ -156,6 +162,11 @@ export class ChatService {
       .equals(roomId)
       .select('userId userNickname chat createdAt -_id');
 
-    return { userId: otherUser.userId, userImage: otherUser.userImage, chats };
+    return {
+      userId: otherUser.userId,
+      userImage: otherUser.userImage,
+      hasRead: otherUser.hasRead,
+      chats,
+    };
   }
 }
