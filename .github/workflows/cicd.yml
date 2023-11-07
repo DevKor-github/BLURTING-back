@@ -51,8 +51,8 @@ jobs:
           echo "VWORLD_DOMAIN=${{ secrets.VWORLD_DOMAIN }}" >> .env
           echo "NAVER_API_KEY=${{ secrets.NAVER_API_KEY }}" >> .env
           echo "NAVER_API_SECRET=${{ secrets.NAVER_API_SECRET }}" >> .env
-          echo "SENS_SERVICE_ID=${{ secrets.SENCE_SERVICE_ID }}" >> .env
-          echo "SENS_PHONE_NUMBER=${{ secrets.SENSE_PHONE_NUMBER }}" >> .env
+          echo "SENS_SERVICE_ID=${{ secrets.SENS_SERVICE_ID }}" >> .env
+          echo "SENS_PHONE_NUMBER=${{ secrets.SENS_PHONE_NUMBER }}" >> .env
           echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
           echo "MAIL_PW=${{ secrets.MAIL_PW }}" >> .env
           cat .env
