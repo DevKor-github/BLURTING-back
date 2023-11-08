@@ -11,6 +11,23 @@ async function bootstrap() {
     .setTitle('BLURTING API')
     .setDescription('API for BLURTING service')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'Token',
+      },
+      'accessToken',
+    )
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'Token',
+        in: 'header',
+      },
+      'refreshToken',
+    )
     .build();
 
   const docs = SwaggerModule.createDocument(app, swaggerConfig);
