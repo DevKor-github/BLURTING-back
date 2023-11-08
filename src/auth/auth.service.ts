@@ -83,6 +83,7 @@ export class AuthService {
     }
     return user;
   }
+
   async validatePhoneNumber(phoneNumber: string, userId: number) {
     const phone = await this.authPhoneNumberRepository.findOne({
       where: { user: { id: userId }, isValid: false },
