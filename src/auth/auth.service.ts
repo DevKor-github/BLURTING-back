@@ -107,10 +107,8 @@ export class AuthService {
       order: { createdAt: 'DESC' },
     });
 
-    const existingUser = await this.userService.findUserByVal(
-      'phoneNumber',
-      phoneNumber,
-    );
+    const existingUser =
+      await this.userService.findCompleteUserByPhone(phoneNumber);
     if (existingUser)
       throw new ConflictException('이미 가입된 전화번호입니다.');
     if (phone && phone.createdAt.getTime() + 1000 * 10 > Date.now()) {
@@ -242,7 +240,7 @@ export class AuthService {
 
   async checkComplete(id: number) {
     const user = await this.userService.findUserByVal('id', id);
-    return user.phoneNumber && user.email;
+    return user.phoneNumber && user.email != null;
   }
 
   async checkMail(code: string, email: string) {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { Hobby, Character, Nickname } from 'src/common/enums';
 import { CharacterMask, HobbyMask } from 'src/common/const';
 import {
@@ -78,6 +78,15 @@ export class UserService {
     const user = await this.userRepository.findOne({
       where: { [field]: value },
       relations: ['userInfo', 'group'],
+    });
+    return user;
+  }
+  async findCompleteUserByPhone(phone: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        phoneNumber: phone,
+        email: Not(IsNull()),
+      },
     });
     return user;
   }
