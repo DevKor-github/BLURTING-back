@@ -95,11 +95,12 @@ export class AuthService {
   async validateUser(id: number) {
     const user = await this.userService.findUser('id', id);
 
-    if (!user) {
+    if (!user || id == undefined) {
       throw new UnauthorizedException('등록되지 않은 사용자입니다.');
     }
     return user;
   }
+
   async validatePhoneNumber(phoneNumber: string, userId: number) {
     const phone = await this.authPhoneNumberRepository.findOne({
       where: { user: { id: userId }, isValid: false },

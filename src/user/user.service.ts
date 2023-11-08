@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Hobby, Character, Nickname } from 'src/common/enums';
 import { CharacterMask, HobbyMask } from 'src/common/const';
-import { UserEntity, UserInfoEntity } from 'src/entities';
+import { BlurtingGroupEntity, UserEntity, UserInfoEntity, UserImageEntity } from 'src/entities';
 @Injectable()
 export class UserService {
   constructor(
@@ -11,6 +11,8 @@ export class UserService {
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(UserInfoEntity)
     private readonly userInfoRepository: Repository<UserInfoEntity>,
+    @InjectRepository(UserImageEntity)
+    private readonly userImageRepository: Repository<UserImageEntity>,
   ) {}
 
   async createUser() {
@@ -27,8 +29,14 @@ export class UserService {
     return this.userInfoRepository.save(userInfo);
   }
 
-  async updateUser(id: number, field: string, value: string) {
-    this.userRepository.update(id, { [field]: value });
+  async updateUser(
+    id: number,
+    field: string,
+    value: string | BlurtingGroupEntity,
+  ) {
+    const user = await this.userRepository.findOne({ where: { id: id } });
+    user[field] = value;
+    return this.userRepository.save(user);
   }
 
   async updateUserInfo(
@@ -65,7 +73,20 @@ export class UserService {
   async findUser(field: string, value: string | number) {
     const user = await this.userRepository.findOne({
       where: { [field]: value },
+      relations: ['userInfo', 'group'],
     });
-    return user;
+    const userInfo = await this.userInfoRepository.findOne({
+      where: { [field]: value },
+    });
+    return { ...user, ...userInfo };
+  }
+
+  async getUserImage(userId: number) {
+    const userImage = await this.userImageRepository.find({
+      where: { user: { id: userId }, no: 1 },
+      relations: ['user'],
+    });
+
+    return userImage ? userImage['url'] : null;
   }
 }
