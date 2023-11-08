@@ -36,6 +36,7 @@ import {
 } from './dtos/tokenResponseDto';
 import { SignupPhoneRequestDto } from './dtos/signupPhoneRequest.dto';
 import { SignupEmailRequestDto } from './dtos/signupEmailRequest.dto';
+import { SignupImageRequestDto } from './dtos/signupImageRequest.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -194,6 +195,23 @@ export class AuthController {
     } catch (err) {
       res.status(err.status).json(err);
     }
+  }
+
+  @Post('/signup/images')
+  @UseGuards(SignupGuard)
+  @ApiBadRequestResponse({ description: 'invalid signup token' })
+  @ApiCreatedResponse({
+    description: 'new signup token',
+    type: SignupTokenResponseDto,
+  })
+  async signupImage(@Body() body: SignupImageRequestDto, @Req() req: Request) {
+    const { id } = req.user as SignupPayload;
+
+    await this.authService.addImages(id, body.images);
+    const signupToken = await this.authService.getSignupToken(
+      req.user as SignupPayload,
+    );
+    return { signupToken };
   }
 
   @Post('/signup/email')

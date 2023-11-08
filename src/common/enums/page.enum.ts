@@ -13,6 +13,6 @@ export enum Page {
   character = 12,
   hobby = 13,
   image = 14,
-  university = 15,
-  email = 16,
+  email = 15,
+  complete = 16,
 }
