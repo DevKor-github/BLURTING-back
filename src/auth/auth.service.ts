@@ -93,7 +93,7 @@ export class AuthService {
   }
 
   async validateUser(id: number) {
-    const user = await this.userService.findUser('id', id);
+    const user = await this.userService.findUserByVal('id', id);
 
     if (!user || id == undefined) {
       throw new UnauthorizedException('등록되지 않은 사용자입니다.');
@@ -107,7 +107,7 @@ export class AuthService {
       order: { createdAt: 'DESC' },
     });
 
-    const existingUser = await this.userService.findUser(
+    const existingUser = await this.userService.findUserByVal(
       'phoneNumber',
       phoneNumber,
     );
@@ -201,7 +201,7 @@ export class AuthService {
   }
 
   async sendVerificationCode(userId: number, to: string) {
-    const existingUser = await this.userService.findUser('email', to);
+    const existingUser = await this.userService.findUserByVal('email', to);
     if (existingUser) throw new ConflictException('이미 가입된 이메일입니다.');
     const mail = await this.authMailRepository.findOne({
       where: { user: { id: userId } },
@@ -241,7 +241,7 @@ export class AuthService {
   }
 
   async checkComplete(id: number) {
-    const user = await this.userService.findUser('id', id);
+    const user = await this.userService.findUserByVal('id', id);
     return user.phoneNumber && user.email;
   }
 

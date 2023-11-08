@@ -193,6 +193,7 @@ export class AuthController {
 
       return res.json({ signupToken: signupToken });
     } catch (err) {
+      console.log(err);
       res.status(err.status).json(err);
     }
   }

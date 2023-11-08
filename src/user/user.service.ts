@@ -3,7 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Hobby, Character, Nickname } from 'src/common/enums';
 import { CharacterMask, HobbyMask } from 'src/common/const';
-import { BlurtingGroupEntity, UserEntity, UserInfoEntity, UserImageEntity } from 'src/entities';
+import {
+  BlurtingGroupEntity,
+  UserEntity,
+  UserInfoEntity,
+  UserImageEntity,
+} from 'src/entities';
 @Injectable()
 export class UserService {
   constructor(
@@ -68,6 +73,13 @@ export class UserService {
       default:
         this.userInfoRepository.update(id, { [field]: value });
     }
+  }
+  async findUserByVal(field: string, value: string | number) {
+    const user = await this.userRepository.findOne({
+      where: { [field]: value },
+      relations: ['userInfo', 'group'],
+    });
+    return user;
   }
 
   async findUser(field: string, value: string | number) {
