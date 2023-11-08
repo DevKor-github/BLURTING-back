@@ -3,9 +3,10 @@ import {
   PrimaryGeneratedColumn,
   Column,
   OneToOne,
+  ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { UserInfoEntity } from 'src/entities';
+import { BlurtingGroupEntity, UserInfoEntity } from 'src/entities';
 
 @Entity('users')
 export class UserEntity {
@@ -30,4 +31,8 @@ export class UserEntity {
   @OneToOne(() => UserInfoEntity)
   @JoinColumn()
   userInfo: UserInfoEntity;
+
+  @ManyToOne(() => BlurtingGroupEntity)
+  @JoinColumn()
+  group: BlurtingGroupEntity;
 }
