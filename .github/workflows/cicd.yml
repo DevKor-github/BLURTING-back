@@ -61,6 +61,17 @@ jobs:
           echo "AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}" >> .env
           echo "AWS_ACL=${{ secrets.AWS_ACL }}" >> .env
           echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
+          echo "FCM_TYPE=${{ secrets.FCM_TYPE }}" >> .env
+          echo "FCM_PROJECT_ID=${{ secrets.FCM_PROJECT_ID }}" >> .env
+          echo "FCM_PRIVATE_KEY_ID=${{ secrets.FCM_PRIVATE_KEY_ID }}" >> .env
+          echo "FCM_PRIVATE_KEY=${{ secrets.FCM_PRIVATE_KEY }}" >> .env
+          echo "FCM_CLIENT_EMAIL=${{ secrets.FCM_CLIENT_EMAIL }}" >> .env
+          echo "FCM_CLIENT_ID=${{ secrets.FCM_CLIENT_ID }}" >> .env
+          echo "FCM_AUTH_URI=${{ secrets.FCM_AUTH_URI }}" >> .env
+          echo "FCM_TOKEN_URI=${{ secrets.FCM_TOKEN_URI }}" >> .env
+          echo "FCM_AUTH_CERT_URL=${{ secrets.FCM_AUTH_CERT_URL }}" >> .env
+          echo "FCM_CLIENT_CERT_URL=${{ secrets.FCM_CLIENT_CERT_URL }}" >> .env
+          echo "FCM_UNIVERSE_DOMAIN=${{ secrets.FCM_UNIVERSE_DOMAIN }}" >> .env
 
       - name: Run Docker
         run: |
