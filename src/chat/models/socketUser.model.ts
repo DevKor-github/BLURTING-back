@@ -1,4 +1,10 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsDate,
+} from 'class-validator';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaOptions } from 'mongoose';
 import { Sex } from 'src/common/enums';
@@ -15,6 +21,12 @@ export class SocketUser extends Document {
   })
   @IsString()
   socketId: string;
+
+  @Prop({
+    type: String,
+  })
+  @IsString()
+  notificationToken: string;
 
   @Prop({
     required: true,
@@ -36,6 +48,12 @@ export class SocketUser extends Document {
   })
   @IsEnum(Sex)
   userSex: Sex;
+
+  @Prop({
+    type: Date,
+  })
+  @IsDate()
+  connection: Date;
 }
 
 export const SocketUserSchema = SchemaFactory.createForClass(SocketUser);
