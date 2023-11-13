@@ -61,9 +61,6 @@ jobs:
           echo "AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}" >> .env
           echo "AWS_ACL=${{ secrets.AWS_ACL }}" >> .env
           echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
-          cat .env
-          echo "${{secrets.FIREBASE_JSON}}" >> src/firebase/firebase.json
-          cat src/firebase/firebase.json
 
       - name: Run Docker
         run: |
