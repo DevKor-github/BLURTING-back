@@ -63,7 +63,6 @@ jobs:
           echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
           cat .env
           echo "${{secrets.FIREBASE_JSON}}" >> src/firebase/firebase.json
-          cat src/firebase/firebase.json
 
       - name: Run Docker
         run: |
