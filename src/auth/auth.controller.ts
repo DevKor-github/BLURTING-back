@@ -162,7 +162,7 @@ export class AuthController {
         req.user as SignupPayload,
       );
 
-      return { signupToken: signupToken };
+      return res.json({ signupToken: signupToken });
     } catch (err) {
       res.status(err.status).json(err);
     }
