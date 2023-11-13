@@ -69,7 +69,7 @@ export class UserInfoEntity {
   @Column({ nullable: true })
   hobby?: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'enum', enum: University })
   university?: University;
 
   @OneToOne(() => UserEntity)
