@@ -1,11 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
 import {
+  Injectable,
+  Logger,
   BadRequestException,
   ConflictException,
   NotAcceptableException,
   RequestTimeoutException,
   UnauthorizedException,
-} from '@nestjs/common/exceptions';
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   AuthPhoneNumberEntity,
