@@ -62,6 +62,9 @@ jobs:
           echo "AWS_ACL=${{ secrets.AWS_ACL }}" >> .env
           echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
           cat .env
+          echo "${{secrets.FIREBASE_JSON}}" >> src/firebase/firebase.json
+          cat src/firebase/firebase.json
+
       - name: Run Docker
         run: |
           docker stop ${{env.DOCKER_CONTAINER}} && docker rm ${{env.DOCKER_CONTAINER}} && docker rmi ${{env.DOCKER_IMAGE}}:latest
