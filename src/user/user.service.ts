@@ -3,7 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Hobby, Character, Nickname } from 'src/common/enums';
 import { CharacterMask, HobbyMask } from 'src/common/const';
-import { BlurtingGroupEntity, UserEntity, UserInfoEntity, UserImageEntity } from 'src/entities';
+import {
+  BlurtingGroupEntity,
+  UserEntity,
+  UserInfoEntity,
+  UserImageEntity,
+} from 'src/entities';
 @Injectable()
 export class UserService {
   constructor(

@@ -5,7 +5,12 @@ import { Model } from 'mongoose';
 import { UnauthorizedException } from '@nestjs/common/exceptions';
 import { Socket } from 'socket.io';
 import * as jwt from 'jsonwebtoken';
-import { AddChatDto, RoomInfoDto, ChatUserDto } from 'src/dtos/chat.dto';
+import {
+  AddChatDto,
+  RoomInfoDto,
+  ChatUserDto,
+  RoomChatDto,
+} from 'src/dtos/chat.dto';
 import { UserService } from 'src/user/user.service';
 import { FcmService } from 'src/firebase/fcm.service';
 
@@ -165,12 +170,7 @@ export class ChatService {
       .equals(roomId)
       .select('userId userNickname chat createdAt -_id');
 
-    return {
-      userId: otherUser.userId,
-      userImage: otherUser.userImage,
-      hasRead: otherUser.hasRead,
-      chats,
-    };
+    return RoomChatDto.ToDto(otherUser, chats);
   }
 
   pushCreateRoom(userId: number) {

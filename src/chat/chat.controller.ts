@@ -1,16 +1,29 @@
 import { Controller, Param, Req, Res, Get, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiCreatedResponse, ApiHeader, ApiOperation } from '@nestjs/swagger';
 import { JwtPayload } from 'src/interfaces/auth';
 import { ChatService } from './chat.service';
-import { RoomInfoDto } from 'src/dtos/chat.dto';
+import { RoomChatDto, RoomInfoDto } from 'src/dtos/chat.dto';
 
 @Controller('chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
-  // 내 채팅방 가져오기
   @UseGuards(AuthGuard('access'))
+  @ApiCreatedResponse({
+    description: 'user chatting room list',
+    type: RoomInfoDto,
+  })
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiOperation({
+    summary: '채팅방 리스트',
+    description: '유저가 포함된 귓속말 채팅방 리스트 반환',
+  })
   @Get('/rooms')
   async getChatRooms(@Req() req: Request, @Res() res: Response) {
     const { id } = req.user as JwtPayload;
@@ -18,8 +31,20 @@ export class ChatController {
     return res.json(rooms);
   }
 
-  // 이전 채팅 가져오기
   @UseGuards(AuthGuard('access'))
+  @ApiCreatedResponse({
+    description: 'get chatting list',
+    type: RoomChatDto,
+  })
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiOperation({
+    summary: '채팅 리스트',
+    description: '방마다 채팅 리스트와 상대 정보 반환',
+  })
   @Get('/:roomId')
   async getChats(
     @Req() req: Request,
