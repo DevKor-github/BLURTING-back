@@ -55,6 +55,12 @@ jobs:
           echo "SENS_PHONE_NUMBER=${{ secrets.SENS_PHONE_NUMBER }}" >> .env
           echo "MAIL_USER=${{ secrets.MAIL_USER }}" >> .env
           echo "MAIL_PW=${{ secrets.MAIL_PW }}" >> .env
+          echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> .env
+          echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> .env
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
+          echo "AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}" >> .env
+          echo "AWS_ACL=${{ secrets.AWS_ACL }}" >> .env
+          echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
           cat .env
       - name: Run Docker
         run: |

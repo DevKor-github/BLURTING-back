@@ -4,6 +4,7 @@ import {
   UserEntity,
   AuthMailEntity,
   AuthPhoneNumberEntity,
+  UserImageEntity,
 } from 'src/entities';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -22,6 +23,7 @@ import { UserModule } from 'src/user/user.module';
       UserEntity,
       AuthMailEntity,
       AuthPhoneNumberEntity,
+      UserImageEntity,
     ]),
     JwtModule.register({}),
     MailerModule,

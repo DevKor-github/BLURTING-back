@@ -11,23 +11,6 @@ async function bootstrap() {
     .setTitle('BLURTING API')
     .setDescription('API for BLURTING service')
     .setVersion('1.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'Token',
-      },
-      'accessToken',
-    )
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'Token',
-        in: 'header',
-      },
-      'refreshToken',
-    )
     .build();
 
   const docs = SwaggerModule.createDocument(app, swaggerConfig);
@@ -45,7 +28,7 @@ async function bootstrap() {
 
   app.useWebSocketAdapter(new IoAdapter(app));
 
-  await app.listen(3000);
+  await app.listen(3080);
 }
 
 bootstrap();

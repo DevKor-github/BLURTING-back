@@ -1,13 +1,18 @@
-import { Injectable, Logger } from '@nestjs/common';
 import {
+  Injectable,
+  Logger,
   BadRequestException,
   ConflictException,
   NotAcceptableException,
   RequestTimeoutException,
   UnauthorizedException,
-} from '@nestjs/common/exceptions';
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AuthPhoneNumberEntity, AuthMailEntity } from 'src/entities';
+import {
+  AuthPhoneNumberEntity,
+  AuthMailEntity,
+  UserImageEntity,
+} from 'src/entities';
 import { Repository } from 'typeorm';
 import axios from 'axios';
 import { MailerService } from '@nestjs-modules/mailer';
@@ -26,12 +31,25 @@ export class AuthService {
     private readonly authPhoneNumberRepository: Repository<AuthPhoneNumberEntity>,
     @InjectRepository(AuthMailEntity)
     private readonly authMailRepository: Repository<AuthMailEntity>,
+    @InjectRepository(UserImageEntity)
+    private readonly userImageRepository: Repository<UserImageEntity>,
     private readonly mailerService: MailerService,
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
   ) {}
 
   private readonly logger = new Logger(AuthService.name);
+
+  async addImages(userId: number, images: string[]) {
+    const entities = images.map((image, i) =>
+      this.userImageRepository.create({
+        user: { id: userId },
+        no: i,
+        url: image,
+      }),
+    );
+    await this.userImageRepository.save(entities);
+  }
 
   async getRefreshToken({ id }) {
     const payload: JwtPayload = {
@@ -76,7 +94,7 @@ export class AuthService {
   }
 
   async validateUser(id: number) {
-    const user = await this.userService.findUser('id', id);
+    const user = await this.userService.findUserByVal('id', id);
 
     if (!user || id == undefined) {
       throw new UnauthorizedException('등록되지 않은 사용자입니다.');
@@ -90,10 +108,8 @@ export class AuthService {
       order: { createdAt: 'DESC' },
     });
 
-    const existingUser = await this.userService.findUser(
-      'phoneNumber',
-      phoneNumber,
-    );
+    const existingUser =
+      await this.userService.findCompleteUserByPhone(phoneNumber);
     if (existingUser)
       throw new ConflictException('이미 가입된 전화번호입니다.');
     if (phone && phone.createdAt.getTime() + 1000 * 10 > Date.now()) {
@@ -184,7 +200,7 @@ export class AuthService {
   }
 
   async sendVerificationCode(userId: number, to: string) {
-    const existingUser = await this.userService.findUser('email', to);
+    const existingUser = await this.userService.findUserByVal('email', to);
     if (existingUser) throw new ConflictException('이미 가입된 이메일입니다.');
     const mail = await this.authMailRepository.findOne({
       where: { user: { id: userId } },
@@ -203,11 +219,12 @@ export class AuthService {
     if (!univ) throw new BadRequestException('올바르지 않은 이메일입니다.');
 
     try {
+      const endpoint = 'http://54.180.85.164:3080/auth/check/email';
       await this.mailerService.sendMail({
         from: process.env.MAIL_USER,
         to: to,
         subject: '블러팅 이메일을 인증해주세요.',
-        html: `아래 링크에 접속하면 인증이 완료됩니다. <br /> <a href="${'api'}?code=${code}&email=${to}">인증하기</a>`,
+        html: `아래 링크에 접속하면 인증이 완료됩니다. <br /> <a href="${endpoint}?code=${code}&email=${to}">인증하기</a>`,
       });
     } catch (err) {
       throw new BadRequestException('올바르지 않은 이메일입니다.');
@@ -223,8 +240,8 @@ export class AuthService {
   }
 
   async checkComplete(id: number) {
-    const user = await this.userService.findUser('id', id);
-    return user.phoneNumber && user.email;
+    const user = await this.userService.findUserByVal('id', id);
+    return user.phoneNumber && user.email != null;
   }
 
   async checkMail(code: string, email: string) {

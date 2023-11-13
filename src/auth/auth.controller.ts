@@ -36,6 +36,7 @@ import {
 } from './dtos/tokenResponseDto';
 import { SignupPhoneRequestDto } from './dtos/signupPhoneRequest.dto';
 import { SignupEmailRequestDto } from './dtos/signupEmailRequest.dto';
+import { SignupImageRequestDto } from './dtos/signupImageRequest.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -60,7 +61,6 @@ export class AuthController {
   @ApiCreatedResponse({ description: '성공', type: SignupTokenResponseDto })
   async checkCode(
     @Req() req: Request,
-    @Res() res: Response,
     @Query('code') code: string,
     @Body() body: SignupPhoneRequestDto,
   ) {
@@ -70,14 +70,15 @@ export class AuthController {
         throw new BadRequestException('invalid signup token');
       }
 
-      this.authService.checkCode(id, code, body.phoneNumber);
+      await this.authService.checkCode(id, code, body.phoneNumber);
       const signupToken = await this.authService.getSignupToken(
         req.user as SignupPayload,
       );
 
-      return res.json({ signupToken: signupToken });
+      return { signupToken: signupToken };
     } catch (err) {
-      res.status(err.status).json(err);
+      console.log(err);
+      return err;
     }
   }
 
@@ -147,10 +148,14 @@ export class AuthController {
       if (!info[pageName]) throw new BadRequestException('invalid info');
       switch (pageName) {
         case 'userName':
-          this.userService.updateUser(id, 'userName', info['userName']);
+          await this.userService.updateUser(id, 'userName', info['userName']);
           break;
         default:
-          this.userService.updateUserInfo(infoId, pageName, info[pageName]);
+          await this.userService.updateUserInfo(
+            infoId,
+            pageName,
+            info[pageName],
+          );
       }
 
       const signupToken = await this.authService.getSignupToken(
@@ -192,8 +197,26 @@ export class AuthController {
 
       return res.json({ signupToken: signupToken });
     } catch (err) {
+      console.log(err);
       res.status(err.status).json(err);
     }
+  }
+
+  @Post('/signup/images')
+  @UseGuards(SignupGuard)
+  @ApiBadRequestResponse({ description: 'invalid signup token' })
+  @ApiCreatedResponse({
+    description: 'new signup token',
+    type: SignupTokenResponseDto,
+  })
+  async signupImage(@Body() body: SignupImageRequestDto, @Req() req: Request) {
+    const { id } = req.user as SignupPayload;
+
+    await this.authService.addImages(id, body.images);
+    const signupToken = await this.authService.getSignupToken(
+      req.user as SignupPayload,
+    );
+    return { signupToken };
   }
 
   @Post('/signup/email')
