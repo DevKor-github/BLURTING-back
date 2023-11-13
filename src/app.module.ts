@@ -10,6 +10,7 @@ import { S3Module } from './s3/s3.module';
 import { GeocodingModule } from './geocoding/geocoding.module';
 import { ChatModule } from './chat/chat.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { FcmModule } from './firebase/fcm.module';
 import { BlurtingModule } from './blurting/blurting.module';
 
 @Module({
@@ -41,6 +42,7 @@ import { BlurtingModule } from './blurting/blurting.module';
     }),
     GeocodingModule,
     ChatModule,
+    FcmModule,
     BlurtingModule,
   ],
   controllers: [AppController],

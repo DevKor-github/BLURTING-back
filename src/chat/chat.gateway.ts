@@ -54,6 +54,8 @@ export class ChatGateway
     const socketId = await this.chatService.findUserSocketId(user);
     if (socketId) {
       this.server.to(socketId).emit('invite_chat', roomId);
+    } else {
+      this.chatService.pushCreateRoom(user);
     }
   }
 
@@ -73,5 +75,6 @@ export class ChatGateway
     const addChat: AddChatDto = { ...chatData, userId: client.data.userId };
     this.chatService.addChat(addChat);
     this.server.to(chatData.roomId).emit('new_chat', addChat);
+    this.chatService.pushNewChat(chatData.roomId);
   }
 }

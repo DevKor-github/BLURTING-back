@@ -2,11 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose/dist/common';
 import { Room, Chatting, SocketUser } from './models';
 import { Model } from 'mongoose';
-import { AddChatDto, RoomInfoDto, ChatUserDto } from 'src/dtos/chat.dto';
 import { UnauthorizedException } from '@nestjs/common/exceptions';
-import { UserService } from 'src/user/user.service';
 import { Socket } from 'socket.io';
 import * as jwt from 'jsonwebtoken';
+import {
+  AddChatDto,
+  RoomInfoDto,
+  ChatUserDto,
+  RoomChatDto,
+} from 'src/dtos/chat.dto';
+import { UserService } from 'src/user/user.service';
+import { FcmService } from 'src/firebase/fcm.service';
 
 @Injectable()
 export class ChatService {
@@ -17,6 +23,7 @@ export class ChatService {
     @InjectModel(SocketUser.name)
     private readonly socketUserModel: Model<SocketUser>,
     private readonly userService: UserService,
+    private readonly fcmService: FcmService,
   ) {}
 
   async validateSocket(client: Socket) {
@@ -50,12 +57,13 @@ export class ChatService {
         userId: userId,
         userNickname: user.userNickname,
         userSex: user.sex,
+        connection: new Date(),
       });
     } else {
       // update socketId for user
       await this.socketUserModel.updateOne(
         { userId: userId },
-        { socketId: socketId },
+        { socketId: socketId, connection: new Date() },
       );
     }
   }
@@ -162,11 +170,29 @@ export class ChatService {
       .equals(roomId)
       .select('userId userNickname chat createdAt -_id');
 
-    return {
-      userId: otherUser.userId,
-      userImage: otherUser.userImage,
-      hasRead: otherUser.hasRead,
-      chats,
-    };
+    return RoomChatDto.ToDto(otherUser, chats);
+  }
+
+  pushCreateRoom(userId: number) {
+    this.fcmService.sendPush(
+      userId,
+      '새로운 귓속말',
+      '새로운 귓속말을 시작합니다!',
+    );
+  }
+
+  async pushNewChat(roomId: string) {
+    const room = await this.roomModel.findOne({
+      id: roomId,
+    });
+    room.users.map((user) => {
+      const socketId = this.findUserSocketId(user.userId);
+      if (!socketId)
+        this.fcmService.sendPush(
+          user.userId,
+          '새로운 귓속말',
+          '새로운 귓속말이 도착했습니다!',
+        );
+    });
   }
 }
