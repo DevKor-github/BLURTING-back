@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as firebase from 'firebase-admin';
-import * as path from 'path';
 import { SocketUser } from 'src/chat/models';
 
 @Injectable()
@@ -11,10 +10,21 @@ export class FcmService {
     @InjectModel(SocketUser.name)
     private readonly socketUserModel: Model<SocketUser>,
   ) {
+    const firebase_key = {
+      type: process.env.FCM_TYPE,
+      projectId: process.env.FCM_PROJECT_ID,
+      privateKeyId: process.env.FCM_PRIVATE_KEY_ID,
+      privateKey: process.env.FCM_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      clientEmail: process.env.FCM_CLIENT_EMAIL,
+      clientId: process.env.FCM_CLIENT_ID,
+      authUri: process.env.FCM_AUTH_URI,
+      tokenUri: process.env.FCM_TOKEN_URI,
+      authProviderX509CertUrl: process.env.FCM_AUTH_CERT_URL,
+      clientX509CertUrl: process.env.FCM_CLIENT_CERT_URL,
+    };
+
     firebase.initializeApp({
-      credential: firebase.credential.cert(
-        path.join('src/firebase/', 'firebase.json'),
-      ),
+      credential: firebase.credential.cert(firebase_key),
     });
   }
 
