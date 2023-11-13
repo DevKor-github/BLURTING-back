@@ -26,7 +26,7 @@ export class SignupGuard extends AuthGuard('signup') {
       const newToken = await this.authService.getSignupToken({
         id: user.id,
         infoId: userInfo.id,
-        page: 1,
+        page: 0,
       });
       res.json({ signupToken: newToken });
       return false;
