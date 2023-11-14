@@ -251,6 +251,34 @@ export class AuthController {
     }
   }
 
+  @Get('/signup/back')
+  @UseGuards(SignupGuard)
+  @ApiBadRequestResponse({
+    description: 'invalid signup token',
+  })
+  @ApiCreatedResponse({
+    description: 'new signup token',
+    type: SignupTokenResponseDto,
+  })
+  @ApiOperation({
+    summary: '회원가입 뒤로가기',
+    description: '이전 signup token 발행',
+  })
+  async signupBack(@Req() req: Request, @Res() res: Response) {
+    try {
+      const { id, infoId, page } = req.user as SignupPayload;
+      const signupToken = await this.authService.getSignupToken({
+        id: id,
+        infoId: infoId,
+        page: page - 2,
+      });
+
+      return res.json({ signupToken: signupToken });
+    } catch (err) {
+      res.status(err.status).json(err);
+    }
+  }
+
   @Post('/login')
   @ApiOperation({ deprecated: true })
   async login(@Body() loginDto: LoginDto, @Res() res: Response) {
