@@ -16,23 +16,6 @@ export class SignupGuard extends AuthGuard('signup') {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const req = context.switchToHttp().getRequest();
-    const res = context.switchToHttp().getResponse();
-    const token = req.headers.authorization?.split('Bearer ')[1];
-
-    if (!token) {
-      const user = await this.userService.createUser();
-      const userInfo = await this.userService.createUserInfo(user);
-      const newToken = await this.authService.getSignupToken({
-        id: user.id,
-        infoId: userInfo.id,
-        page: 0,
-      });
-      console.log(userInfo.id);
-      res.json({ signupToken: newToken });
-      return false;
-    }
-
     const result = super.canActivate(context);
     if (typeof result === 'boolean' || result instanceof Promise) {
       return result;
