@@ -135,6 +135,8 @@ export class ChatService {
     );
 
     return roomInfo.sort((a, b) => {
+      if (a.latest_time == null) return -1;
+      if (b.latest_time == null) return 1;
       return b.latest_time.getTime() - a.latest_time.getTime();
     });
   }
