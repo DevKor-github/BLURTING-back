@@ -28,14 +28,19 @@ export class ChatService {
 
   async validateSocket(client: Socket) {
     const authHeader = client.handshake.headers['authorization'];
+    const authAuth = client.handshake.auth['authorization'];
+    let token;
 
-    if (!authHeader || authHeader == undefined) {
+    if (authHeader && authHeader != undefined) {
+      token = authHeader.split(' ')[1];
+    } else if (authAuth && authAuth != undefined) {
+      token = authAuth.split(' ')[1];
+    } else {
       client.disconnect(true);
       return false;
     }
 
     try {
-      const token = authHeader.split(' ')[1];
       const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET_KEY);
       client.data.userId = decoded['id'];
     } catch (error) {
