@@ -28,6 +28,7 @@ export class SignupGuard extends AuthGuard('signup') {
         infoId: userInfo.id,
         page: 0,
       });
+      console.log(userInfo.id);
       res.json({ signupToken: newToken });
       return false;
     }

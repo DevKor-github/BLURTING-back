@@ -44,6 +44,8 @@ export class SocketUser extends Document {
 
   @Prop({
     type: String,
+    default: undefined,
+    required: false,
     enum: Sex,
   })
   @IsEnum(Sex)
