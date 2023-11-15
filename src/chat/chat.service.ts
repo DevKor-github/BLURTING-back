@@ -27,7 +27,7 @@ export class ChatService {
   ) {}
 
   async validateSocket(client: Socket) {
-    const authHeader = client.handshake.auth['authorization'];
+    const authHeader = client.handshake.headers['authorization'];
 
     if (!authHeader || authHeader == undefined) {
       client.disconnect(true);
