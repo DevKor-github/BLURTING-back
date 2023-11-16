@@ -20,6 +20,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
 import { University } from 'src/common/enums';
+import { UnivMailMap } from 'src/common/const';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const crypto = require('crypto');
@@ -213,9 +214,10 @@ export class AuthService {
     const code = crypto.randomBytes(32).toString('hex');
 
     const domain = to.split('@')[1];
-    const univ = Object.keys(University).find(
-      (key) => University[key] == domain,
-    );
+    const univ = Object.entries(UnivMailMap).find(
+      ([_, value]) => value == domain,
+    )[0];
+
     if (!univ) throw new BadRequestException('올바르지 않은 이메일입니다.');
 
     try {
@@ -257,9 +259,9 @@ export class AuthService {
     });
 
     const domain = email.split('@')[1];
-    const univ = Object.keys(University).find(
-      (key) => University[key] == domain,
-    );
+    const univ = Object.entries(UnivMailMap).find(
+      ([_, value]) => value == domain,
+    )[0];
 
     await this.userService.updateUser(mail.user.id, 'email', email);
     await this.userService.updateUserInfo(mail.user.id, 'university', univ);

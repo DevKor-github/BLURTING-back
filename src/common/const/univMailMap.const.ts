@@ -187,7 +187,7 @@ export const UnivMailMap = {
   경희사이버대학교: 'khcu.ac.kr',
   계명대학교: 'kmu.ac.kr',
   고려대학교: 'korea.ac.kr',
-  고려대학교세종: 'korea.ac.kr',
+
   고려사이버대학교: 'cuk.edu',
   /*
   고신대학교 kosin.ac.kr
