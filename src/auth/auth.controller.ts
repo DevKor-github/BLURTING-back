@@ -169,6 +169,31 @@ export class AuthController {
     }
   }
 
+  @Get('/signup/start')
+  @ApiCreatedResponse({
+    description: 'new signup token',
+    type: SignupTokenResponseDto,
+  })
+  @ApiOperation({
+    summary: '회원가입 시작',
+    description: '첫 signup token 발행',
+  })
+  async signupStart(@Req() req: Request, @Res() res: Response) {
+    try {
+      const user = await this.userService.createUser();
+      const userInfo = await this.userService.createUserInfo(user);
+      const signupToken = await this.authService.getSignupToken({
+        id: user.id,
+        infoId: userInfo.id,
+        page: 0,
+      });
+
+      return res.json({ signupToken: signupToken });
+    } catch (err) {
+      res.status(err.status).json(err);
+    }
+  }
+
   @Post('/signup/phonenumber')
   @UseGuards(SignupGuard)
   @ApiOperation({ summary: '휴대폰 인증 요청 - 첫 endpoint' })
@@ -245,6 +270,34 @@ export class AuthController {
       const signupToken = await this.authService.getSignupToken(
         req.user as SignupPayload,
       );
+
+      return res.json({ signupToken: signupToken });
+    } catch (err) {
+      res.status(err.status).json(err);
+    }
+  }
+
+  @Get('/signup/back')
+  @UseGuards(SignupGuard)
+  @ApiBadRequestResponse({
+    description: 'invalid signup token',
+  })
+  @ApiCreatedResponse({
+    description: 'new signup token',
+    type: SignupTokenResponseDto,
+  })
+  @ApiOperation({
+    summary: '회원가입 뒤로가기',
+    description: '이전 signup token 발행',
+  })
+  async signupBack(@Req() req: Request, @Res() res: Response) {
+    try {
+      const { id, infoId, page } = req.user as SignupPayload;
+      const signupToken = await this.authService.getSignupToken({
+        id: id,
+        infoId: infoId,
+        page: page - 2,
+      });
 
       return res.json({ signupToken: signupToken });
     } catch (err) {

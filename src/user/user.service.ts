@@ -25,19 +25,21 @@ export class UserService {
     const rand = Math.floor(Math.random() * 100000);
     const index = rand % nicknames.length;
     const nickname = nicknames[index].toString() + rand.toString();
-    const user = this.userRepository.create({ userNickname: nickname });
-    return this.userRepository.save(user);
+    const user = await this.userRepository.create({ userNickname: nickname });
+    return await this.userRepository.save(user);
   }
 
   async createUserInfo(user: UserEntity) {
-    const userInfo = this.userInfoRepository.create({ user: user });
-    return this.userInfoRepository.save(userInfo);
+    const userInfoEntity = await this.userInfoRepository.create({ user: user });
+    const userInfo = await this.userInfoRepository.save(userInfoEntity);
+    this.updateUser(user.id, 'userInfo', userInfo);
+    return userInfo;
   }
 
   async updateUser(
     id: number,
     field: string,
-    value: string | BlurtingGroupEntity,
+    value: string | UserInfoEntity | BlurtingGroupEntity,
   ) {
     const user = await this.userRepository.findOne({ where: { id: id } });
     user[field] = value;

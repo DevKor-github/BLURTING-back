@@ -13,7 +13,7 @@ export class ChatController {
   @UseGuards(AuthGuard('access'))
   @ApiCreatedResponse({
     description: 'user chatting room list',
-    type: RoomInfoDto,
+    type: [RoomInfoDto],
   })
   @ApiHeader({
     name: 'authorization',
