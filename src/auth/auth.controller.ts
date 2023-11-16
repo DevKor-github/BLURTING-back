@@ -145,7 +145,8 @@ export class AuthController {
       }
 
       const pageName = Object.keys(Page).find((key) => Page[key] == page);
-      if (!info[pageName]) throw new BadRequestException('invalid info');
+      if (info[pageName] == undefined || info[pageName] == null)
+        throw new BadRequestException('invalid info');
       switch (pageName) {
         case 'userName':
           await this.userService.updateUser(id, 'userName', info['userName']);
