@@ -13,6 +13,7 @@ import {
   Degree,
   Major,
   University,
+  Religion,
 } from 'src/common/enums';
 
 @Entity('userInfo')
@@ -37,8 +38,12 @@ export class UserInfoEntity {
   @Column({ nullable: true })
   region?: string;
 
-  @Column({ nullable: true })
-  religion?: string;
+  @Column({
+    nullable: true,
+    type: 'enum',
+    enum: Religion,
+  })
+  religion?: Religion;
 
   @Column({
     nullable: true,

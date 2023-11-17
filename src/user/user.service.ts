@@ -71,11 +71,21 @@ export class UserService {
         }
         this.userInfoRepository.update(id, { hobby: maskedValue });
         break;
-      case 'image':
-        break;
       default:
         this.userInfoRepository.update(id, { [field]: value });
     }
+  }
+
+  async updateUserImages(userId: number, images: string[]) {
+    await this.userImageRepository.delete({ user: { id: userId } });
+    const entities = images.map((image, i) =>
+      this.userImageRepository.create({
+        user: { id: userId },
+        no: i,
+        url: image,
+      }),
+    );
+    await this.userImageRepository.save(entities);
   }
 
   async findUserByVal(field: string, value: string | number) {
@@ -107,16 +117,21 @@ export class UserService {
     return { ...user, ...userInfo };
   }
 
-  async getUserImage(userId: number) {
-    const userImage = await this.userImageRepository.find({
-      where: { user: { id: userId }, no: 1 },
+  async getUserImages(userId: number) {
+    const userImages = await this.userImageRepository.find({
+      where: { user: { id: userId } },
       relations: ['user'],
+      order: {
+        no: 'ASC',
+      },
     });
-
-    return userImage ? userImage['url'] : null;
+    const userImgeUrl = userImages.map((image) => {
+      return image.url;
+    });
+    return userImgeUrl ? userImgeUrl : null;
   }
 
-  async getUserProfile(userId: number, image: string) {
+  async getUserProfile(userId: number, image: Array<string>) {
     const userInfo = await this.userInfoRepository.findOne({
       where: { id: userId },
       relations: ['user'],

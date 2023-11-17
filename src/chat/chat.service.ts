@@ -92,7 +92,7 @@ export class ChatService {
       Math.floor(Math.random() * 100000).toString() + users[0] + users[1];
 
     for (const id of users) {
-      const userImage = await this.userService.getUserImage(id);
+      const userImage = await this.userService.getUserImages(id)[0];
       userObj.push({
         userId: id,
         userImage: userImage,
@@ -193,10 +193,9 @@ export class ChatService {
     }
 
     const otherUser = room.users.find((user) => user.userId != userId);
-    return await this.userService.getUserProfile(
-      otherUser.userId,
+    return await this.userService.getUserProfile(otherUser.userId, [
       otherUser.userImage,
-    );
+    ]);
   }
 
   async updateReadTime(roomId: string, userId: number) {

@@ -8,3 +8,4 @@ export { Page } from './page.enum';
 export { Sex } from './sex.enum';
 export { SexOrient } from './sexOrient.enum';
 export { University } from './university.enum';
+export { Religion } from './religion.enum';

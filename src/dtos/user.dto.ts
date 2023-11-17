@@ -16,6 +16,7 @@ import {
   University,
   Character,
   Hobby,
+  Religion,
 } from 'src/common/enums';
 import { CharacterMask, HobbyMask } from 'src/common/const';
 import { ApiProperty, PickType } from '@nestjs/swagger';
@@ -57,9 +58,13 @@ export class CreateUserDto {
   region: string;
 
   @ValidateIf((o) => o.religion !== undefined && o.religion !== null)
-  @IsString()
-  @ApiProperty({ description: 'religion' })
-  religion: string;
+  @IsEnum(Religion)
+  @ApiProperty({
+    description: 'religion',
+    enum: Religion,
+    enumName: 'religion',
+  })
+  religion: Religion;
 
   @ValidateIf((o) => o.drink !== undefined && o.drink !== null)
   @IsEnum(Degree)
@@ -134,17 +139,19 @@ export class UserProfileDto extends PickType(CreateUserDto, [
   'cigarette',
   'hobby',
 ] as const) {
+  @ValidateIf((o) => o.nickname !== undefined && o.nickname !== null)
   @IsString()
   @ApiProperty({ description: 'nickname' })
   nickname: string;
 
-  @IsString()
-  @ApiProperty({ description: 'first image' })
-  image: string;
+  @ValidateIf((o) => o.images !== undefined && o.images !== null)
+  @IsArray({ message: 'not valid' })
+  @ApiProperty({ example: ['s3.asfsva', 'asdfasdf'] })
+  images: string[];
 
-  static ToDto(userInfo: UserInfoEntity, image: string): UserProfileDto {
+  static ToDto(userInfo: UserInfoEntity, images: string[]): UserProfileDto {
     return {
-      image: image ?? null,
+      images: images ?? [],
       nickname: userInfo.user.userNickname ?? null,
       mbti: userInfo.mbti ?? null,
       region: userInfo.region ?? null,
@@ -179,3 +186,15 @@ export class UserProfileDto extends PickType(CreateUserDto, [
     return hobbyList;
   }
 }
+
+export class UpdateProfileDto extends PickType(UserProfileDto, [
+  'region',
+  'religion',
+  'drink',
+  'cigarette',
+  'major',
+  'mbti',
+  'character',
+  'hobby',
+  'images',
+] as const) {}

@@ -8,11 +8,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  AuthPhoneNumberEntity,
-  AuthMailEntity,
-  UserImageEntity,
-} from 'src/entities';
+import { AuthPhoneNumberEntity, AuthMailEntity } from 'src/entities';
 import { Repository } from 'typeorm';
 import axios from 'axios';
 import { MailerService } from '@nestjs-modules/mailer';
@@ -31,25 +27,12 @@ export class AuthService {
     private readonly authPhoneNumberRepository: Repository<AuthPhoneNumberEntity>,
     @InjectRepository(AuthMailEntity)
     private readonly authMailRepository: Repository<AuthMailEntity>,
-    @InjectRepository(UserImageEntity)
-    private readonly userImageRepository: Repository<UserImageEntity>,
     private readonly mailerService: MailerService,
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
   ) {}
 
   private readonly logger = new Logger(AuthService.name);
-
-  async addImages(userId: number, images: string[]) {
-    const entities = images.map((image, i) =>
-      this.userImageRepository.create({
-        user: { id: userId },
-        no: i,
-        url: image,
-      }),
-    );
-    await this.userImageRepository.save(entities);
-  }
 
   async getRefreshToken({ id }) {
     const payload: JwtPayload = {

@@ -195,7 +195,7 @@ export class AuthController {
 
   @Post('/signup/phonenumber')
   @UseGuards(SignupGuard)
-  @ApiOperation({ summary: '휴대폰 인증 요청 - 첫 endpoint' })
+  @ApiOperation({ summary: '휴대폰 인증 요청' })
   @ApiBadRequestResponse({
     description: 'invalid signup token 또는 전화번호 오류',
   })
@@ -237,7 +237,7 @@ export class AuthController {
   async signupImage(@Body() body: SignupImageRequestDto, @Req() req: Request) {
     const { id } = req.user as SignupPayload;
 
-    await this.authService.addImages(id, body.images);
+    await this.userService.updateUserImages(id, body.images);
     const signupToken = await this.authService.getSignupToken(
       req.user as SignupPayload,
     );
