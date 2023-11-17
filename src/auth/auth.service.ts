@@ -8,18 +8,13 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  AuthPhoneNumberEntity,
-  AuthMailEntity,
-  UserImageEntity,
-} from 'src/entities';
+import { AuthPhoneNumberEntity, AuthMailEntity } from 'src/entities';
 import { Repository } from 'typeorm';
 import axios from 'axios';
 import { MailerService } from '@nestjs-modules/mailer';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
-import { University } from 'src/common/enums';
 import { UnivMailMap } from 'src/common/const';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -32,8 +27,6 @@ export class AuthService {
     private readonly authPhoneNumberRepository: Repository<AuthPhoneNumberEntity>,
     @InjectRepository(AuthMailEntity)
     private readonly authMailRepository: Repository<AuthMailEntity>,
-    @InjectRepository(UserImageEntity)
-    private readonly userImageRepository: Repository<UserImageEntity>,
     private readonly mailerService: MailerService,
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
@@ -41,21 +34,12 @@ export class AuthService {
 
   private readonly logger = new Logger(AuthService.name);
 
-  async addImages(userId: number, images: string[]) {
-    const entities = images.map((image, i) =>
-      this.userImageRepository.create({
-        user: { id: userId },
-        no: i,
-        url: image,
-      }),
-    );
-    await this.userImageRepository.save(entities);
-  }
-
   async getRefreshToken({ id }) {
     const payload: JwtPayload = {
       id: id,
-      signedAt: new Date().toISOString(),
+      signedAt: new Date(
+        new Date().getTime() + 9 * 60 * 60 * 1000,
+      ).toISOString(),
     };
 
     const refreshJwt = await this.jwtService.sign(payload, {
@@ -69,7 +53,9 @@ export class AuthService {
   async getAccessToken({ id }) {
     const payload: JwtPayload = {
       id: id,
-      signedAt: new Date().toISOString(),
+      signedAt: new Date(
+        new Date().getTime() + 9 * 60 * 60 * 1000,
+      ).toISOString(),
     };
 
     const accessJwt = await this.jwtService.sign(payload, {

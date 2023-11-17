@@ -6,7 +6,7 @@ import { UnauthorizedException } from '@nestjs/common/exceptions';
 import { Socket } from 'socket.io';
 import * as jwt from 'jsonwebtoken';
 import {
-  AddChatDto,
+  ChatDto,
   RoomInfoDto,
   ChatUserDto,
   RoomChatDto,
@@ -62,13 +62,16 @@ export class ChatService {
         userId: userId,
         userNickname: user.userNickname,
         userSex: user.sex,
-        connection: new Date(),
+        connection: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
       });
     } else {
       // update socketId for user
       await this.socketUserModel.updateOne(
         { userId: userId },
-        { socketId: socketId, connection: new Date() },
+        {
+          socketId: socketId,
+          connection: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
+        },
       );
     }
   }
@@ -89,11 +92,11 @@ export class ChatService {
       Math.floor(Math.random() * 100000).toString() + users[0] + users[1];
 
     for (const id of users) {
-      const userImage = await this.userService.getUserImage(id);
+      const userImage = await this.userService.getUserImages(id)[0];
       userObj.push({
         userId: id,
         userImage: userImage,
-        hasRead: new Date(),
+        hasRead: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
         isDeleted: false,
       });
     }
@@ -119,7 +122,7 @@ export class ChatService {
       .exec();
   }
 
-  addChat(chatData: AddChatDto) {
+  addChat(chatData: ChatDto) {
     this.chattingModel.create(chatData);
   }
 
@@ -178,6 +181,34 @@ export class ChatService {
       .select('userId userNickname chat createdAt -_id');
 
     return RoomChatDto.ToDto(otherUser, chats);
+  }
+
+  async getOtherProfile(roomId: string, userId: number) {
+    const room = await this.roomModel.findOne({
+      id: roomId,
+      'users.userId': userId,
+    });
+    if (room == null) {
+      throw new UnauthorizedException();
+    }
+
+    const otherUser = room.users.find((user) => user.userId != userId);
+    return await this.userService.getUserProfile(otherUser.userId, [
+      otherUser.userImage,
+    ]);
+  }
+
+  async updateReadTime(roomId: string, userId: number) {
+    await this.roomModel.findOneAndUpdate(
+      { id: roomId, 'users.userId': userId },
+      {
+        $set: {
+          'users.$.hasRead': new Date(
+            new Date().getTime() + 9 * 60 * 60 * 1000,
+          ),
+        },
+      },
+    );
   }
 
   pushCreateRoom(userId: number) {

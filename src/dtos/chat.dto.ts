@@ -12,7 +12,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Chatting, SocketUser } from 'src/chat/models';
 import { Sex } from 'src/common/enums';
 
-export class AddChatDto {
+export class ChatDto {
   @IsString()
   @ApiProperty({ description: 'roomId' })
   readonly roomId: string;
@@ -31,7 +31,7 @@ export class AddChatDto {
   readonly createdAt: Date;
 }
 
-export class ChatDto extends PickType(AddChatDto, [
+export class AddChatDto extends PickType(ChatDto, [
   'roomId',
   'chat',
   'createdAt',
@@ -112,12 +112,12 @@ export class RoomChatDto {
   @IsArray()
   @ApiProperty({
     description: 'chats',
-    type: AddChatDto,
+    type: ChatDto,
     isArray: true,
   })
-  chats: AddChatDto[];
+  chats: ChatDto[];
 
-  static ToDto(otherUser: ChatUserDto, chattings: AddChatDto[]): RoomChatDto {
+  static ToDto(otherUser: ChatUserDto, chattings: ChatDto[]): RoomChatDto {
     return {
       otherId: otherUser.userId,
       otherImage: otherUser.userImage,
@@ -125,4 +125,12 @@ export class RoomChatDto {
       chats: chattings,
     };
   }
+}
+
+export class InRoomDto {
+  @IsString()
+  roomId: string;
+
+  @IsBoolean()
+  inRoom: boolean;
 }

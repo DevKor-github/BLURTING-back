@@ -23,7 +23,9 @@ export class BlurtingService {
   ) {}
 
   async createGroup(users: number[]) {
-    const group = await this.groupRepository.save({ createdAt: new Date() });
+    const group = await this.groupRepository.save({
+      createdAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
+    });
     users.map((id) => this.userService.updateUser(id, 'group', group));
   }
 
@@ -51,7 +53,7 @@ export class BlurtingService {
     const answerEntity = this.answerRepository.create({
       user: { id: userId } as UserEntity,
       question: { id: questionId } as BlurtingQuestionEntity,
-      postedAt: new Date(),
+      postedAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
       answer: answer,
     });
     return this.answerRepository.save(answerEntity);

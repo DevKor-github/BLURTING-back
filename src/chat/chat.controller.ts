@@ -5,6 +5,7 @@ import { ApiCreatedResponse, ApiHeader, ApiOperation } from '@nestjs/swagger';
 import { JwtPayload } from 'src/interfaces/auth';
 import { ChatService } from './chat.service';
 import { RoomChatDto, RoomInfoDto } from 'src/dtos/chat.dto';
+import { UserProfileDto } from 'src/dtos/user.dto';
 
 @Controller('chat')
 export class ChatController {
@@ -54,6 +55,31 @@ export class ChatController {
     const { id } = req.user as JwtPayload;
     const chats = await this.chatService.getChats(roomId, id);
     return await res.json(chats);
+  }
+
+  @UseGuards(AuthGuard('access'))
+  @ApiCreatedResponse({
+    description: 'get user profile',
+    type: UserProfileDto,
+  })
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiOperation({
+    summary: '상대 프로필',
+    description: '채팅방에서 상대 프로필 보기',
+  })
+  @Get('/profile/:roomId')
+  async getOtherProfile(
+    @Req() req: Request,
+    @Param('roomId') roomId: string,
+    @Res() res: Response,
+  ) {
+    const { id } = req.user as JwtPayload;
+    const profile = await this.chatService.getOtherProfile(roomId, id);
+    return res.json(profile);
   }
 
   // 채팅방 나가기
