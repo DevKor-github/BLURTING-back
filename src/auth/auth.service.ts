@@ -15,7 +15,6 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
-import { University } from 'src/common/enums';
 import { UnivMailMap } from 'src/common/const';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
