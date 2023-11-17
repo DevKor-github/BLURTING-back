@@ -9,6 +9,7 @@ import {
   UserInfoEntity,
   UserImageEntity,
 } from 'src/entities';
+import { UserProfileDto } from 'src/dtos/user.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -76,6 +77,7 @@ export class UserService {
         this.userInfoRepository.update(id, { [field]: value });
     }
   }
+
   async findUserByVal(field: string, value: string | number) {
     const user = await this.userRepository.findOne({
       where: { [field]: value },
@@ -83,6 +85,7 @@ export class UserService {
     });
     return user;
   }
+
   async findCompleteUserByPhone(phone: string) {
     const user = await this.userRepository.findOne({
       where: {
@@ -111,5 +114,13 @@ export class UserService {
     });
 
     return userImage ? userImage['url'] : null;
+  }
+
+  async getUserProfile(userId: number, image: string) {
+    const userInfo = await this.userInfoRepository.findOne({
+      where: { id: userId },
+      relations: ['user'],
+    });
+    return await UserProfileDto.ToDto(userInfo, image);
   }
 }

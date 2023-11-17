@@ -1,3 +1,16 @@
 export enum Hobby {
+  Animation = '애니',
+  Drawing = '그림그리기',
+  Drink = '술',
+  Movie = '영화/드라마',
+  Travel = '여행',
+  Cooking = '요리',
+  SelfImprovement = '자기계발',
   Reading = '독서',
+  Game = '게임',
+  Listening = '노래듣기',
+  Volunteer = '봉사활동',
+  Exercise = '운동',
+  Singing = '노래부르기',
+  Walking = '산책',
 }
