@@ -24,9 +24,10 @@ export class SocketUser extends Document {
 
   @Prop({
     type: String,
+    required: false,
   })
   @IsString()
-  notificationToken: string;
+  notificationToken?: string;
 
   @Prop({
     required: true,
@@ -49,7 +50,7 @@ export class SocketUser extends Document {
     enum: Sex,
   })
   @IsEnum(Sex)
-  userSex: Sex;
+  userSex?: Sex;
 
   @Prop({
     type: Date,

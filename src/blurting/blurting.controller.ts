@@ -25,7 +25,7 @@ export class BlurtingController {
   @Get()
   async getBlurting(@Req() req: Request, @Res() res: Response) {
     const { id } = req.user as JwtPayload;
-    const user = await this.userService.findUser('id', id);
+    const user = await this.userService.findUserByVal('id', id);
     const blurtingPage = await this.blurtingService.getBlurting(user.group);
     return res.json(blurtingPage);
   }

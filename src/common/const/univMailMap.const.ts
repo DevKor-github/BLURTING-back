@@ -634,4 +634,3 @@ export const UnivMailMap = {
   화신사이버대학교: 'hscu.ac.kr'
   */
 };
-

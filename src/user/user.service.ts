@@ -89,11 +89,21 @@ export class UserService {
   }
 
   async findUserByVal(field: string, value: string | number) {
-    const user = await this.userRepository.findOne({
+    const validatedUser = await this.userRepository.findOne({
       where: { [field]: value },
-      relations: ['userInfo', 'group'],
     });
-    return user;
+    if (!validatedUser) return validatedUser;
+    else {
+      const user = await this.userRepository.findOne({
+        where: {
+          id: validatedUser.id,
+          phoneNumber: validatedUser.phoneNumber,
+          email: validatedUser.email,
+        },
+        relations: ['userInfo', 'group'],
+      });
+      return user;
+    }
   }
 
   async findCompleteUserByPhone(phone: string) {
@@ -133,7 +143,7 @@ export class UserService {
 
   async getUserProfile(userId: number, image: Array<string>) {
     const userInfo = await this.userInfoRepository.findOne({
-      where: { id: userId },
+      where: { user: { id: userId } },
       relations: ['user'],
     });
     return await UserProfileDto.ToDto(userInfo, image);

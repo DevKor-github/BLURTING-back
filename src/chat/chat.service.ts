@@ -59,6 +59,7 @@ export class ChatService {
       const user = await this.userService.findUser('id', userId);
       await this.socketUserModel.create({
         socketId: socketId,
+        notificationToken: null,
         userId: userId,
         userNickname: user.userNickname,
         userSex: user.sex,
