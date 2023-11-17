@@ -54,7 +54,9 @@ export class AuthService {
   async getRefreshToken({ id }) {
     const payload: JwtPayload = {
       id: id,
-      signedAt: new Date().toISOString(),
+      signedAt: new Date(
+        new Date().getTime() + 9 * 60 * 60 * 1000,
+      ).toISOString(),
     };
 
     const refreshJwt = await this.jwtService.sign(payload, {
@@ -68,7 +70,9 @@ export class AuthService {
   async getAccessToken({ id }) {
     const payload: JwtPayload = {
       id: id,
-      signedAt: new Date().toISOString(),
+      signedAt: new Date(
+        new Date().getTime() + 9 * 60 * 60 * 1000,
+      ).toISOString(),
     };
 
     const accessJwt = await this.jwtService.sign(payload, {

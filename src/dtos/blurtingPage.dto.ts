@@ -18,7 +18,7 @@ export class BlurtingAnswerDto {
   @IsDate()
   postedAt: Date;
 
-  static toDto(answerEntity: BlurtingAnswerEntity): BlurtingAnswerDto {
+  static ToDto(answerEntity: BlurtingAnswerEntity): BlurtingAnswerDto {
     return {
       userId: answerEntity.user.id,
       userNickname: answerEntity.user.userNickname,
@@ -53,7 +53,7 @@ export class BlurtingPageDto {
     answerEntities: BlurtingAnswerEntity[],
   ): BlurtingPageDto {
     const answersDto = answerEntities.map((answerEntity) =>
-      BlurtingAnswerDto.toDto(answerEntity),
+      BlurtingAnswerDto.ToDto(answerEntity),
     );
     return {
       groupId: groupEntity.id,

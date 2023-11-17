@@ -17,7 +17,9 @@ import {
   Character,
   Hobby,
 } from 'src/common/enums';
-import { ApiProperty } from '@nestjs/swagger';
+import { CharacterMask, HobbyMask } from 'src/common/const';
+import { ApiProperty, PickType } from '@nestjs/swagger';
+import { UserInfoEntity } from 'src/entities';
 
 export class CreateUserDto {
   @ValidateIf((o) => o.userName !== undefined && o.userName !== null)
@@ -119,4 +121,61 @@ export class CreateUserDto {
 export class LoginDto {
   @IsNumber()
   id: number;
+}
+
+export class UserProfileDto extends PickType(CreateUserDto, [
+  'mbti',
+  'region',
+  'religion',
+  'major',
+  'character',
+  'height',
+  'drink',
+  'cigarette',
+  'hobby',
+] as const) {
+  @IsString()
+  @ApiProperty({ description: 'nickname' })
+  nickname: string;
+
+  @IsString()
+  @ApiProperty({ description: 'first image' })
+  image: string;
+
+  static ToDto(userInfo: UserInfoEntity, image: string): UserProfileDto {
+    return {
+      image: image ?? null,
+      nickname: userInfo.user.userNickname ?? null,
+      mbti: userInfo.mbti ?? null,
+      region: userInfo.region ?? null,
+      religion: userInfo.religion ?? null,
+      major: userInfo.major ?? null,
+      character: this.GetCharacter(userInfo.character ?? 0),
+      height: userInfo.height ?? null,
+      drink: userInfo.drink ?? null,
+      cigarette: userInfo.cigarette ?? null,
+      hobby: this.GetHobby(userInfo.hobby ?? 0),
+    };
+  }
+
+  static GetCharacter(maskedValue: number): Character[] {
+    const characterList: Character[] = [];
+    for (const key in CharacterMask) {
+      if (maskedValue & CharacterMask[key]) {
+        CharacterMask[key];
+        characterList.push(Character[key]);
+      }
+    }
+    return characterList;
+  }
+
+  static GetHobby(maskedValue: number): Hobby[] {
+    const hobbyList: Hobby[] = [];
+    for (const key in HobbyMask) {
+      if (maskedValue & HobbyMask[key]) {
+        hobbyList.push(Hobby[key]);
+      }
+    }
+    return hobbyList;
+  }
 }
