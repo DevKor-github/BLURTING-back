@@ -25,7 +25,7 @@ export class GeocodingService {
         `&page=${page}` +
         '&data=LT_C_ADSIGG_INFO' +
         (geo ? `&geomFilter=${geo}` : '') +
-        (name ? `&attrFilter=full_nm:like:${name}` : '') +
+        (name ? `&attrFilter=sig_kor_nm:like:${name}` : '') +
         '&geometry=false';
 
       const response = await axios.get(requestURL);
@@ -70,7 +70,7 @@ export class GeocodingService {
         `&size=${size}` +
         `&request=${operation}` +
         '&data=LT_C_ADSIGG_INFO' +
-        `&attrFilter=full_nm:like:${name}`;
+        `&attrFilter=sig_kor_nm:like:${name}`;
 
       const response = await axios.get(requestURL);
       return response.data.response;
