@@ -69,7 +69,6 @@ export class UserController {
   ) {
     const { id } = req.user as JwtPayload;
     const images = await this.userService.getUserImages(id);
-    console.log(images);
     const profile = await this.userService.getUserProfile(id, images);
     return res.json(profile);
   }
