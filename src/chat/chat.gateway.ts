@@ -89,18 +89,23 @@ export class ChatGateway
   ) {
     const addChat: ChatDto = { ...chatData, userId: client.data.userId };
     const adapter = this.server.adapter as any;
-
-    this.chatService.addChat(addChat);
     let read = true;
-    if (adapter.rooms.get(chatData.roomId).size < 2) {
-      read = false;
+    if (
+      adapter.rooms.get(chatData.roomId) ||
+      adapter.rooms.get(chatData.roomId) != undefined
+    ) {
+      this.chatService.addChat(addChat);
+
+      if (adapter.rooms.get(chatData.roomId).size < 2) {
+        read = false;
+        this.server
+          .to(`${chatData.roomId}_list`)
+          .emit('new_chat', { ...addChat, read: read });
+      }
       this.server
-        .to(`${chatData.roomId}_list`)
+        .to(chatData.roomId)
         .emit('new_chat', { ...addChat, read: read });
+      this.chatService.pushNewChat(chatData.roomId);
     }
-    this.server
-      .to(chatData.roomId)
-      .emit('new_chat', { ...addChat, read: read });
-    this.chatService.pushNewChat(chatData.roomId);
   }
 }
