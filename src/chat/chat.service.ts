@@ -147,17 +147,19 @@ export class ChatService {
     const otherUserInfo = await this.socketUserModel.findOne({
       userId: otherUser.userId,
     });
-    const latestChat = await this.chattingModel
-      .find({ roomId: room.id })
-      .sort({ createdAt: -1 })
-      .limit(1);
+    if (otherUserInfo) {
+      const latestChat = await this.chattingModel
+        .find({ roomId: room.id })
+        .sort({ createdAt: -1 })
+        .limit(1);
 
-    return RoomInfoDto.ToDto(
-      room.id,
-      user.hasRead,
-      otherUserInfo,
-      latestChat[0],
-    );
+      return RoomInfoDto.ToDto(
+        room.id,
+        user.hasRead,
+        otherUserInfo,
+        latestChat[0],
+      );
+    }
   }
 
   async getChats(roomId: string, userId: number) {
