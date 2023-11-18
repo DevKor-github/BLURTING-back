@@ -12,6 +12,7 @@ import { ChatModule } from './chat/chat.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { FcmModule } from './firebase/fcm.module';
 import { BlurtingModule } from './blurting/blurting.module';
+import { PointModule } from './point/point.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { BlurtingModule } from './blurting/blurting.module';
     ChatModule,
     FcmModule,
     BlurtingModule,
+    PointModule,
   ],
   controllers: [AppController],
   providers: [AppService],

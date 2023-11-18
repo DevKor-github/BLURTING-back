@@ -28,6 +28,9 @@ export class UserEntity {
   @Column({ nullable: true })
   token?: string;
 
+  @Column({ nullable: true })
+  point: number;
+
   @OneToOne(() => UserInfoEntity)
   @JoinColumn()
   userInfo: UserInfoEntity;
