@@ -34,7 +34,6 @@ export class ChatDto {
 export class AddChatDto extends PickType(ChatDto, [
   'roomId',
   'chat',
-  'createdAt',
 ] as const) {}
 
 export class ChatUserDto {

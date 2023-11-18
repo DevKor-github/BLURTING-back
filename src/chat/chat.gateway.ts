@@ -47,16 +47,27 @@ export class ChatGateway
     @MessageBody() user: number,
   ) {
     const users: number[] = [user, client.data.userId];
-    const roomId = await this.chatService.newChatRoom(users);
-    client.join(roomId);
-    client.emit('create_room', roomId);
-
-    const socketId = await this.chatService.findUserSocketId(user);
-    if (socketId) {
-      this.server.to(socketId).emit('invite_chat', roomId);
+    let roomId;
+    const room = await this.chatService.findCreatedRoom(users);
+    if (room) {
+      roomId = room.id;
     } else {
-      this.chatService.pushCreateRoom(user);
+      const roomId = await this.chatService.newChatRoom(users);
+
+      const socketUser = await this.chatService.findUserSocket(user);
+      if (socketUser) {
+        this.server.to(socketUser.socketId).emit('invite_chat', {
+          roomId: roomId,
+          nickname: socketUser.userNickname,
+          sex: socketUser.userSex,
+        });
+      } else {
+        this.chatService.pushCreateRoom(user);
+      }
     }
+
+    client.join(`${roomId}_list`);
+    client.emit('create_room', roomId);
   }
 
   @SubscribeMessage('join_chat')
@@ -87,7 +98,11 @@ export class ChatGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() chatData: AddChatDto,
   ) {
-    const addChat: ChatDto = { ...chatData, userId: client.data.userId };
+    const addChat: ChatDto = {
+      ...chatData,
+      createdAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
+      userId: client.data.userId,
+    };
     const adapter = this.server.adapter as any;
 
     this.chatService.addChat(addChat);
