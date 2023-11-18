@@ -21,6 +21,6 @@ export class AuthMailEntity {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => UserEntity, () => undefined)
+  @ManyToOne(() => UserEntity, () => undefined, { cascade: true })
   user: UserEntity;
 }

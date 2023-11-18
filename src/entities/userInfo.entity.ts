@@ -77,7 +77,7 @@ export class UserInfoEntity {
   @Column({ nullable: true, type: 'enum', enum: University })
   university?: University;
 
-  @OneToOne(() => UserEntity)
+  @OneToOne(() => UserEntity, { cascade: true })
   @JoinColumn()
   user: UserEntity;
 }

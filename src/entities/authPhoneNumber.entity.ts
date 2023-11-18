@@ -21,6 +21,6 @@ export class AuthPhoneNumberEntity {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => UserEntity, () => undefined)
+  @ManyToOne(() => UserEntity, () => undefined, { cascade: true })
   user: UserEntity;
 }

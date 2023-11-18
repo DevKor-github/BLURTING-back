@@ -18,7 +18,7 @@ export class UserImageEntity {
   @Column()
   no: number;
 
-  @ManyToOne(() => UserEntity)
+  @ManyToOne(() => UserEntity, () => undefined, { cascade: true })
   @JoinColumn()
   user: UserEntity;
 }
