@@ -87,8 +87,10 @@ export class RoomInfoDto {
     return {
       roomId: roomId,
       hasRead: hasRead,
-      nickname: otherUserSchema.userNickname,
-      sex: otherUserSchema.userSex,
+      nickname: otherUserSchema
+        ? otherUserSchema.userNickname
+        : '탈퇴한 사용자',
+      sex: otherUserSchema ? otherUserSchema.userSex : null,
       latest_chat: chattingSchema ? chattingSchema.chat : null,
       latest_time: chattingSchema ? chattingSchema.createdAt : null,
     };
