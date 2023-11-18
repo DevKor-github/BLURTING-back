@@ -89,6 +89,9 @@ export class ChatGateway
     } else {
       client.leave(inRoomDto.roomId);
       client.join(`${inRoomDto.roomId}_list`);
+      this.server
+        .to(`${inRoomDto.roomId}_list`)
+        .emit('out_room', inRoomDto.roomId);
     }
     this.chatService.updateReadTime(inRoomDto.roomId, client.data.userId);
   }
