@@ -208,6 +208,19 @@ export class ChatService {
     );
   }
 
+  async updateAllReadTime(roomId: string) {
+    await this.roomModel.findOneAndUpdate(
+      { id: roomId },
+      {
+        $set: {
+          'users.$[].hasRead': new Date(
+            new Date().getTime() + 9 * 60 * 60 * 1000,
+          ),
+        },
+      },
+    );
+  }
+
   pushCreateRoom(userId: number) {
     this.fcmService.sendPush(
       userId,

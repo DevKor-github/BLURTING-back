@@ -53,13 +53,13 @@ export class ChatGateway
       client.emit('create_room', roomId);
     } else {
       const roomId = await this.chatService.newChatRoom(users);
-
+      const createUser = await this.chatService.findUserSocket(user);
       const socketUser = await this.chatService.findUserSocket(user);
       if (socketUser) {
         this.server.to(socketUser.socketId).emit('invite_chat', {
           roomId: roomId,
-          nickname: socketUser.userNickname,
-          sex: socketUser.userSex,
+          nickname: createUser.userNickname,
+          sex: createUser.userSex,
         });
       } else {
         this.chatService.pushCreateRoom(user);
@@ -86,15 +86,22 @@ export class ChatGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() inRoomDto: InRoomDto,
   ) {
+    const adapter = this.server.adapter as any;
+    if (!inRoomDto.inRoom && adapter.rooms.get(inRoomDto.roomId).size == 2) {
+      this.chatService.updateAllReadTime(inRoomDto.roomId);
+    } else {
+      this.chatService.updateReadTime(inRoomDto.roomId, client.data.userId);
+    }
+
     if (inRoomDto.inRoom) {
       client.leave(`${inRoomDto.roomId}_list`);
       client.join(inRoomDto.roomId);
+      this.server.to(inRoomDto.roomId).emit('read_all');
     } else {
       this.server.to(inRoomDto.roomId).emit('out_room', inRoomDto.roomId);
       client.leave(inRoomDto.roomId);
       client.join(`${inRoomDto.roomId}_list`);
     }
-    this.chatService.updateReadTime(inRoomDto.roomId, client.data.userId);
   }
 
   @SubscribeMessage('send_chat')

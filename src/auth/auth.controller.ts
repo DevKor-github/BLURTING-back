@@ -131,7 +131,6 @@ export class AuthController {
     try {
       const { id, infoId, page } = req.user as SignupPayload;
       if (page == 16) {
-        // email, phoneNumber 저장
         const result = await this.authService.checkComplete(id);
         if (!result) throw new BadRequestException('invalid info');
         return res.json({
