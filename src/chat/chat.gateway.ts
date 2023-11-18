@@ -47,10 +47,10 @@ export class ChatGateway
     @MessageBody() user: number,
   ) {
     const users: number[] = [user, client.data.userId];
-    let roomId;
     const room = await this.chatService.findCreatedRoom(users);
     if (room) {
-      roomId = room.id;
+      const roomId = room.id;
+      client.emit('create_room', roomId);
     } else {
       const roomId = await this.chatService.newChatRoom(users);
 
@@ -64,10 +64,13 @@ export class ChatGateway
       } else {
         this.chatService.pushCreateRoom(user);
       }
-    }
 
-    client.join(`${roomId}_list`);
-    client.emit('create_room', roomId);
+      client.join(`${roomId}_list`);
+      client.emit('create_room', {
+        roomId: roomId,
+        nickname: socketUser.userNickname,
+      });
+    }
   }
 
   @SubscribeMessage('join_chat')
