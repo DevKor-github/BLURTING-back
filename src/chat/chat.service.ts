@@ -182,12 +182,7 @@ export class ChatService {
       .equals(roomId)
       .select('userId userNickname chat createdAt -_id');
 
-    return RoomChatDto.ToDto(
-      otherUser,
-      otherSocketUser.userImage,
-      room.blur,
-      chats,
-    );
+    return RoomChatDto.ToDto(otherUser, otherSocketUser, room.blur, chats);
   }
 
   async getOtherProfile(roomId: string, userId: number) {

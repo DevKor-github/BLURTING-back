@@ -120,13 +120,14 @@ export class RoomChatDto {
 
   static ToDto(
     otherUser: ChatUserDto,
-    otherImage: string,
+    otherImage: SocketUser,
     blur: number,
     chattings: ChatDto[],
   ): RoomChatDto {
+    const image = otherImage ? otherImage.userImage : null;
     return {
       otherId: otherUser.userId,
-      otherImage: otherImage ?? null,
+      otherImage: image ?? null,
       hasRead: otherUser.hasRead,
       blur: blur ?? 1,
       chats: chattings,
