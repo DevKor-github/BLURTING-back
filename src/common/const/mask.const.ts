@@ -28,4 +28,6 @@ export const CharacterMask = {
   Blunt: 0b001000000000,
   Extroverted: 0b010000000000,
   Introverted: 0b100000000000,
+  Friendly: 0b1000000000000,
+  Emotional: 0b10000000000000,
 };

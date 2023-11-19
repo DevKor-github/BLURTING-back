@@ -11,4 +11,6 @@ export enum Character {
   Blunt = '무뚝뚝한',
   Extroverted = '외향적인',
   Introverted = '내향적인',
+  Friendly = '상냥한',
+  Emotional = '감성적인',
 }
