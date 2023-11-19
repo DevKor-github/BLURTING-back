@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Not, Repository } from 'typeorm';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { Hobby, Character, Nickname } from 'src/common/enums';
 import { CharacterMask, HobbyMask } from 'src/common/const';
 import {
@@ -9,6 +11,7 @@ import {
   UserInfoEntity,
   UserImageEntity,
 } from 'src/entities';
+import { SocketUser } from 'src/chat/models';
 import { UserProfileDto } from 'src/dtos/user.dto';
 @Injectable()
 export class UserService {
@@ -19,6 +22,8 @@ export class UserService {
     private readonly userInfoRepository: Repository<UserInfoEntity>,
     @InjectRepository(UserImageEntity)
     private readonly userImageRepository: Repository<UserImageEntity>,
+    @InjectModel(SocketUser.name)
+    private readonly socketUserModel: Model<SocketUser>,
   ) {}
 
   async createUser() {
@@ -86,6 +91,12 @@ export class UserService {
       }),
     );
     await this.userImageRepository.save(entities);
+    await this.socketUserModel.updateOne(
+      { userId: userId },
+      {
+        userImage: images[0],
+      },
+    );
   }
 
   async findUserByVal(field: string, value: string | number) {
@@ -138,10 +149,10 @@ export class UserService {
     const userImgeUrl = userImages.map((image) => {
       return image.url;
     });
-    return userImgeUrl ? userImgeUrl : null;
+    return userImgeUrl ?? null;
   }
 
-  async getUserProfile(userId: number, image: Array<string>) {
+  async getUserProfile(userId: number, image: string[]) {
     const userInfo = await this.userInfoRepository.findOne({
       where: { user: { id: userId } },
       relations: ['user'],

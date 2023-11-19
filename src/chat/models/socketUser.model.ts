@@ -53,6 +53,13 @@ export class SocketUser extends Document {
   userSex?: Sex;
 
   @Prop({
+    type: String,
+    required: false,
+  })
+  @IsString()
+  userImage?: string;
+
+  @Prop({
     type: Date,
   })
   @IsDate()

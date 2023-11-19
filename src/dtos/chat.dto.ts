@@ -41,10 +41,6 @@ export class ChatUserDto {
   @ApiProperty({ description: 'userId' })
   readonly userId: number;
 
-  @IsString()
-  @ApiProperty({ description: 'userImage' })
-  readonly userImage: string;
-
   @IsDate()
   @ApiProperty({ description: 'hasRead' })
   readonly hasRead: Date;
@@ -110,6 +106,10 @@ export class RoomChatDto {
   @ApiProperty({ description: 'hasRead' })
   hasRead: Date;
 
+  @IsNumber()
+  @ApiProperty({ description: 'blur단계' })
+  blur: number;
+
   @IsArray()
   @ApiProperty({
     description: 'chats',
@@ -118,11 +118,17 @@ export class RoomChatDto {
   })
   chats: ChatDto[];
 
-  static ToDto(otherUser: ChatUserDto, chattings: ChatDto[]): RoomChatDto {
+  static ToDto(
+    otherUser: ChatUserDto,
+    otherImage: string,
+    blur: number,
+    chattings: ChatDto[],
+  ): RoomChatDto {
     return {
       otherId: otherUser.userId,
-      otherImage: otherUser.userImage,
+      otherImage: otherImage ?? null,
       hasRead: otherUser.hasRead,
+      blur: blur ?? 1,
       chats: chattings,
     };
   }

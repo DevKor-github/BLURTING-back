@@ -151,7 +151,7 @@ export class UserProfileDto extends PickType(CreateUserDto, [
 
   static ToDto(userInfo: UserInfoEntity, images: string[]): UserProfileDto {
     return {
-      images: images ?? [],
+      images: images.length ? images : [],
       nickname: userInfo.user.userNickname ?? null,
       mbti: userInfo.mbti ?? null,
       region: userInfo.region ?? null,

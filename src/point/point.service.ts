@@ -13,7 +13,6 @@ export class PointService {
   async updatePoint(id: number, point: number) {
     const user = await this.userRepository.findOne({ where: { id: id } });
     user.point += point;
-    console.log(user.point);
     if (user.point < 0) {
       return false;
     }

@@ -57,6 +57,8 @@ export class ChatService {
     if (socketUser == null) {
       // create socketUser
       const user = await this.userService.findUser('id', userId);
+      const userImages = await this.userService.getUserImages(userId);
+
       // TODO: BAN WITHOUT SEX
       await this.socketUserModel.create({
         socketId: socketId,
@@ -64,6 +66,7 @@ export class ChatService {
         userId: userId,
         userNickname: user.userNickname,
         userSex: user.sex ?? 'F',
+        userImage: userImages.length ? userImages[0] : null,
         connection: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
       });
     } else {
@@ -89,10 +92,8 @@ export class ChatService {
       Math.floor(Math.random() * 100000).toString() + users[0] + users[1];
 
     for (const id of users) {
-      const userImage = await this.userService.getUserImages(id)[0];
       userObj.push({
         userId: id,
-        userImage: userImage,
         hasRead: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
         isDeleted: false,
       });
@@ -170,6 +171,9 @@ export class ChatService {
     }
 
     const otherUser = room.users.find((user) => user.userId != userId);
+    const otherSocketUser = await this.socketUserModel.findOne({
+      userId: otherUser.userId,
+    });
 
     const chats = await this.chattingModel
       .find()
@@ -177,7 +181,12 @@ export class ChatService {
       .equals(roomId)
       .select('userId userNickname chat createdAt -_id');
 
-    return RoomChatDto.ToDto(otherUser, chats);
+    return RoomChatDto.ToDto(
+      otherUser,
+      otherSocketUser.userImage,
+      room.blur,
+      chats,
+    );
   }
 
   async getOtherProfile(roomId: string, userId: number) {
@@ -190,8 +199,11 @@ export class ChatService {
     }
 
     const otherUser = room.users.find((user) => user.userId != userId);
+    const otherSocketUser = await this.socketUserModel.findOne({
+      userId: otherUser.userId,
+    });
     return await this.userService.getUserProfile(otherUser.userId, [
-      otherUser.userImage,
+      otherSocketUser.userImage,
     ]);
   }
 
@@ -219,6 +231,14 @@ export class ChatService {
         },
       },
     );
+  }
+
+  async updateBlurStep(roomId: string) {
+    const room = await this.roomModel.findOne({ id: roomId });
+    if (room.blur < 4) {
+      room.blur += 1;
+      await room.save();
+    }
   }
 
   pushCreateRoom(userId: number) {
