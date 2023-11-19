@@ -143,12 +143,12 @@ export class ChatGateway
     @MessageBody() roomId: string,
   ) {
     this.chatService.leaveChatRoom(client.data.userId, roomId);
-    client.leave(roomId);
     this.server
       .to(roomId)
       .emit('leave_room', { roomId: roomId, userId: client.data.userId });
     this.server
       .to(`${roomId}_list`)
       .emit('leave_room', { roomId: roomId, userId: client.data.userId });
+    client.leave(roomId);
   }
 }
