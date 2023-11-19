@@ -82,13 +82,15 @@ export class ChatGateway
   }
 
   @SubscribeMessage('in_room')
-  handleInOutChat(
+  async handleInOutChat(
     @ConnectedSocket() client: Socket,
     @MessageBody() inRoomDto: InRoomDto,
   ) {
     const adapter = this.server.adapter as any;
-    if (!inRoomDto.inRoom && adapter.rooms.get(inRoomDto.roomId).size == 2) {
-      this.chatService.updateAllReadTime(inRoomDto.roomId);
+    if (!inRoomDto.inRoom) {
+      if ((await adapter.rooms.get(inRoomDto.roomId).size) == 2) {
+        this.chatService.updateAllReadTime(inRoomDto.roomId);
+      }
     } else {
       this.chatService.updateReadTime(inRoomDto.roomId, client.data.userId);
     }
