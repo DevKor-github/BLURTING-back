@@ -18,7 +18,7 @@ export class UserImageEntity {
   @Column()
   no: number;
 
-  @ManyToOne(() => UserEntity, () => undefined, { cascade: true })
+  @ManyToOne(() => UserEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinColumn()
   user: UserEntity;
 }

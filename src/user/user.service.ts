@@ -159,4 +159,13 @@ export class UserService {
     });
     return await UserProfileDto.ToDto(userInfo, image);
   }
+
+  async deleteUser(userId: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    await this.userRepository.remove(user);
+    const socketUser = await this.socketUserModel.findOneAndDelete({
+      userId: userId,
+    });
+    // TODO: socket 에러 처리...?
+  }
 }

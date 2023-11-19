@@ -77,7 +77,7 @@ export class UserInfoEntity {
   @Column({ nullable: true, type: 'enum', enum: University })
   university?: University;
 
-  @OneToOne(() => UserEntity, { cascade: true })
+  @OneToOne(() => UserEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinColumn()
   user: UserEntity;
 }

@@ -5,6 +5,7 @@ import {
   Req,
   Res,
   Get,
+  Delete,
   Param,
   UseGuards,
 } from '@nestjs/common';
@@ -103,6 +104,28 @@ export class UserController {
         }
       }
       return res.sendStatus(201);
+    } catch (err) {
+      console.log(err);
+      return err;
+    }
+  }
+
+  @UseGuards(AuthGuard('access'))
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiOperation({
+    summary: '유저 삭제',
+    description: '유저 삭제하기',
+  })
+  @Delete()
+  async deleteUser(@Req() req: Request, @Res() res: Response) {
+    const { id } = req.user as JwtPayload;
+    try {
+      await this.userService.deleteUser(id);
+      return res.sendStatus(204);
     } catch (err) {
       console.log(err);
       return err;
