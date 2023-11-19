@@ -102,6 +102,7 @@ export class ChatService {
     await this.roomModel.create({
       id: roomId,
       users: userObj,
+      blur: 1,
       connected: true,
     });
     return roomId;
