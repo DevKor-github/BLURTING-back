@@ -121,13 +121,32 @@ export class ChatService {
       .exec();
   }
 
+  async leaveChatRoom(userId: number, roomId: string) {
+    await this.roomModel.findOneAndUpdate(
+      { id: roomId, 'users.userId': userId },
+      {
+        $set: {
+          'users.$.isDeleted': true,
+        },
+        connected: false,
+      },
+    );
+  }
+
   addChat(chatData: ChatDto) {
     this.chattingModel.create(chatData);
   }
 
   async getChatRooms(userId: number): Promise<RoomInfoDto[]> {
     const rooms = await this.roomModel
-      .find({ 'users.userId': userId })
+      .find({
+        users: {
+          $elemMatch: {
+            userId: userId,
+            isDeleted: false,
+          },
+        },
+      })
       .select('id users -_id');
 
     const roomInfo = await Promise.all(
@@ -182,7 +201,7 @@ export class ChatService {
       .equals(roomId)
       .select('userId userNickname chat createdAt -_id');
 
-    return RoomChatDto.ToDto(otherUser, otherSocketUser, room.blur, chats);
+    return RoomChatDto.ToDto(otherUser, otherSocketUser, room, chats);
   }
 
   async getOtherProfile(roomId: string, userId: number) {

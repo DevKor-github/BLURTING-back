@@ -12,7 +12,7 @@ const ChatUser = new MongooseSchema(
   {
     userId: { required: true, type: Number },
     hasRead: { required: true, type: Date },
-    isDeleted: { required: true, type: Boolean },
+    isDeleted: { required: true, type: Boolean, default: false },
   },
   { _id: false },
 );
@@ -47,6 +47,7 @@ export class Room extends Document {
   @Prop({
     required: true,
     type: Boolean,
+    default: true,
   })
   @IsNotEmpty()
   @IsBoolean()

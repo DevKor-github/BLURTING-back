@@ -134,4 +134,19 @@ export class ChatGateway
       this.chatService.pushNewChat(chatData.roomId);
     }
   }
+
+  @SubscribeMessage('leave_room')
+  async handleLeaveRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() roomId: string,
+  ) {
+    this.chatService.leaveChatRoom(client.data.userId, roomId);
+    client.leave(roomId);
+    this.server
+      .to(roomId)
+      .emit('leave_room', { roomId: roomId, userId: client.data.userId });
+    this.server
+      .to(`${roomId}_list`)
+      .emit('leave_room', { roomId: roomId, userId: client.data.userId });
+  }
 }

@@ -9,7 +9,7 @@ import {
   IsArray,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Chatting, SocketUser } from 'src/chat/models';
+import { Chatting, SocketUser, Room } from 'src/chat/models';
 import { Sex } from 'src/common/enums';
 
 export class ChatDto {
@@ -80,13 +80,13 @@ export class RoomInfoDto {
     otherUserSchema: SocketUser,
     chattingSchema: Chatting,
   ): RoomInfoDto {
+    const nickname = otherUserSchema ? otherUserSchema.userNickname : null;
+    const sex = otherUserSchema ? otherUserSchema.userSex : null;
     return {
       roomId: roomId,
       hasRead: hasRead,
-      nickname: otherUserSchema
-        ? otherUserSchema.userNickname
-        : '탈퇴한 사용자',
-      sex: otherUserSchema ? otherUserSchema.userSex : null,
+      nickname: nickname ?? '탈퇴한 사용자',
+      sex: sex ?? null,
       latest_chat: chattingSchema ? chattingSchema.chat : null,
       latest_time: chattingSchema ? chattingSchema.createdAt : null,
     };
@@ -110,6 +110,10 @@ export class RoomChatDto {
   @ApiProperty({ description: 'blur단계' })
   blur: number;
 
+  @IsBoolean()
+  @ApiProperty({ description: 'connected' })
+  connected: boolean;
+
   @IsArray()
   @ApiProperty({
     description: 'chats',
@@ -121,7 +125,7 @@ export class RoomChatDto {
   static ToDto(
     otherUser: ChatUserDto,
     otherImage: SocketUser,
-    blur: number,
+    roomInfo: Room,
     chattings: ChatDto[],
   ): RoomChatDto {
     const image = otherImage ? otherImage.userImage : null;
@@ -129,7 +133,8 @@ export class RoomChatDto {
       otherId: otherUser.userId,
       otherImage: image ?? null,
       hasRead: otherUser.hasRead,
-      blur: blur ?? 1,
+      blur: roomInfo.blur ?? 1,
+      connected: roomInfo.connected ?? true,
       chats: chattings,
     };
   }
