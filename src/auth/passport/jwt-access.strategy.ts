@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { JwtPayload } from 'src/interfaces/auth';
@@ -17,7 +17,7 @@ export class JwtAccessStrategy extends PassportStrategy(Strategy, 'access') {
     const user = await this.userService.findUserByVal('id', payload.id);
 
     if (!user || user.id != payload.id) {
-      throw new UnauthorizedException();
+      throw new HttpException('Invalid access token', 401);
     }
 
     return user;

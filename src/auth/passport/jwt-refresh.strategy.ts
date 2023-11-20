@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { JwtPayload } from 'src/interfaces/auth';
@@ -20,7 +20,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
 
     const user = await this.userService.findUserByVal('token', refreshToken);
     if (!user || user.id != payload.id) {
-      throw new Error('Invalid refresh token');
+      throw new HttpException('Invalid refresh token', 401);
     }
 
     return payload;
