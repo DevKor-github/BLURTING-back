@@ -12,10 +12,14 @@ export class BlurtingConsumer {
   ) {}
   @Process()
   async processNewBlurtingQuestion(job: Job) {
-    const question: BlurtingQuestionEntity = job.data.question;
+    const question: string = job.data.question;
     const group: BlurtingGroupEntity = job.data.group;
     const users: number[] = job.data.users;
-    await this.blurtingService.insertQuestionToGroup(question, group);
+    await this.blurtingService.insertQuestionToGroup(
+      question,
+      group,
+      job.data.no,
+    );
     await Promise.all(
       users.map(async (userid) => {
         await this.fcmService.sendPush(
