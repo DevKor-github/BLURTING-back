@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { BlurtingQuestionEntity } from './blurtingQuestion.entity';
 
 @Entity()
 export class BlurtingGroupEntity {
@@ -7,4 +8,7 @@ export class BlurtingGroupEntity {
 
   @Column()
   createdAt: Date;
+
+  @OneToMany(() => BlurtingQuestionEntity, (question) => question.group)
+  questions: BlurtingQuestionEntity[];
 }

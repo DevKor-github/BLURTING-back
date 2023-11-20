@@ -13,6 +13,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { FcmModule } from './firebase/fcm.module';
 import { BlurtingModule } from './blurting/blurting.module';
 import { PointModule } from './point/point.module';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
@@ -46,6 +47,12 @@ import { PointModule } from './point/point.module';
     FcmModule,
     BlurtingModule,
     PointModule,
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

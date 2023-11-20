@@ -35,7 +35,9 @@ export class UserEntity {
   @JoinColumn()
   userInfo: UserInfoEntity;
 
-  @ManyToOne(() => BlurtingGroupEntity)
+  @ManyToOne(() => BlurtingGroupEntity, {
+    nullable: true,
+  })
   @JoinColumn()
-  group: BlurtingGroupEntity;
+  group?: BlurtingGroupEntity;
 }

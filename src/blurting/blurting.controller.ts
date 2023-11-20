@@ -13,6 +13,11 @@ import { AuthGuard } from '@nestjs/passport';
 import { JwtPayload } from 'src/interfaces/auth';
 import { UserService } from 'src/user/user.service';
 import { AnswerDto } from 'src/dtos/blurtingPage.dto';
+import {
+  ApiBadRequestResponse,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+} from '@nestjs/swagger';
 
 @Controller('blurting')
 export class BlurtingController {
@@ -44,9 +49,16 @@ export class BlurtingController {
     }
   }
 
-  // for test
-  @Post('/grouping')
-  async grouping(@Body() users: number[]) {
-    this.blurtingService.createGroup(users);
+  @UseGuards(AuthGuard('access'))
+  @Post('/register')
+  @ApiBadRequestResponse({ description: '이미 큐에 있음' })
+  @ApiConflictResponse({ description: '이미 블러팅 그룹이 있음' })
+  @ApiCreatedResponse({
+    description: '큐에 등록 시 false, 그룹이 만들어졌을 시 true',
+  })
+  async registerGroupQueue(@Req() req: Request) {
+    const { id } = req.user as JwtPayload;
+
+    await this.blurtingService.registerGroupQueue(id);
   }
 }
