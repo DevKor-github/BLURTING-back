@@ -13,6 +13,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
 import { BullModule } from '@nestjs/bull';
 import { BlurtingConsumer } from './blurting.consumer';
+import { FcmService } from 'src/firebase/fcm.service';
+import { FcmModule } from 'src/firebase/fcm.module';
 @Module({
   imports: [
     UserModule,
@@ -36,6 +38,7 @@ import { BlurtingConsumer } from './blurting.consumer';
     BullModule.registerQueue({
       name: 'blurtingQuestions',
     }),
+    FcmModule,
   ],
   controllers: [BlurtingController],
   providers: [BlurtingService, BlurtingConsumer],

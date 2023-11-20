@@ -45,7 +45,28 @@ export class BlurtingService {
       ),
     );
 
-    
+    const questions = await this.questionRepository.find();
+    const shuffled = questions.sort(() => 0.5 - Math.random());
+
+    const selected = shuffled.slice(0, 9);
+    const hourInMs = 1000 * 60 * 60;
+    const questionDelay = hourInMs * 8;
+    await Promise.all(
+      selected.map(async (question, i) => {
+        await this.queue.add(
+          { question, group, no: i + 1, users },
+          { delay: i * questionDelay },
+        );
+      }),
+    );
+  }
+
+  async insertQuestionToGroup(
+    question: BlurtingQuestionEntity,
+    group: BlurtingGroupEntity,
+  ) {
+    await group.questions.push(question);
+    await this.groupRepository.save(group);
   }
 
   async getBlurting(group: BlurtingGroupEntity): Promise<BlurtingPageDto> {
