@@ -52,7 +52,30 @@ export class BlurtingService {
       }),
     );
 
-    const questions = await this.questionRepository.find();
+    const questions = [
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+      'ㅁㅁ',
+    ];
     const shuffled = questions.sort(() => 0.5 - Math.random());
 
     const selected = shuffled.slice(0, 9);
@@ -69,11 +92,16 @@ export class BlurtingService {
   }
 
   async insertQuestionToGroup(
-    question: BlurtingQuestionEntity,
+    question: string,
     group: BlurtingGroupEntity,
+    no: number,
   ) {
-    await group.questions.push(question);
-    await this.groupRepository.save(group);
+    const newQuestion = this.questionRepository.create({
+      group,
+      question,
+      no,
+    });
+    await this.questionRepository.save(newQuestion);
   }
 
   async getBlurting(group: BlurtingGroupEntity): Promise<BlurtingPageDto> {

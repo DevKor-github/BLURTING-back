@@ -12,7 +12,7 @@ export class BlurtingQuestionEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => BlurtingGroupEntity)
+  @ManyToOne(() => BlurtingGroupEntity, (group) => group.questions)
   group: BlurtingGroupEntity;
 
   @Column()
