@@ -82,13 +82,19 @@ export class ChatGateway
   }
 
   @SubscribeMessage('in_room')
-  handleInOutChat(
+  async handleInOutChat(
     @ConnectedSocket() client: Socket,
     @MessageBody() inRoomDto: InRoomDto,
   ) {
     const adapter = this.server.adapter as any;
-    if (!inRoomDto.inRoom && adapter.rooms.get(inRoomDto.roomId).size == 2) {
-      this.chatService.updateAllReadTime(inRoomDto.roomId);
+    if (
+      !inRoomDto.inRoom ||
+      adapter.rooms.get(inRoomDto.roomId) ||
+      adapter.rooms.get(inRoomDto.roomId) != undefined
+    ) {
+      if ((await adapter.rooms.get(inRoomDto.roomId).size) == 2) {
+        this.chatService.updateAllReadTime(inRoomDto.roomId);
+      }
     } else {
       this.chatService.updateReadTime(inRoomDto.roomId, client.data.userId);
     }
@@ -141,12 +147,12 @@ export class ChatGateway
     @MessageBody() roomId: string,
   ) {
     this.chatService.leaveChatRoom(client.data.userId, roomId);
-    client.leave(roomId);
-    this.server
+    await this.server
       .to(roomId)
       .emit('leave_room', { roomId: roomId, userId: client.data.userId });
-    this.server
+    await this.server
       .to(`${roomId}_list`)
       .emit('leave_room', { roomId: roomId, userId: client.data.userId });
+    client.leave(roomId);
   }
 }
