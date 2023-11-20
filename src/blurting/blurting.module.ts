@@ -13,8 +13,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
 import { BullModule } from '@nestjs/bull';
 import { BlurtingConsumer } from './blurting.consumer';
-import { FcmService } from 'src/firebase/fcm.service';
 import { FcmModule } from 'src/firebase/fcm.module';
+
 @Module({
   imports: [
     UserModule,

@@ -20,6 +20,7 @@ import { Repository } from 'typeorm';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { Sex, SexOrient } from 'src/common/enums';
+import { FcmService } from 'src/firebase/fcm.service';
 
 @Injectable()
 export class BlurtingService {
@@ -33,6 +34,7 @@ export class BlurtingService {
     private readonly answerRepository: Repository<BlurtingAnswerEntity>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @InjectQueue('blurtingQuestions') private readonly queue: Queue,
+    private readonly fcmService: FcmService,
   ) {}
 
   async createGroup(users: number[]) {
@@ -40,9 +42,14 @@ export class BlurtingService {
       createdAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
     });
     await Promise.all(
-      users.map(
-        async (id) => await this.userService.updateUser(id, 'group', group),
-      ),
+      users.map(async (id) => {
+        await this.userService.updateUser(id, 'group', group);
+        await this.fcmService.sendPush(
+          id,
+          '그룹 매칭 완료!',
+          '매칭이 완료되었습니다.',
+        );
+      }),
     );
 
     const questions = await this.questionRepository.find();
