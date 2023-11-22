@@ -22,7 +22,9 @@ import {
   ApiBody,
   ApiOperation,
   ApiResponse,
+  ApiParam,
 } from '@nestjs/swagger';
+import { BlurtingProfileDto } from 'src/dtos/user.dto';
 
 @Controller('blurting')
 export class BlurtingController {
@@ -146,6 +148,24 @@ export class BlurtingController {
 
   @UseGuards(AuthGuard('access'))
   @Get('/profile/:other')
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiParam({
+    name: 'other',
+    description: '다른 사람 id',
+    type: Number,
+  })
+  @ApiOperation({
+    summary: '블러팅에서 프로필 가져오기',
+    description: '블러팅에서 다른 사람 프로필 보기',
+  })
+  @ApiResponse({
+    description: '다른 사람 정보 반환(room 있으면 string, 없으면 null)',
+    type: BlurtingProfileDto,
+  })
   async getBlurtingProfile(
     @Req() req: Request,
     @Param('other') other: number,
