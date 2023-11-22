@@ -106,8 +106,17 @@ export class BlurtingController {
   ) {
     const { id } = req.user as JwtPayload;
     const user = await this.userService.findUserByVal('id', id);
-    const blurtingPage = await this.blurtingService.getBlurting(user.group, no);
-    return res.json(blurtingPage);
+    if (user.group == null) return res.sendStatus(404);
+    try {
+      const blurtingPage = await this.blurtingService.getBlurting(
+        user.group,
+        no,
+      );
+      return res.json(blurtingPage);
+    } catch (error) {
+      console.log(error);
+      return res.send(error);
+    }
   }
 
   @UseGuards(AuthGuard('access'))
