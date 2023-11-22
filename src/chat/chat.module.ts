@@ -26,5 +26,6 @@ import { FcmModule } from 'src/firebase/fcm.module';
   ],
   providers: [ChatGateway, ChatService],
   controllers: [ChatController],
+  exports: [ChatService],
 })
 export class ChatModule {}

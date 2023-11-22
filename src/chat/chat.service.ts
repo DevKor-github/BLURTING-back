@@ -109,7 +109,7 @@ export class ChatService {
   }
 
   async findCreatedRoom(users: number[]): Promise<Room | null> {
-    return this.roomModel
+    return await this.roomModel
       .findOne({
         users: {
           $all: [

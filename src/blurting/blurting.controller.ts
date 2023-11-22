@@ -94,7 +94,7 @@ export class BlurtingController {
   })
   async getBlurtingNo(
     @Req() req: Request,
-    @Param() no: number,
+    @Param('no') no: number,
     @Res() res: Response,
   ) {
     const { id } = req.user as JwtPayload;
@@ -142,5 +142,17 @@ export class BlurtingController {
     const { id } = req.user as JwtPayload;
 
     await this.blurtingService.registerGroupQueue(id);
+  }
+
+  @UseGuards(AuthGuard('access'))
+  @Get('/profile/:other')
+  async getBlurtingProfile(
+    @Req() req: Request,
+    @Param('other') other: number,
+    @Res() res: Response,
+  ) {
+    const { id } = req.user as JwtPayload;
+    const profile = await this.blurtingService.getProfile(id, other);
+    return res.json(profile);
   }
 }

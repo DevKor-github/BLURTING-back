@@ -14,6 +14,7 @@ import { redisStore } from 'cache-manager-redis-store';
 import { BullModule } from '@nestjs/bull';
 import { BlurtingConsumer } from './blurting.consumer';
 import { FcmModule } from 'src/firebase/fcm.module';
+import { ChatModule } from 'src/chat/chat.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { FcmModule } from 'src/firebase/fcm.module';
       name: 'blurtingQuestions',
     }),
     FcmModule,
+    ChatModule,
   ],
   controllers: [BlurtingController],
   providers: [BlurtingService, BlurtingConsumer],

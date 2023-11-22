@@ -19,7 +19,7 @@ import {
   Religion,
 } from 'src/common/enums';
 import { CharacterMask, HobbyMask } from 'src/common/const';
-import { ApiProperty, PickType } from '@nestjs/swagger';
+import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
 import { UserInfoEntity } from 'src/entities';
 
 export class CreateUserDto {
@@ -128,16 +128,11 @@ export class LoginDto {
   id: number;
 }
 
-export class UserProfileDto extends PickType(CreateUserDto, [
-  'mbti',
-  'region',
-  'religion',
-  'major',
-  'character',
-  'height',
-  'drink',
-  'cigarette',
-  'hobby',
+export class UserProfileDto extends OmitType(CreateUserDto, [
+  'userName',
+  'email',
+  'phoneNumber',
+  'university',
 ] as const) {
   @ValidateIf((o) => o.nickname !== undefined && o.nickname !== null)
   @IsString()
@@ -163,6 +158,8 @@ export class UserProfileDto extends PickType(CreateUserDto, [
       drink: userInfo.drink ?? null,
       cigarette: userInfo.cigarette ?? null,
       hobby: this.GetHobby(userInfo.hobby ?? 0),
+      sex: userInfo.sex ?? null,
+      sexOrient: userInfo.sexOrient ?? null,
     };
   }
 
@@ -188,14 +185,27 @@ export class UserProfileDto extends PickType(CreateUserDto, [
   }
 }
 
-export class UpdateProfileDto extends PickType(UserProfileDto, [
-  'region',
-  'religion',
-  'drink',
-  'cigarette',
-  'major',
-  'mbti',
-  'character',
-  'hobby',
-  'images',
+export class UpdateProfileDto extends OmitType(UserProfileDto, [
+  'nickname',
+  'sex',
+  'sexOrient',
 ] as const) {}
+
+export class BlurtingProfileDto extends PickType(UserProfileDto, [
+  'sex',
+  'nickname',
+  'mbti',
+] as const) {
+  @ValidateIf((o) => o.room !== null)
+  @IsString()
+  room: string;
+
+  static ToDto(userInfo: UserProfileDto, room: string): BlurtingProfileDto {
+    return {
+      sex: userInfo.sex,
+      nickname: userInfo.nickname,
+      mbti: userInfo.mbti,
+      room: room ?? null,
+    };
+  }
+}

@@ -43,9 +43,9 @@ import { BullModule } from '@nestjs/bull';
       },
     }),
     GeocodingModule,
+    BlurtingModule,
     ChatModule,
     FcmModule,
-    BlurtingModule,
     PointModule,
     BullModule.forRoot({
       redis: {

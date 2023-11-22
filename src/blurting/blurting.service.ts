@@ -21,11 +21,14 @@ import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { Sex, SexOrient } from 'src/common/enums';
 import { FcmService } from 'src/firebase/fcm.service';
+import { ChatService } from 'src/chat/chat.service';
+import { BlurtingProfileDto } from 'src/dtos/user.dto';
 
 @Injectable()
 export class BlurtingService {
   constructor(
     private readonly userService: UserService,
+    private readonly chatService: ChatService,
     @InjectRepository(BlurtingGroupEntity)
     private readonly groupRepository: Repository<BlurtingGroupEntity>,
     @InjectRepository(BlurtingQuestionEntity)
@@ -221,5 +224,12 @@ export class BlurtingService {
   getOppositeQueueName(queue: string) {
     if (queue === 'male') return 'female';
     else if (queue === 'female') return 'male';
+  }
+
+  async getProfile(id: number, other: number) {
+    const userInfo = await this.userService.getUserProfile(other, []);
+    const room = await this.chatService.findCreatedRoom([id, other]);
+    const roomId = room ? room.id : null;
+    return await BlurtingProfileDto.ToDto(userInfo, roomId);
   }
 }
