@@ -100,7 +100,7 @@ export class UserController {
         if (key != 'images') {
           this.userService.updateUserInfo(id, key, updateProfileDto[key]);
         } else {
-          this.userService.updateUserImages(id, updateProfileDto[key]);
+          this.userService.updateUserImages(id, updateProfileDto.images);
         }
       }
       return res.sendStatus(201);

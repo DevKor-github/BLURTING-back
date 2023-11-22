@@ -147,6 +147,7 @@ export class ChatGateway
     @MessageBody() roomId: string,
   ) {
     this.chatService.leaveChatRoom(client.data.userId, roomId);
+    client.leave(`${roomId}_list`);
     await this.server
       .to(roomId)
       .emit('leave_room', { roomId: roomId, userId: client.data.userId });

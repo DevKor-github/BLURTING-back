@@ -146,6 +146,7 @@ export class UserProfileDto extends PickType(CreateUserDto, [
 
   @ValidateIf((o) => o.images !== undefined && o.images !== null)
   @IsArray({ message: 'not valid' })
+  @IsString({ each: true })
   @ApiProperty({ example: ['s3.asfsva', 'asdfasdf'] })
   images: string[];
 

@@ -82,6 +82,8 @@ export class UserService {
   }
 
   async updateUserImages(userId: number, images: string[]) {
+    if (images.length < 1) return;
+
     await this.userImageRepository.delete({ user: { id: userId } });
     const entities = images.map((image, i) =>
       this.userImageRepository.create({
