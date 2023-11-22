@@ -86,12 +86,17 @@ export class BlurtingController {
     required: true,
     example: 'Bearer asdas.asdasd.asd',
   })
+  @ApiParam({
+    name: 'no',
+    description: 'n번째 질문',
+    type: Number,
+  })
   @ApiOperation({
-    summary: '블러팅 최신 질문 탭',
-    description: '마지막 질문 관련 정보 및 답변 반환',
+    summary: '블러팅 질문 탭',
+    description: '선택 질문 관련 정보 및 답변 반환',
   })
   @ApiResponse({
-    description: '마지막 Q&A 정보 반환',
+    description: '선택 Q&A 정보 반환',
     type: BlurtingPageDto,
   })
   async getBlurtingNo(
