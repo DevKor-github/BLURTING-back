@@ -208,7 +208,7 @@ export class AuthService {
     if (!univ) throw new BadRequestException('올바르지 않은 이메일입니다.');
 
     try {
-      const endpoint = 'http://54.180.85.164:3080/auth/check/email';
+      const endpoint = 'https://api.blurting.devkor.club/auth/check/email';
       await this.mailerService.sendMail({
         from: process.env.MAIL_USER,
         to: to,
