@@ -104,12 +104,28 @@ export class BlurtingService {
     await this.questionRepository.save(newQuestion);
   }
 
-  async getBlurting(group: BlurtingGroupEntity): Promise<BlurtingPageDto> {
-    const question = await this.questionRepository.findOne({
-      where: { group: group },
-      order: { no: 'DESC' },
-      relations: ['group'],
-    });
+  async getBlurting(
+    group: BlurtingGroupEntity,
+    no: number,
+  ): Promise<BlurtingPageDto> {
+    let question;
+    if (no == 0) {
+      question = await this.questionRepository.findOne({
+        where: { group: group },
+        order: { no: 'DESC' },
+        relations: ['group'],
+      });
+    } else {
+      question = await this.questionRepository.findOne({
+        where: { group: group, no: no },
+        relations: ['group'],
+      });
+    }
+
+    if (!question) {
+      throw new BadRequestException('invalid question no');
+    }
+
     const answers = await this.answerRepository.find({
       where: { question: question },
       order: { postedAt: 'ASC' },
