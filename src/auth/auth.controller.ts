@@ -140,6 +140,7 @@ export class AuthController {
           accessToken: await this.authService.getAccessToken({
             id: id,
           }),
+          userId: id,
         });
       }
 
