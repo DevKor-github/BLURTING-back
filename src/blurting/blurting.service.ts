@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
-import { BlurtingPageDto } from 'src/dtos/blurtingPage.dto';
+import { BlurtingAnswerDto, BlurtingPageDto } from 'src/dtos/blurtingPage.dto';
 import {
   BlurtingAnswerEntity,
   BlurtingGroupEntity,
@@ -23,12 +23,14 @@ import { Sex, SexOrient } from 'src/common/enums';
 import { FcmService } from 'src/firebase/fcm.service';
 import { ChatService } from 'src/chat/chat.service';
 import { BlurtingProfileDto } from 'src/dtos/user.dto';
+import { PointService } from 'src/point/point.service';
 
 @Injectable()
 export class BlurtingService {
   constructor(
     private readonly userService: UserService,
     private readonly chatService: ChatService,
+    private readonly pointService: PointService,
     @InjectRepository(BlurtingGroupEntity)
     private readonly groupRepository: Repository<BlurtingGroupEntity>,
     @InjectRepository(BlurtingQuestionEntity)
@@ -108,6 +110,7 @@ export class BlurtingService {
   }
 
   async getBlurting(
+    id: number,
     group: BlurtingGroupEntity,
     no: number,
   ): Promise<BlurtingPageDto> {
@@ -135,22 +138,49 @@ export class BlurtingService {
       relations: ['question', 'user'],
     });
 
+    const answersDto = Promise.all(
+      answers.map(async (answerEntity) => {
+        const room = await this.chatService.findCreatedRoom([
+          id,
+          answerEntity.user.id,
+        ]);
+        const roomId = room ? room.id : null;
+        return await BlurtingAnswerDto.ToDto(answerEntity, roomId);
+      }),
+    );
+
     const blurtingPage: BlurtingPageDto = BlurtingPageDto.ToDto(
       group,
       question,
-      answers,
+      await answersDto,
     );
     return blurtingPage;
   }
 
   async postAnswer(userId: number, questionId: number, answer: string) {
+    const question = await this.questionRepository.findOne({
+      where: { id: questionId },
+    });
+    if (!question || question == null) {
+      throw new BadRequestException('존재하지 않는 질문입니다.');
+    }
+
+    const user = await this.userService.findUserByVal('id', userId);
     const answerEntity = this.answerRepository.create({
-      user: { id: userId } as UserEntity,
+      user: user,
+      sex: user.userInfo.sex,
       question: { id: questionId } as BlurtingQuestionEntity,
       postedAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
       answer: answer,
     });
-    return this.answerRepository.save(answerEntity);
+
+    this.answerRepository.save(answerEntity);
+
+    if (answer.length >= 100) {
+      const point = await this.pointService.giveBlurtingPoint(userId);
+      return point;
+    }
+    return false;
   }
 
   async registerGroupQueue(id: number) {

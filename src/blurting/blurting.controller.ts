@@ -75,7 +75,11 @@ export class BlurtingController {
   async getBlurting(@Req() req: Request, @Res() res: Response) {
     const { id } = req.user as JwtPayload;
     const user = await this.userService.findUserByVal('id', id);
-    const blurtingPage = await this.blurtingService.getBlurting(user.group, 0);
+    const blurtingPage = await this.blurtingService.getBlurting(
+      id,
+      user.group,
+      0,
+    );
     return res.json(blurtingPage);
   }
 
@@ -109,6 +113,7 @@ export class BlurtingController {
     if (user.group == null) return res.sendStatus(404);
     try {
       const blurtingPage = await this.blurtingService.getBlurting(
+        id,
         user.group,
         no,
       );
@@ -134,7 +139,18 @@ export class BlurtingController {
     summary: '블러팅 답변 업로드',
     description: '질문에 대한 답변 등록',
   })
-  @ApiCreatedResponse({ description: '답변 업로드 성공' })
+  @ApiCreatedResponse({
+    description: '답변 업로드 성공 시',
+    schema: {
+      example: { point: 10 },
+      properties: {
+        point: {
+          type: 'number',
+          description: '수정된 포인트 값',
+        },
+      },
+    },
+  })
   async postAnswer(
     @Req() req: Request,
     @Body() answerDto: AnswerDto,
@@ -142,8 +158,20 @@ export class BlurtingController {
   ) {
     const { id } = req.user as JwtPayload;
     const { questionId, answer } = answerDto;
-    if (await this.blurtingService.postAnswer(id, questionId, answer)) {
-      res.sendStatus(201);
+    try {
+      const point = await this.blurtingService.postAnswer(
+        id,
+        questionId,
+        answer,
+      );
+      if (point) {
+        return res.status(201).json({ point: point });
+      } else {
+        return res.status(201);
+      }
+    } catch (error) {
+      console.log(error);
+      return res.send(error);
     }
   }
 

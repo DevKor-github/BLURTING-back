@@ -1,10 +1,18 @@
-import { IsNumber, IsDate, IsString, IsArray } from 'class-validator';
+import {
+  IsNumber,
+  IsDate,
+  IsString,
+  IsArray,
+  IsEnum,
+  ValidateIf,
+} from 'class-validator';
 import {
   BlurtingAnswerEntity,
   BlurtingGroupEntity,
   BlurtingQuestionEntity,
 } from 'src/entities';
 import { ApiProperty } from '@nestjs/swagger';
+import { Sex } from 'src/common/enums';
 
 export class BlurtingAnswerDto {
   @IsNumber()
@@ -15,6 +23,10 @@ export class BlurtingAnswerDto {
   @ApiProperty({ description: 'userNickname' })
   userNickname: string;
 
+  @IsEnum(Sex)
+  @ApiProperty({ description: 'userSex', enum: Sex, enumName: 'Sex' })
+  userSex?: Sex;
+
   @IsString()
   @ApiProperty({ description: 'answer' })
   answer: string;
@@ -23,12 +35,21 @@ export class BlurtingAnswerDto {
   @ApiProperty({ description: 'postedAt' })
   postedAt: Date;
 
-  static ToDto(answerEntity: BlurtingAnswerEntity): BlurtingAnswerDto {
+  @ValidateIf((o) => o.room !== null)
+  @IsString()
+  room: string;
+
+  static ToDto(
+    answerEntity: BlurtingAnswerEntity,
+    room: string,
+  ): BlurtingAnswerDto {
     return {
       userId: answerEntity.user.id,
       userNickname: answerEntity.user.userNickname,
+      userSex: answerEntity.sex ?? Sex.Female,
       answer: answerEntity.answer,
       postedAt: answerEntity.postedAt,
+      room: room ?? null,
     };
   }
 }
@@ -57,18 +78,16 @@ export class BlurtingPageDto {
   @IsArray()
   @ApiProperty({
     description: 'question에 따른 답변들',
-    type: Array<BlurtingAnswerDto>,
+    type: BlurtingAnswerDto,
+    isArray: true,
   })
   answers: BlurtingAnswerDto[];
 
   static ToDto(
     groupEntity: BlurtingGroupEntity,
     questionEntity: BlurtingQuestionEntity,
-    answerEntities: BlurtingAnswerEntity[],
+    answersDto: BlurtingAnswerDto[],
   ): BlurtingPageDto {
-    const answersDto = answerEntities.map((answerEntity) =>
-      BlurtingAnswerDto.ToDto(answerEntity),
-    );
     return {
       groupId: groupEntity.id,
       createdAt: groupEntity.createdAt,

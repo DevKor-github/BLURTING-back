@@ -15,6 +15,7 @@ import { BullModule } from '@nestjs/bull';
 import { BlurtingConsumer } from './blurting.consumer';
 import { FcmModule } from 'src/firebase/fcm.module';
 import { ChatModule } from 'src/chat/chat.module';
+import { PointModule } from 'src/point/point.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ChatModule } from 'src/chat/chat.module';
     }),
     FcmModule,
     ChatModule,
+    PointModule,
   ],
   controllers: [BlurtingController],
   providers: [BlurtingService, BlurtingConsumer],
