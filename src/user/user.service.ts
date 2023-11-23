@@ -31,7 +31,10 @@ export class UserService {
     const rand = Math.floor(Math.random() * 100000);
     const index = rand % nicknames.length;
     const nickname = nicknames[index].toString() + rand.toString();
-    const user = await this.userRepository.create({ userNickname: nickname });
+    const user = await this.userRepository.create({
+      userNickname: nickname,
+      point: 0,
+    });
     return await this.userRepository.save(user);
   }
 

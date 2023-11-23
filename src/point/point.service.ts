@@ -17,8 +17,10 @@ export class PointService {
 
   async updatePoint(id: number, point: number) {
     const user = await this.userRepository.findOne({ where: { id: id } });
+    console.log(user);
     user.point += point;
     if (user.point < 0) {
+      console.log(user.point);
       return false;
     }
     return await this.userRepository.save(user);
@@ -84,6 +86,7 @@ export class PointService {
 
   async giveBlurtingPoint(userId: number) {
     const updatedPoint = await this.updatePoint(userId, 10);
+    console.log(updatedPoint);
     if (updatedPoint) {
       const history = '100자 이상 답변하여 10p가 지급 되었습니다.';
       this.recordPointHistory(userId, 10, history);
