@@ -15,6 +15,7 @@ import { JwtAccessStrategy } from './passport/jwt-access.strategy';
 import { JwtRefreshStrategy } from './passport/jwt-refresh.strategy';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { UserModule } from 'src/user/user.module';
+import { PointModule } from 'src/point/point.module';
 @Module({
   imports: [
     UserModule,
@@ -28,6 +29,7 @@ import { UserModule } from 'src/user/user.module';
     JwtModule.register({}),
     MailerModule,
     UserModule,
+    PointModule,
   ],
   controllers: [AuthController],
   providers: [

@@ -37,6 +37,7 @@ import {
 import { SignupPhoneRequestDto } from './dtos/signupPhoneRequest.dto';
 import { SignupEmailRequestDto } from './dtos/signupEmailRequest.dto';
 import { SignupImageRequestDto } from './dtos/signupImageRequest.dto';
+import { PointService } from 'src/point/point.service';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -44,6 +45,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UserService,
+    private readonly pointService: PointService,
   ) {}
 
   @UseGuards(SignupGuard)
@@ -133,6 +135,7 @@ export class AuthController {
       if (page == 16) {
         const result = await this.authService.checkComplete(id);
         if (!result) throw new BadRequestException('invalid info');
+        this.pointService.giveSignupPoint(id);
         return res.json({
           refreshToken: await this.authService.getRefreshToken({
             id: id,

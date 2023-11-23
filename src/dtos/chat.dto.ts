@@ -114,6 +114,10 @@ export class RoomChatDto {
   @ApiProperty({ description: 'connected' })
   connected: boolean;
 
+  @IsDate()
+  @ApiProperty({ description: 'point 써서 귓속말 건 시각' })
+  readonly connectedAt: Date;
+
   @IsArray()
   @ApiProperty({
     description: 'chats',
@@ -135,6 +139,7 @@ export class RoomChatDto {
       hasRead: otherUser.hasRead,
       blur: roomInfo.blur ?? 1,
       connected: roomInfo.connected ?? true,
+      connectedAt: roomInfo.connectedAt ?? null,
       chats: chattings,
     };
   }

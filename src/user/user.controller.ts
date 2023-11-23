@@ -35,6 +35,17 @@ export class UserController {
     required: true,
     example: 'Bearer asdas.asdasd.asd',
   })
+  @ApiBody({
+    description: 'firebase 알림 토큰',
+    schema: {
+      type: 'object',
+      properties: {
+        token: {
+          type: 'string',
+        },
+      },
+    },
+  })
   @ApiOperation({
     summary: '알림 설정',
     description: 'firebase token 저장',
@@ -42,10 +53,10 @@ export class UserController {
   @Post('/notification')
   async setNotificationToken(
     @Req() req: Request,
-    @Body() notificationToken: string,
+    @Body() notificationToken: { token: string },
   ) {
     const { id } = req.user as JwtPayload;
-    this.fcmService.enableNotification(id, notificationToken);
+    this.fcmService.enableNotification(id, notificationToken.token);
   }
 
   @UseGuards(AuthGuard('access'))

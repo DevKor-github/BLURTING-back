@@ -1,4 +1,10 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsDate,
+} from 'class-validator';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Schema as MongooseSchema, Document, SchemaOptions } from 'mongoose';
 import { ChatUserDto } from 'src/dtos/chat.dto';
@@ -52,6 +58,14 @@ export class Room extends Document {
   @IsNotEmpty()
   @IsBoolean()
   connected: boolean;
+
+  @Prop({
+    required: false,
+    type: Date,
+    default: null,
+  })
+  @IsDate()
+  connectedAt: Date;
 }
 
 export const RoomSchema = SchemaFactory.createForClass(Room);

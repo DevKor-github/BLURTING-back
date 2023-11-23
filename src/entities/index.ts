@@ -6,3 +6,4 @@ export { UserEntity } from './users.entity';
 export { BlurtingGroupEntity } from './blurtingGroup.entity';
 export { BlurtingQuestionEntity } from './blurtingQuestion.entity';
 export { BlurtingAnswerEntity } from './blurtingAnswer.entity';
+export { PointHistoryEntity } from './pointHistory.entity';

@@ -104,8 +104,16 @@ export class ChatService {
       users: userObj,
       blur: 1,
       connected: true,
+      connectedAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
     });
     return roomId;
+  }
+
+  async reConnectChat(roomId: string) {
+    await this.roomModel.findOneAndUpdate(
+      { where: { id: roomId } },
+      { connectedAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000) },
+    );
   }
 
   async findCreatedRoom(users: number[]): Promise<Room | null> {
