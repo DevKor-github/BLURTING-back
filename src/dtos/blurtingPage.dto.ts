@@ -37,6 +37,7 @@ export class BlurtingAnswerDto {
 
   @ValidateIf((o) => o.room !== null)
   @IsString()
+  @ApiProperty({ description: '귓속말 연결된 상대는 roomId, 아니면 null' })
   room: string;
 
   static ToDto(

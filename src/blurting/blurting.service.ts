@@ -12,7 +12,6 @@ import {
   BlurtingAnswerEntity,
   BlurtingGroupEntity,
   BlurtingQuestionEntity,
-  UserEntity,
   UserInfoEntity,
 } from 'src/entities';
 import { UserService } from 'src/user/user.service';
