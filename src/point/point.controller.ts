@@ -6,9 +6,11 @@ import {
   ApiHeader,
   ApiOperation,
   ApiBody,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { JwtPayload } from 'src/interfaces/auth';
 import { PointService } from './point.service';
+import { PointHistoryDto } from 'src/dtos/point.dto';
 
 @Controller('point')
 export class PointController {
@@ -27,7 +29,7 @@ export class PointController {
       },
     },
   })
-  @ApiCreatedResponse({
+  @ApiResponse({
     description: '포인트 차감 실패 시',
     schema: {
       example: false,
@@ -66,5 +68,49 @@ export class PointController {
       return res.json({ point: updatedPoint.point });
     }
     return res.send(false);
+  }
+
+  @UseGuards(AuthGuard('access'))
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiResponse({
+    description: '지급 내역',
+    type: Array<PointHistoryDto>,
+  })
+  @Get('/add')
+  async getAddPointhHistory(@Req() req: Request, @Res() res: Response) {
+    const { id } = req.user as JwtPayload;
+    try {
+      const history = await this.pointService.getPointHistory(id, true);
+      return res.json(history);
+    } catch (error) {
+      console.log(error);
+      return res.send(error);
+    }
+  }
+
+  @UseGuards(AuthGuard('access'))
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiResponse({
+    description: '사용 내역',
+    type: Array<PointHistoryDto>,
+  })
+  @Get('/sub')
+  async getSubPointhHistory(@Req() req: Request, @Res() res: Response) {
+    const { id } = req.user as JwtPayload;
+    try {
+      const history = await this.pointService.getPointHistory(id, false);
+      return res.json(history);
+    } catch (error) {
+      console.log(error);
+      return res.send(error);
+    }
   }
 }
