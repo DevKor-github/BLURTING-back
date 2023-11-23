@@ -81,6 +81,4 @@ export class ChatController {
     const profile = await this.chatService.getOtherProfile(roomId, id);
     return res.json(profile);
   }
-
-  // 채팅방 나가기
 }
