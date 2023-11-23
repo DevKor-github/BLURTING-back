@@ -73,6 +73,13 @@ export class ChatGateway
     }
   }
 
+  @SubscribeMessage('reconnect_chat')
+  async reconnectChat(@MessageBody() roomId: string) {
+    this.chatService.reConnectChat(roomId);
+    this.server.to(`${roomId}_list`).emit('reconnect_chat', roomId);
+    this.server.to(roomId).emit('reconnect_chat', roomId);
+  }
+
   @SubscribeMessage('join_chat')
   handleJoinChat(
     @ConnectedSocket() client: Socket,

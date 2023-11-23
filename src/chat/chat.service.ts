@@ -155,7 +155,7 @@ export class ChatService {
           },
         },
       })
-      .select('id users -_id');
+      .select('id users connected -_id');
 
     const roomInfo = await Promise.all(
       rooms.map(async (room) => {
@@ -190,6 +190,7 @@ export class ChatService {
   }
 
   async getChats(roomId: string, userId: number) {
+    await this.updateBlurStep(roomId);
     const room = await this.roomModel.findOne({
       id: roomId,
       'users.userId': userId,
@@ -258,10 +259,30 @@ export class ChatService {
 
   async updateBlurStep(roomId: string) {
     const room = await this.roomModel.findOne({ id: roomId });
-    if (room.blur < 4) {
-      room.blur += 1;
-      await room.save();
+    const chatCount = await this.chattingModel
+      .find({ roomId: room.id })
+      .countDocuments();
+
+    switch (room.blur) {
+      case 1:
+        if (chatCount > 20) {
+          room.blur += 1;
+        }
+        break;
+      case 2:
+        if (chatCount > 50) {
+          room.blur += 1;
+        }
+        break;
+      case 3:
+        if (chatCount > 100) {
+          room.blur += 1;
+        }
+        break;
+      default:
+        break;
     }
+    await room.save();
   }
 
   pushCreateRoom(userId: number) {
