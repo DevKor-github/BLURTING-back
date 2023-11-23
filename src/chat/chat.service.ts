@@ -86,7 +86,7 @@ export class ChatService {
     return socketUser;
   }
 
-  async newChatRoom(users: number[]) {
+  async createChatRoom(users: number[]) {
     const userObj: ChatUserDto[] = [];
     const roomId =
       Math.floor(Math.random() * 100000).toString() + users[0] + users[1];
@@ -95,17 +95,21 @@ export class ChatService {
       userObj.push({
         userId: id,
         hasRead: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
+        blur: 0,
         isDeleted: false,
       });
     }
 
-    await this.roomModel.create({
+    const room = await this.roomModel.create({
       id: roomId,
       users: userObj,
-      blur: 1,
+      blur: 0,
       connected: true,
       connectedAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
     });
+    room.users[1].blur = 1;
+    await room.save();
+
     return roomId;
   }
 
@@ -190,7 +194,6 @@ export class ChatService {
   }
 
   async getChats(roomId: string, userId: number) {
-    await this.updateBlurStep(roomId);
     const room = await this.roomModel.findOne({
       id: roomId,
       'users.userId': userId,
@@ -198,11 +201,15 @@ export class ChatService {
     if (room == null) {
       throw new UnauthorizedException();
     }
-
-    const otherUser = room.users.find((user) => user.userId != userId);
+    const otherUserIndex = room.users.findIndex(
+      (user) => user.userId !== userId,
+    );
+    const otherUser = room.users[otherUserIndex];
     const otherSocketUser = await this.socketUserModel.findOne({
       userId: otherUser.userId,
     });
+
+    const blurChange = await this.updateBlurStep(room, otherUserIndex);
 
     const chats = await this.chattingModel
       .find()
@@ -210,7 +217,13 @@ export class ChatService {
       .equals(roomId)
       .select('userId userNickname chat createdAt -_id');
 
-    return RoomChatDto.ToDto(otherUser, otherSocketUser, room, chats);
+    return RoomChatDto.ToDto(
+      otherUser,
+      otherSocketUser,
+      room,
+      blurChange,
+      chats,
+    );
   }
 
   async getOtherProfile(roomId: string, userId: number) {
@@ -257,32 +270,46 @@ export class ChatService {
     );
   }
 
-  async updateBlurStep(roomId: string) {
-    const room = await this.roomModel.findOne({ id: roomId });
+  async updateBlurStep(room: Room, index: number) {
     const chatCount = await this.chattingModel
       .find({ roomId: room.id })
       .countDocuments();
+    let blurChange = true;
 
-    switch (room.blur) {
+    switch (room.users[index].blur) {
+      case 0:
+        room.users[index].blur += 1;
+        break;
       case 1:
         if (chatCount > 20) {
-          room.blur += 1;
+          room.users[index].blur += 1;
+        } else {
+          blurChange = false;
         }
         break;
       case 2:
         if (chatCount > 50) {
-          room.blur += 1;
+          room.users[index].blur += 1;
+        } else {
+          blurChange = false;
         }
         break;
       case 3:
         if (chatCount > 100) {
-          room.blur += 1;
+          room.users[index].blur += 1;
+        } else {
+          blurChange = false;
         }
         break;
       default:
+        blurChange = false;
         break;
     }
     await room.save();
+
+    if (blurChange) {
+      return room.users[index].blur;
+    }
   }
 
   pushCreateRoom(userId: number) {

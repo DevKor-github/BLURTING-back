@@ -88,7 +88,7 @@ export class PointController {
       return res.json(history);
     } catch (error) {
       console.log(error);
-      return res.send(error);
+      return res.status(error.status).json(error);
     }
   }
 
@@ -110,7 +110,7 @@ export class PointController {
       return res.json(history);
     } catch (error) {
       console.log(error);
-      return res.send(error);
+      return res.status(error.status).json(error);
     }
   }
 }

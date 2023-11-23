@@ -168,9 +168,8 @@ export class UserService {
   async deleteUser(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     await this.userRepository.remove(user);
-    const socketUser = await this.socketUserModel.findOneAndDelete({
+    this.socketUserModel.findOneAndDelete({
       userId: userId,
     });
-    // TODO: socket 에러 처리...?
   }
 }

@@ -1,10 +1,4 @@
-import {
-  IsBoolean,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-  IsDate,
-} from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString, IsDate } from 'class-validator';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Schema as MongooseSchema, Document, SchemaOptions } from 'mongoose';
 import { ChatUserDto } from 'src/dtos/chat.dto';
@@ -18,6 +12,7 @@ const ChatUser = new MongooseSchema(
   {
     userId: { required: true, type: Number },
     hasRead: { required: true, type: Date },
+    blur: { require: true, type: Number, default: 0 },
     isDeleted: { required: true, type: Boolean, default: false },
   },
   { _id: false },
@@ -41,14 +36,6 @@ export class Room extends Document {
   })
   @IsNotEmpty()
   users: ChatUserDto[];
-
-  @Prop({
-    type: Number,
-    default: 1,
-  })
-  @IsNotEmpty()
-  @IsNumber()
-  blur: number;
 
   @Prop({
     required: true,

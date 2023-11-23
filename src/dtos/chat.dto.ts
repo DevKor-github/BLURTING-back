@@ -7,6 +7,7 @@ import {
   IsString,
   IsEnum,
   IsArray,
+  ValidateIf,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Chatting, SocketUser, Room } from 'src/chat/models';
@@ -48,6 +49,10 @@ export class ChatUserDto {
   @IsBoolean()
   @ApiProperty({ description: 'isDeleted' })
   readonly isDeleted: boolean;
+
+  @IsNumber()
+  @ApiProperty({ description: 'blur step' })
+  blur: number;
 }
 
 export class RoomInfoDto {
@@ -118,6 +123,10 @@ export class RoomChatDto {
   @ApiProperty({ description: 'point 써서 귓속말 건 시각' })
   readonly connectedAt: Date;
 
+  @ValidateIf((o) => o.blurChange != null)
+  @IsNumber()
+  blurChange: number;
+
   @IsArray()
   @ApiProperty({
     description: 'chats',
@@ -130,6 +139,7 @@ export class RoomChatDto {
     otherUser: ChatUserDto,
     otherImage: SocketUser,
     roomInfo: Room,
+    blurChange: number,
     chattings: ChatDto[],
   ): RoomChatDto {
     const image = otherImage ? otherImage.userImage : null;
@@ -137,9 +147,10 @@ export class RoomChatDto {
       otherId: otherUser.userId,
       otherImage: image ?? null,
       hasRead: otherUser.hasRead,
-      blur: roomInfo.blur ?? 1,
+      blur: otherUser.blur ?? 1,
       connected: roomInfo.connected ?? true,
       connectedAt: roomInfo.connectedAt ?? null,
+      blurChange: blurChange ?? null,
       chats: chattings,
     };
   }

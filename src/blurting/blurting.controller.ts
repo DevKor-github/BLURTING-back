@@ -120,7 +120,7 @@ export class BlurtingController {
       return res.json(blurtingPage);
     } catch (error) {
       console.log(error);
-      return res.send(error);
+      return res.status(error.status).json(error);
     }
   }
 
@@ -171,7 +171,7 @@ export class BlurtingController {
       }
     } catch (error) {
       console.log(error);
-      return res.send(error);
+      return res.status(error.status).json(error);
     }
   }
 

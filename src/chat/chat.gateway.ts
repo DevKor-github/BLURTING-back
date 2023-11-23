@@ -52,7 +52,7 @@ export class ChatGateway
       const roomId = room.id;
       client.emit('create_room', roomId);
     } else {
-      const roomId = await this.chatService.newChatRoom(users);
+      const roomId = await this.chatService.createChatRoom(users);
       const createUser = await this.chatService.findUserSocket(user);
       const socketUser = await this.chatService.findUserSocket(user);
       if (socketUser) {
