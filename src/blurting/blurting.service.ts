@@ -174,11 +174,8 @@ export class BlurtingService {
     });
 
     this.answerRepository.save(answerEntity);
-    console.log(answer);
-    console.log(answer.length);
     if (answer.length >= 100) {
       const point = await this.pointService.giveBlurtingPoint(userId);
-      console.log(point);
       return point;
     }
     return false;

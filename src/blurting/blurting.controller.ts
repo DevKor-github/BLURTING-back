@@ -167,7 +167,7 @@ export class BlurtingController {
       if (point) {
         return res.status(201).json({ point: point });
       } else {
-        return res.status(201);
+        return res.sendStatus(201);
       }
     } catch (error) {
       console.log(error);
