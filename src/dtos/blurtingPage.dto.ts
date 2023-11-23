@@ -4,18 +4,23 @@ import {
   BlurtingGroupEntity,
   BlurtingQuestionEntity,
 } from 'src/entities';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class BlurtingAnswerDto {
   @IsNumber()
+  @ApiProperty({ description: 'userId' })
   userId: number;
 
   @IsString()
+  @ApiProperty({ description: 'userNickname' })
   userNickname: string;
 
   @IsString()
+  @ApiProperty({ description: 'answer' })
   answer: string;
 
   @IsDate()
+  @ApiProperty({ description: 'postedAt' })
   postedAt: Date;
 
   static ToDto(answerEntity: BlurtingAnswerEntity): BlurtingAnswerDto {
@@ -30,21 +35,27 @@ export class BlurtingAnswerDto {
 
 export class BlurtingPageDto {
   @IsNumber()
+  @ApiProperty({ description: 'groupId' })
   groupId: number;
 
   @IsDate()
+  @ApiProperty({ description: 'group 생성 시간' })
   createdAt: Date;
 
   @IsNumber()
+  @ApiProperty({ description: 'question 고유 아이디' })
   questionId: number;
 
   @IsNumber()
+  @ApiProperty({ description: 'question 번호' })
   questionNo: number;
 
   @IsString()
+  @ApiProperty({ description: 'question' })
   question: string;
 
   @IsArray()
+  @ApiProperty({ description: 'question에 따른 답변들' })
   answers: BlurtingAnswerDto[];
 
   static ToDto(
@@ -68,8 +79,10 @@ export class BlurtingPageDto {
 
 export class AnswerDto {
   @IsNumber()
+  @ApiProperty({ description: 'question 고유 아이디' })
   questionId: number;
 
   @IsString()
+  @ApiProperty({ description: 'answer' })
   answer: string;
 }
