@@ -55,7 +55,10 @@ export class BlurtingPageDto {
   question: string;
 
   @IsArray()
-  @ApiProperty({ description: 'question에 따른 답변들' })
+  @ApiProperty({
+    description: 'question에 따른 답변들',
+    type: Array<BlurtingAnswerDto>,
+  })
   answers: BlurtingAnswerDto[];
 
   static ToDto(
