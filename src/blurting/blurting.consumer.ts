@@ -1,7 +1,7 @@
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
 import { BlurtingService } from './blurting.service';
-import { BlurtingGroupEntity, BlurtingQuestionEntity } from 'src/entities';
+import { BlurtingGroupEntity } from 'src/entities';
 import { FcmService } from 'src/firebase/fcm.service';
 
 @Processor('blurtingQuestions')
