@@ -29,6 +29,7 @@ import {
   ApiNotAcceptableResponse,
   ApiUnauthorizedResponse,
   ApiRequestTimeoutResponse,
+  ApiNotFoundResponse,
 } from '@nestjs/swagger';
 import {
   SignupTokenResponseDto,
@@ -345,5 +346,27 @@ export class AuthController {
     return {
       accessToken: accessToken,
     };
+  }
+
+  @Post('/already/signed')
+  @ApiNotFoundResponse({ description: '없는 번호' })
+  @ApiNotAcceptableResponse({ description: '10초 내 재요청' })
+  async alreadyRegistered(@Body() body: SignupPhoneRequestDto) {
+    await this.authService.alreadySigned(body.phoneNumber);
+  }
+
+  @Post('/alreay/signed/check')
+  @ApiBadRequestResponse({ description: 'invalid code' })
+  @ApiRequestTimeoutResponse({ description: '3분지남' })
+  @ApiCreatedResponse({ description: '성공', type: TokenResponseDto })
+  @ApiQuery({
+    name: 'code',
+    description: '인증번호',
+    type: String,
+    example: '010123',
+  })
+  async alreadyCheck(@Query('code') code: string) {
+    const result = await this.authService.checkCodeAlready(code);
+    return result;
   }
 }
