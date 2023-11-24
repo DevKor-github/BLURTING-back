@@ -104,6 +104,7 @@ export class AuthController {
   })
   async checkMail(@Query('code') code: string, @Query('email') email: string) {
     await this.authService.checkMail(code, email);
+    return '<h1>가입 완료!</h1>블러팅 앱으로 돌아가주세요.';
   }
 
   @UseGuards(SignupGuard)
