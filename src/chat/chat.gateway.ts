@@ -160,7 +160,7 @@ export class ChatGateway
     await this.server
       .to(`${roomId}_list`)
       .emit('leave_room', { roomId: roomId, userId: client.data.userId });
-    
+
     client.leave(`${roomId}_list`);
   }
 }
