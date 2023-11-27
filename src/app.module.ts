@@ -14,6 +14,7 @@ import { FcmModule } from './firebase/fcm.module';
 import { BlurtingModule } from './blurting/blurting.module';
 import { PointModule } from './point/point.module';
 import { BullModule } from '@nestjs/bull';
+import { HomeModule } from './home/home.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { BullModule } from '@nestjs/bull';
         port: 6379,
       },
     }),
+    HomeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -25,4 +25,10 @@ export class BlurtingAnswerEntity {
 
   @Column()
   postedAt: Date;
+
+  @Column({ default: 0 })
+  groupLikes: number;
+
+  @Column({ default: 0 })
+  allLikes: number;
 }

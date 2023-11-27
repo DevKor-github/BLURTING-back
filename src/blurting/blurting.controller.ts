@@ -7,6 +7,7 @@ import {
   Res,
   Body,
   Param,
+  Put,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { BlurtingService } from './blurting.service';
@@ -23,10 +24,15 @@ import {
   ApiOperation,
   ApiResponse,
   ApiParam,
+  ApiUnauthorizedResponse,
+  ApiOkResponse,
+  ApiNotFoundResponse,
+  ApiTags,
 } from '@nestjs/swagger';
 import { BlurtingProfileDto } from 'src/dtos/user.dto';
 
 @Controller('blurting')
+@ApiTags('blurting')
 export class BlurtingController {
   constructor(
     private readonly blurtingService: BlurtingService,
@@ -216,5 +222,27 @@ export class BlurtingController {
     const { id } = req.user as JwtPayload;
     const profile = await this.blurtingService.getProfile(id, other);
     return res.json(profile);
+  }
+
+  @UseGuards(AuthGuard('access'))
+  @Put('/like/:answerId')
+  @ApiParam({
+    description: '좋아요 누를 답변 id',
+    name: 'answerId',
+    type: Number,
+  })
+  @ApiOperation({
+    summary: '블러팅 답변 좋아요 / 해제',
+    description: '이미 좋아요 눌러져 있으면 해제/아니면 누르기',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰 만료' })
+  @ApiOkResponse({
+    description: '좋아요 됐으면 TRUE, 해제 됐으면 FALSE',
+    type: Boolean,
+  })
+  @ApiNotFoundResponse({ description: 'answerId 오류' })
+  async likeAnswer(@Req() req: Request, @Param('answerId') answerId: number) {
+    const { id } = req.user as JwtPayload;
+    return await this.blurtingService.likeAnswer(id, answerId);
   }
 }
