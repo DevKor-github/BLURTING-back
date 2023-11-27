@@ -161,6 +161,10 @@ export class BlurtingService {
           id,
           answerEntity.user.id,
         ]);
+        const user = await this.userService.findUserByVal(
+          'id',
+          answerEntity.user.id,
+        );
         const like = await this.likeRepository.findOne({
           where: {
             answerId: answerEntity.id,
@@ -170,7 +174,7 @@ export class BlurtingService {
         let iLike = false;
         if (like) iLike = true;
         const roomId = room ? room.id : null;
-        return BlurtingAnswerDto.ToDto(answerEntity, roomId, iLike);
+        return BlurtingAnswerDto.ToDto(answerEntity, roomId, user, iLike);
       }),
     );
 
