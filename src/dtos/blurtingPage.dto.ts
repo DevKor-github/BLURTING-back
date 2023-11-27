@@ -10,9 +10,10 @@ import {
   BlurtingAnswerEntity,
   BlurtingGroupEntity,
   BlurtingQuestionEntity,
+  UserEntity,
 } from 'src/entities';
 import { ApiProperty } from '@nestjs/swagger';
-import { Sex } from 'src/common/enums';
+import { Mbti, Sex } from 'src/common/enums';
 
 export class BlurtingAnswerDto {
   @IsNumber()
@@ -35,6 +36,10 @@ export class BlurtingAnswerDto {
   @ApiProperty({ description: 'postedAt' })
   postedAt: Date;
 
+  @IsEnum(Mbti)
+  @ApiProperty({ description: 'mbti' })
+  mbti: Mbti;
+
   @ValidateIf((o) => o.room !== null)
   @IsString()
   @ApiProperty({ description: '귓속말 연결된 상대는 roomId, 아니면 null' })
@@ -52,15 +57,17 @@ export class BlurtingAnswerDto {
   static ToDto(
     answerEntity: BlurtingAnswerEntity,
     room: string,
+    user: UserEntity,
     ilike: boolean = false,
   ): BlurtingAnswerDto {
     return {
       id: answerEntity.id,
-      userId: answerEntity.user.id,
-      userNickname: answerEntity.user.userNickname,
-      userSex: answerEntity.sex ?? Sex.Female,
+      userId: user.id,
+      userNickname: user.userNickname,
+      userSex: user.userInfo.sex ?? Sex.Female,
       answer: answerEntity.answer,
       postedAt: answerEntity.postedAt,
+      mbti: user.userInfo.mbti,
       room: room ?? null,
       likes: answerEntity.groupLikes,
       ilike,
