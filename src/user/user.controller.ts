@@ -142,4 +142,26 @@ export class UserController {
       return err;
     }
   }
+
+  @UseGuards(AuthGuard('access'))
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiOperation({
+    summary: '유저 포인트',
+    description: '현재 포인트 확인하기',
+  })
+  @Get()
+  async getUserPoint(@Req() req: Request, @Res() res: Response) {
+    const { id } = req.user as JwtPayload;
+    try {
+      const user = await this.userService.findUserByVal('id', id);
+      return res.json({ point: user.point });
+    } catch (err) {
+      console.log(err);
+      return err;
+    }
+  }
 }
