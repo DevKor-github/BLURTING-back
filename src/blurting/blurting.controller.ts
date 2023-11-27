@@ -30,6 +30,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { BlurtingProfileDto } from 'src/dtos/user.dto';
+import { ArrowInfoResponseDto } from './dtos/arrowInfoResponse.dto';
 
 @Controller('blurting')
 @ApiTags('blurting')
@@ -263,5 +264,20 @@ export class BlurtingController {
   async makeArrow(@Req() req: Request, @Param('toId') toId: number) {
     const { id } = req.user as JwtPayload;
     return await this.blurtingService.makeArrow(id, toId);
+  }
+
+  @Get('/arrow')
+  @ApiOperation({
+    summary: '내 화살표 보기',
+    description: '내 화살표 보기',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰 만료' })
+  @ApiOkResponse({
+    description: '내 화살표 보기 성공',
+    type: ArrowInfoResponseDto,
+  })
+  async getArrows(@Req() req: Request) {
+    const { id } = req.user as JwtPayload;
+    return await this.blurtingService.getArrows(id);
   }
 }

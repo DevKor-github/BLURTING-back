@@ -346,4 +346,33 @@ export class BlurtingService {
 
     await this.arrowRepository.save(newArrow);
   }
+
+  async getArrows(userId: number) {
+    const user = await this.userService.findUserByVal('id', userId);
+    const sendArrows = await this.arrowRepository.find({
+      where: {
+        from: { id: userId },
+        group: user.group,
+      },
+      order: { no: 'ASC' },
+      relations: ['to'],
+    });
+
+    const receiveArrows = await this.arrowRepository.find({
+      where: {
+        to: { id: userId },
+        group: user.group,
+      },
+      order: { no: 'ASC' },
+      relations: ['from'],
+    });
+    const sendDto = sendArrows.map((arrow) => {
+      return { fromId: userId, toId: arrow.to.id, day: arrow.no };
+    });
+
+    const receiveDto = receiveArrows.map((arrow) => {
+      return { fromId: arrow.from.id, toId: userId, day: arrow.no };
+    });
+    return { iSended: sendDto, iReceived: receiveDto };
+  }
 }
