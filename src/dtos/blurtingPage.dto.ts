@@ -40,9 +40,16 @@ export class BlurtingAnswerDto {
   @ApiProperty({ description: '귓속말 연결된 상대는 roomId, 아니면 null' })
   room: string;
 
+  @ApiProperty({ description: '내가 좋아요했는지' })
+  ilike: boolean;
+
+  @ApiProperty({ description: '좋아요 수' })
+  likes: number;
+
   static ToDto(
     answerEntity: BlurtingAnswerEntity,
     room: string,
+    ilike: boolean = false,
   ): BlurtingAnswerDto {
     return {
       userId: answerEntity.user.id,
@@ -51,6 +58,8 @@ export class BlurtingAnswerDto {
       answer: answerEntity.answer,
       postedAt: answerEntity.postedAt,
       room: room ?? null,
+      likes: answerEntity.groupLikes,
+      ilike,
     };
   }
 }

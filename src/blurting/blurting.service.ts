@@ -141,21 +141,29 @@ export class BlurtingService {
       relations: ['question', 'user'],
     });
 
-    const answersDto = Promise.all(
+    const answersDto = await Promise.all(
       answers.map(async (answerEntity) => {
         const room = await this.chatService.findCreatedRoom([
           id,
           answerEntity.user.id,
         ]);
+        const like = await this.likeRepository.findOne({
+          where: {
+            answerId: answerEntity.id,
+            userId: id,
+          },
+        });
+        let iLike = false;
+        if (like) iLike = true;
         const roomId = room ? room.id : null;
-        return await BlurtingAnswerDto.ToDto(answerEntity, roomId);
+        return BlurtingAnswerDto.ToDto(answerEntity, roomId, iLike);
       }),
     );
 
     const blurtingPage: BlurtingPageDto = BlurtingPageDto.ToDto(
       group,
       question,
-      await answersDto,
+      answersDto,
     );
     return blurtingPage;
   }
