@@ -51,6 +51,9 @@ export class BlurtingAnswerDto {
   @ApiProperty({ description: '좋아요 수' })
   likes: number;
 
+  @ApiProperty({ description: '답변 ID' })
+  id: number;
+
   static ToDto(
     answerEntity: BlurtingAnswerEntity,
     room: string,
@@ -58,6 +61,7 @@ export class BlurtingAnswerDto {
     ilike: boolean = false,
   ): BlurtingAnswerDto {
     return {
+      id: answerEntity.id,
       userId: user.id,
       userNickname: user.userNickname,
       userSex: user.userInfo.sex ?? Sex.Female,
