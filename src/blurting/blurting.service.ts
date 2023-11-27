@@ -4,6 +4,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
@@ -12,6 +13,7 @@ import {
   BlurtingAnswerEntity,
   BlurtingGroupEntity,
   BlurtingQuestionEntity,
+  LikeEntity,
   UserInfoEntity,
 } from 'src/entities';
 import { UserService } from 'src/user/user.service';
@@ -39,6 +41,8 @@ export class BlurtingService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @InjectQueue('blurtingQuestions') private readonly queue: Queue,
     private readonly fcmService: FcmService,
+    @InjectRepository(LikeEntity)
+    private readonly likeRepository: Repository<LikeEntity>,
   ) {}
 
   async createGroup(users: number[]) {
@@ -259,5 +263,42 @@ export class BlurtingService {
     const room = await this.chatService.findCreatedRoom([id, other]);
     const roomId = room ? room.id : null;
     return await BlurtingProfileDto.ToDto(userInfo, roomId);
+  }
+
+  async likeAnswer(userId: number, answerId: number) {
+    const answer = await this.answerRepository.findOne({
+      where: { id: answerId },
+      relations: ['user', 'user.group', 'question', 'question.group'],
+    });
+    if (!answer) throw new NotFoundException('answer not found');
+
+    const like = await this.likeRepository.findOne({
+      where: {
+        answerId,
+        userId,
+      },
+    });
+    if (!like) {
+      const newLike = this.likeRepository.create({
+        answerId,
+        userId,
+      });
+      if (answer.user.group.id === answer.question.group.id)
+        answer.groupLikes++;
+      answer.allLikes++;
+      await this.likeRepository.save(newLike);
+      await this.answerRepository.save(answer);
+      return true;
+    } else {
+      await this.likeRepository.delete({
+        answerId,
+        userId,
+      });
+      if (answer.user.group.id === answer.question.group.id)
+        answer.groupLikes--;
+      answer.allLikes--;
+      await this.answerRepository.save(answer);
+      return false;
+    }
   }
 }
