@@ -17,6 +17,30 @@ export class PointController {
   constructor(private readonly pointService: PointService) {}
 
   @UseGuards(AuthGuard('access'))
+  @ApiResponse({
+    description: '포인트 차감 가능 여부',
+    schema: {
+      example: false,
+      type: 'boolean',
+    },
+  })
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiOperation({
+    summary: '포인트 차감 가능 여부',
+    description: '포인트 차감 가능 여부 판단',
+  })
+  @Get('/check')
+  async checkPoint(@Req() req: Request, @Res() res: Response) {
+    const { id } = req.user as JwtPayload;
+    const point = await this.pointService.checkResPoint(id, 10);
+    return res.send(point);
+  }
+
+  @UseGuards(AuthGuard('access'))
   @ApiCreatedResponse({
     description: '포인트 차감 성공 시',
     schema: {

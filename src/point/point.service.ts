@@ -15,6 +15,11 @@ export class PointService {
     private readonly pointRepository: Repository<PointHistoryEntity>,
   ) {}
 
+  async checkResPoint(id: number, point: number) {
+    const user = await this.userRepository.findOne({ where: { id: id } });
+    return user.point - point >= 0;
+  }
+
   async updatePoint(id: number, point: number) {
     const user = await this.userRepository.findOne({ where: { id: id } });
     user.point += point;
