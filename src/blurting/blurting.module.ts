@@ -7,6 +7,8 @@ import {
   BlurtingGroupEntity,
   BlurtingQuestionEntity,
   BlurtingAnswerEntity,
+  BLurtingArrowEntity,
+  LikeEntity,
 } from 'src/entities';
 import { UserModule } from 'src/user/user.module';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -16,7 +18,6 @@ import { BlurtingConsumer } from './blurting.consumer';
 import { FcmModule } from 'src/firebase/fcm.module';
 import { ChatModule } from 'src/chat/chat.module';
 import { PointModule } from 'src/point/point.module';
-import { LikeEntity } from 'src/entities/like.entity';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { LikeEntity } from 'src/entities/like.entity';
       BlurtingGroupEntity,
       BlurtingQuestionEntity,
       BlurtingAnswerEntity,
+      BLurtingArrowEntity,
       LikeEntity,
     ]),
     CacheModule.register({

@@ -245,4 +245,23 @@ export class BlurtingController {
     const { id } = req.user as JwtPayload;
     return await this.blurtingService.likeAnswer(id, answerId);
   }
+
+  @Post('/arrow/:toId')
+  @ApiParam({
+    description: '화살표 받을 사람 id',
+    name: 'toId',
+    type: Number,
+  })
+  @ApiOperation({
+    summary: '화살표 보내기',
+    description: '화살표 보내기',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰 만료' })
+  @ApiOkResponse({
+    description: '화살표 보내기 성공',
+  })
+  async makeArrow(@Req() req: Request, @Param('toId') toId: number) {
+    const { id } = req.user as JwtPayload;
+    return await this.blurtingService.makeArrow(id, toId);
+  }
 }

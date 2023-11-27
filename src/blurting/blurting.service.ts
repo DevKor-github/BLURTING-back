@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
 import { BlurtingAnswerDto, BlurtingPageDto } from 'src/dtos/blurtingPage.dto';
 import {
+  BLurtingArrowEntity,
   BlurtingAnswerEntity,
   BlurtingGroupEntity,
   BlurtingQuestionEntity,
@@ -43,6 +44,8 @@ export class BlurtingService {
     private readonly fcmService: FcmService,
     @InjectRepository(LikeEntity)
     private readonly likeRepository: Repository<LikeEntity>,
+    @InjectRepository(BLurtingArrowEntity)
+    private readonly arrowRepository: Repository<BLurtingArrowEntity>,
   ) {}
 
   async createGroup(users: number[]) {
@@ -319,5 +322,28 @@ export class BlurtingService {
       await this.answerRepository.save(answer);
       return false;
     }
+  }
+
+  async makeArrow(userId: number, toId: number) {
+    const user = await this.userService.findUserByVal('id', userId);
+
+    const arrow = await this.arrowRepository.findOne({
+      where: {
+        from: { id: userId },
+        group: user.group,
+      },
+      order: { no: 'DESC' },
+    });
+    let no = 1;
+    if (arrow) no = arrow.no + 1;
+
+    const newArrow = this.arrowRepository.create({
+      from: { id: userId },
+      to: { id: toId },
+      group: user.group,
+      no: no,
+    });
+
+    await this.arrowRepository.save(newArrow);
   }
 }
