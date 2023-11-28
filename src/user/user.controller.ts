@@ -60,6 +60,39 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('access'))
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiBody({
+    description: 'firebase 알림 토큰',
+    schema: {
+      type: 'object',
+      properties: {
+        title: {
+          type: 'string',
+        },
+        text: {
+          type: 'string',
+        },
+      },
+    },
+  })
+  @ApiOperation({
+    summary: '알림 테스트',
+    description: 'firebase 테스트',
+  })
+  @Post('/testfcm')
+  async testNotification(
+    @Req() req: Request,
+    @Body() notification: { title: string; text: string },
+  ) {
+    const { id } = req.user as JwtPayload;
+    this.fcmService.sendPush(id, notification.title, notification.text);
+  }
+
+  @UseGuards(AuthGuard('access'))
   @ApiCreatedResponse({
     description: 'get user profile',
     type: UserProfileDto,
