@@ -15,6 +15,7 @@ import { BlurtingModule } from './blurting/blurting.module';
 import { PointModule } from './point/point.module';
 import { BullModule } from '@nestjs/bull';
 import { HomeModule } from './home/home.module';
+import { ReportModule } from './report/report.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { HomeModule } from './home/home.module';
       },
     }),
     HomeModule,
+    ReportModule,
   ],
   controllers: [AppController],
   providers: [AppService],
