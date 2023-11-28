@@ -78,7 +78,6 @@ export class HomeService {
         });
         let iLike = false;
         if (like) iLike = true;
-        const roomId = null;
         return BlurtingAnswerDto.ToDto(answerEntity, null, user, iLike);
       }),
     );
