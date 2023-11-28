@@ -89,7 +89,7 @@ export class UserController {
     @Body() notification: { title: string; text: string },
   ) {
     const { id } = req.user as JwtPayload;
-    this.fcmService.sendPush(id, notification.title, notification.text);
+    await this.fcmService.sendPush(id, notification.title, notification.text);
   }
 
   @UseGuards(AuthGuard('access'))
