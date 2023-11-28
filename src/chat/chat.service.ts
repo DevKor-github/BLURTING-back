@@ -145,6 +145,22 @@ export class ChatService {
     );
   }
 
+  async disconnectChatRoom(users: number[]) {
+    await this.roomModel.findOneAndUpdate(
+      {
+        users: {
+          $all: [
+            { $elemMatch: { userId: users[0] } },
+            { $elemMatch: { userId: users[1] } },
+          ],
+        },
+      },
+      {
+        connected: false,
+      },
+    );
+  }
+
   addChat(chatData: ChatDto) {
     this.chattingModel.create(chatData);
   }
