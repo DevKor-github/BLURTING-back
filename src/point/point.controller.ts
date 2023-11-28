@@ -1,4 +1,4 @@
-import { Controller, Req, Res, Body, Get, UseGuards } from '@nestjs/common';
+import { Controller, Req, Res, Body, Get, Post, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -80,7 +80,7 @@ export class PointController {
     summary: '귓속말 걸기',
     description: '귓속말 걸었을 때 포인트 차감 가능 여부 판단',
   })
-  @Get('/chat')
+  @Post('/chat')
   async startChat(
     @Req() req: Request,
     @Body() other: { id: number },
