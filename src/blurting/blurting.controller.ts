@@ -249,6 +249,7 @@ export class BlurtingController {
   }
 
   @Post('/arrow/:toId')
+  @UseGuards(AuthGuard('access'))
   @ApiParam({
     description: '화살표 받을 사람 id',
     name: 'toId',
@@ -268,6 +269,7 @@ export class BlurtingController {
   }
 
   @Get('/arrow')
+  @UseGuards(AuthGuard('access'))
   @ApiOperation({
     summary: '내 화살표 보기',
     description: '내 화살표 보기',
