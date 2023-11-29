@@ -387,6 +387,7 @@ export class BlurtingService {
     const groupUsers = await this.userService.getGroupUsers(userId);
     const reports = await this.reportRepository.find({
       where: { reportedUser: In(groupUsers.map((user) => user.id)) },
+      relations: ['reportedUser'],
     });
     return groupUsers.map((user) => {
       return {
