@@ -283,6 +283,7 @@ export class BlurtingController {
   }
 
   @Get('/group-info')
+  @UseGuards(AuthGuard('access'))
   @ApiOperation({
     summary: '그룹 정보',
     description: '그룹 정보',
