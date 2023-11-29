@@ -101,6 +101,8 @@ export class ChatGateway
     ) {
       if ((await adapter.rooms.get(inRoomDto.roomId).size) == 2) {
         this.chatService.updateAllReadTime(inRoomDto.roomId);
+      } else {
+        this.chatService.updateReadTime(inRoomDto.roomId, client.data.userId);
       }
     } else {
       this.chatService.updateReadTime(inRoomDto.roomId, client.data.userId);
