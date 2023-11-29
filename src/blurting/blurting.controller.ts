@@ -31,6 +31,7 @@ import {
 } from '@nestjs/swagger';
 import { BlurtingProfileDto } from 'src/dtos/user.dto';
 import { ArrowInfoResponseDto } from './dtos/arrowInfoResponse.dto';
+import { OtherPeopleInfoDto } from './dtos/otherPeopleInfo.dto';
 
 @Controller('blurting')
 @ApiTags('blurting')
@@ -279,5 +280,20 @@ export class BlurtingController {
   async getArrows(@Req() req: Request) {
     const { id } = req.user as JwtPayload;
     return await this.blurtingService.getArrows(id);
+  }
+
+  @Get('/group-info')
+  @ApiOperation({
+    summary: '그룹 정보',
+    description: '그룹 정보',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰 만료' })
+  @ApiOkResponse({
+    description: '그룹 정보',
+    type: OtherPeopleInfoDto,
+  })
+  async getGroupInfo(@Req() req: Request): Promise<OtherPeopleInfoDto[]> {
+    const { id } = req.user as JwtPayload;
+    return await this.blurtingService.getGroupInfo(id);
   }
 }

@@ -21,7 +21,7 @@ export class BLurtingArrowEntity {
   @JoinColumn({ name: 'fromId' })
   from: UserEntity;
 
-  @ManyToOne(() => UserEntity)
+  @ManyToOne(() => UserEntity, { nullable: true })
   @JoinColumn({ name: 'toId' })
   to: UserEntity;
 

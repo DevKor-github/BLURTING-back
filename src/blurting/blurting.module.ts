@@ -18,6 +18,7 @@ import { BlurtingConsumer } from './blurting.consumer';
 import { FcmModule } from 'src/firebase/fcm.module';
 import { ChatModule } from 'src/chat/chat.module';
 import { PointModule } from 'src/point/point.module';
+import { ReportEntity } from 'src/entities/report.entity';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { PointModule } from 'src/point/point.module';
       BlurtingAnswerEntity,
       BLurtingArrowEntity,
       LikeEntity,
+      ReportEntity,
     ]),
     CacheModule.register({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment

@@ -18,7 +18,7 @@ import {
   UserInfoEntity,
 } from 'src/entities';
 import { UserService } from 'src/user/user.service';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { Sex, SexOrient } from 'src/common/enums';
@@ -26,6 +26,8 @@ import { FcmService } from 'src/firebase/fcm.service';
 import { ChatService } from 'src/chat/chat.service';
 import { BlurtingProfileDto } from 'src/dtos/user.dto';
 import { PointService } from 'src/point/point.service';
+import { OtherPeopleInfoDto } from './dtos/otherPeopleInfo.dto';
+import { ReportEntity } from 'src/entities/report.entity';
 
 @Injectable()
 export class BlurtingService {
@@ -46,6 +48,8 @@ export class BlurtingService {
     private readonly likeRepository: Repository<LikeEntity>,
     @InjectRepository(BLurtingArrowEntity)
     private readonly arrowRepository: Repository<BLurtingArrowEntity>,
+    @InjectRepository(ReportEntity)
+    private readonly reportRepository: Repository<ReportEntity>,
   ) {}
 
   async createGroup(users: number[]) {
@@ -343,7 +347,7 @@ export class BlurtingService {
 
     const newArrow = this.arrowRepository.create({
       from: { id: userId },
-      to: { id: toId },
+      to: toId === -1 ? null : { id: toId },
       group: user.group,
       no: no,
     });
@@ -378,5 +382,23 @@ export class BlurtingService {
       return { fromId: arrow.from.id, toId: userId, day: arrow.no };
     });
     return { iSended: sendDto, iReceived: receiveDto };
+  }
+  async getGroupInfo(userId: number): Promise<OtherPeopleInfoDto[]> {
+    const groupUsers = await this.userService.getGroupUsers(userId);
+    const reports = await this.reportRepository.find({
+      where: { reportedUser: In(groupUsers.map((user) => user.id)) },
+    });
+    return groupUsers.map((user) => {
+      return {
+        userId: user.id,
+        userNickname: user.userNickname,
+        userSex: user.userInfo.sex,
+        reported:
+          reports.filter((report) => report.reportedUser.id === user.id)
+            .length > 0
+            ? true
+            : false,
+      };
+    });
   }
 }

@@ -26,6 +26,18 @@ export class UserService {
     private readonly socketUserModel: Model<SocketUser>,
   ) {}
 
+  async getGroupUsers(userId: number) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['group'],
+    });
+    const users = await this.userRepository.find({
+      where: { group: { id: user.group.id } },
+      relations: ['userInfo', 'group'],
+    });
+    return users;
+  }
+
   async createUser() {
     const nicknames = Object.values(Nickname);
     const rand = Math.floor(Math.random() * 100000);
