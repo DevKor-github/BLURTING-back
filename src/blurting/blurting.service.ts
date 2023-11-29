@@ -389,7 +389,7 @@ export class BlurtingService {
       where: { reportedUser: In(groupUsers.map((user) => user.id)) },
       relations: ['reportedUser'],
     });
-    return groupUsers.map((user) => {
+    const result = groupUsers.map((user) => {
       return {
         userId: user.id,
         userNickname: user.userNickname,
@@ -401,5 +401,6 @@ export class BlurtingService {
             : false,
       };
     });
+    return result;
   }
 }
