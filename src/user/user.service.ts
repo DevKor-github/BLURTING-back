@@ -116,6 +116,14 @@ export class UserService {
     );
   }
 
+  async findUserByPhone(phone: string) {
+    const user = await this.userRepository.findOne({
+      where: { phoneNumber: phone, email: Not(IsNull()) },
+      relations: ['userInfo', 'group'],
+    });
+    return user;
+  }
+
   async findUserByVal(field: string, value: string | number) {
     const validatedUser = await this.userRepository.findOne({
       where: { [field]: value },

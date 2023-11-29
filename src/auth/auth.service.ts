@@ -257,10 +257,7 @@ export class AuthService {
   }
 
   async alreadySigned(phoneNumber: string) {
-    const user = await this.userService.findUserByVal(
-      'phoneNumber',
-      phoneNumber,
-    );
+    const user = await this.userService.findUserByPhone(phoneNumber);
     if (!user) throw new NotFoundException('가입되지 않은 전화번호입니다.');
 
     const phone = await this.authPhoneNumberRepository.findOne({

@@ -10,7 +10,7 @@ export class BlurtingAnswerEntity {
   @ManyToOne(() => BlurtingQuestionEntity)
   question: BlurtingQuestionEntity;
 
-  @ManyToOne(() => UserEntity)
+  @ManyToOne(() => UserEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   user: UserEntity;
 
   @Column({
