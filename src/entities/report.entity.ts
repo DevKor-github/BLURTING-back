@@ -6,10 +6,10 @@ export class ReportEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => UserEntity)
+  @ManyToOne(() => UserEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   reporterUser: UserEntity;
 
-  @ManyToOne(() => UserEntity)
+  @ManyToOne(() => UserEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   reportedUser: UserEntity;
 
   @Column()

@@ -26,6 +26,19 @@ export class UserService {
     private readonly socketUserModel: Model<SocketUser>,
   ) {}
 
+  async getGroupUsers(userId: number) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['group'],
+    });
+    if (!user.group) return [];
+    const users = await this.userRepository.find({
+      where: { group: { id: user.group.id } },
+      relations: ['userInfo', 'group'],
+    });
+    return users;
+  }
+
   async createUser() {
     const nicknames = Object.values(Nickname);
     const rand = Math.floor(Math.random() * 100000);
@@ -102,6 +115,14 @@ export class UserService {
         userImage: images[0],
       },
     );
+  }
+
+  async findUserByPhone(phone: string) {
+    const user = await this.userRepository.findOne({
+      where: { phoneNumber: phone, email: Not(IsNull()) },
+      relations: ['userInfo', 'group'],
+    });
+    return user;
   }
 
   async findUserByVal(field: string, value: string | number) {

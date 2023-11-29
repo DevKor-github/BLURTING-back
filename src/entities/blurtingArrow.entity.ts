@@ -17,11 +17,15 @@ export class BLurtingArrowEntity {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => UserEntity)
+  @ManyToOne(() => UserEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinColumn({ name: 'fromId' })
   from: UserEntity;
 
-  @ManyToOne(() => UserEntity)
+  @ManyToOne(() => UserEntity, {
+    nullable: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   @JoinColumn({ name: 'toId' })
   to: UserEntity;
 
