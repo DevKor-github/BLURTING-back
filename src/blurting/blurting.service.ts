@@ -115,8 +115,19 @@ export class BlurtingService {
         );
       }),
     );
+    await this.queue.add(
+      { group, question: null },
+      { delay: 9 * questionDelay },
+    );
   }
 
+  async deleteGroup(group: BlurtingGroupEntity) {
+    const users = await this.userService.getGroupUsers(group.id);
+    for (const user of users) {
+      user.group = null;
+    }
+    await this.userService.saveUsers(users);
+  }
   async insertQuestionToGroup(
     question: string,
     group: BlurtingGroupEntity,
