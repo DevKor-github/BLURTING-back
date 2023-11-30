@@ -44,18 +44,17 @@ export class FcmService {
 
   async sendPush(userId: number, title: string, body: string) {
     try {
-      const user = await this.socketUserModel.findOne({
-        where: { userId: userId },
-      });
-      if (user.notificationToken) {
+      const socketUser = await this.socketUserModel.findOne({ userId: userId });
+      if (socketUser.notificationToken) {
         await firebase
           .messaging()
           .send({
             notification: { title, body },
             data: {},
-            token: user.notificationToken,
+            token: socketUser.notificationToken,
           })
           .catch((error: any) => {
+            console.log(error);
             if (error.code == 404 || error.code == 400) {
               this.disableNotification(userId);
             }

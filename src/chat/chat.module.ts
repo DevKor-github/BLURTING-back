@@ -20,6 +20,7 @@ import { ReportModule } from 'src/report/report.module';
     UserModule,
     ReportModule,
     FcmModule,
+    ReportModule,
     MongooseModule.forFeature([
       { name: Chatting.name, schema: ChattingSchema },
       { name: Room.name, schema: RoomSchema },

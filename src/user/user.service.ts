@@ -58,6 +58,24 @@ export class UserService {
     return userInfo;
   }
 
+  async createSocketUser(userId: number) {
+    const socketUser = await this.socketUserModel.findOne({ userId: userId });
+    if (socketUser) return;
+    const user = await this.findUserByVal('id', userId);
+    const userImages = await this.getUserImages(userId);
+
+    // TODO: BAN WITHOUT SEX
+    await this.socketUserModel.create({
+      socketId: null,
+      notificationToken: null,
+      userId: userId,
+      userNickname: user.userNickname,
+      userSex: user.userInfo.sex ?? 'F',
+      userImage: userImages.length ? userImages[0] : null,
+      connection: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
+    });
+  }
+
   async updateUser(
     id: number,
     field: string,

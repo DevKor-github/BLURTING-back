@@ -56,8 +56,8 @@ export class PointService {
     if (user.point == 0) {
       const updatedPoint = await this.updatePoint(userId, 100);
       if (updatedPoint) {
-        const history = '회원가입 기념 100p가 적립 되었습니다.';
-        this.recordPointHistory(userId, 100, history);
+        const history = '회원가입 기념 20p가 적립 되었습니다.';
+        this.recordPointHistory(userId, 20, history);
         return updatedPoint.point;
       }
       return false;

@@ -11,7 +11,6 @@ import { FcmModule } from 'src/firebase/fcm.module';
   imports: [
     FcmModule,
     TypeOrmModule.forFeature([UserEntity, UserInfoEntity, UserImageEntity]),
-
     MongooseModule.forFeature([
       { name: SocketUser.name, schema: SocketUserSchema },
     ]),

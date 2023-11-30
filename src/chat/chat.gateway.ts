@@ -125,7 +125,7 @@ export class ChatGateway
   }
 
   @SubscribeMessage('send_chat')
-  handleChatting(
+  async handleChatting(
     @ConnectedSocket() client: Socket,
     @MessageBody() chatData: AddChatDto,
   ) {
@@ -147,11 +147,11 @@ export class ChatGateway
         this.server
           .to(`${chatData.roomId}_list`)
           .emit('new_chat', { ...addChat, read: read });
+        await this.chatService.pushNewChat(chatData.roomId, client.data.id);
       }
       this.server
         .to(chatData.roomId)
         .emit('new_chat', { ...addChat, read: read });
-      this.chatService.pushNewChat(chatData.roomId);
     }
   }
 
