@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { HomeInfoResponseDto } from './dtos/homInfoResponse.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, MoreThan, Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import {
   BLurtingArrowEntity,
   BlurtingAnswerEntity,
@@ -59,7 +59,7 @@ export class HomeService {
       order: {
         allLikes: 'DESC',
       },
-      relations: ['user', 'user.userInfo'],
+      relations: ['user', 'user.userInfo', 'question'],
     });
     const answersDto = await Promise.all(
       answers.map(async (answerEntity) => {
@@ -71,12 +71,15 @@ export class HomeService {
         });
         let iLike = false;
         if (like) iLike = true;
-        return BlurtingAnswerDto.ToDto(
-          answerEntity,
-          null,
-          answerEntity.user,
-          iLike,
-        );
+        return {
+          question: answerEntity.question.question,
+          ...BlurtingAnswerDto.ToDto(
+            answerEntity,
+            null,
+            answerEntity.user,
+            iLike,
+          ),
+        };
       }),
     );
 

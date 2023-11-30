@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { BlurtingAnswerDto } from 'src/dtos/blurtingPage.dto';
+import { AnswerWithQuestionDto } from './answerWithQuestion.dto';
 
 export class HomeInfoResponseDto {
-  @ApiProperty({ description: 'MVP 질문들', type: [BlurtingAnswerDto] })
-  answers: BlurtingAnswerDto[];
+  @ApiProperty({ description: 'MVP 질문들', type: [AnswerWithQuestionDto] })
+  answers: AnswerWithQuestionDto[];
 
   @ApiProperty({ description: '질문 남은 시간 단위 : ms, 그룹에 없으면 -1 줌' })
   seconds: number;
