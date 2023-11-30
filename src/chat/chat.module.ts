@@ -13,10 +13,12 @@ import { ChatService } from './chat.service';
 import { ChatController } from './chat.controller';
 import { UserModule } from 'src/user/user.module';
 import { FcmModule } from 'src/firebase/fcm.module';
+import { ReportModule } from 'src/report/report.module';
 
 @Module({
   imports: [
     UserModule,
+    ReportModule,
     FcmModule,
     MongooseModule.forFeature([
       { name: Chatting.name, schema: ChattingSchema },
