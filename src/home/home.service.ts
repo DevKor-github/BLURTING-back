@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { HomeInfoResponseDto } from './dtos/homInfoResponse.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository } from 'typeorm';
+import { Between, MoreThan, Repository } from 'typeorm';
 import {
   BLurtingArrowEntity,
   BlurtingAnswerEntity,
@@ -52,24 +52,17 @@ export class HomeService {
       seconds = 8 * 60 * 60 * 1000 - (timeOffset % (8 * 60 * 60 * 1000));
     }
     const chats = await this.chattingModel.find();
-    const startDayTime = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
+    const startDayTime = new Date(new Date().getTime() - 5 * 60 * 60 * 1000);
     startDayTime.setHours(5, 0, 0, 0);
-    const endDayTime = new Date(new Date().getTime() - 15 * 60 * 60 * 1000);
-    endDayTime.setHours(5, 0, 0, 0);
     const answers = await this.answerRepository.find({
-      where: { postedAt: Between(startDayTime, endDayTime) },
+      where: { postedAt: MoreThan(startDayTime) },
       order: {
         allLikes: 'DESC',
       },
-      relations: ['user'],
-      take: 3,
+      relations: ['user', 'user.userInfo'],
     });
-
     const answersDto = await Promise.all(
       answers.map(async (answerEntity) => {
-        const user = await this.userRepository.findOne({
-          where: { id: answerEntity.user.id },
-        });
         const like = await this.likeRepository.findOne({
           where: {
             answerId: answerEntity.id,
@@ -78,7 +71,12 @@ export class HomeService {
         });
         let iLike = false;
         if (like) iLike = true;
-        return BlurtingAnswerDto.ToDto(answerEntity, null, user, iLike);
+        return BlurtingAnswerDto.ToDto(
+          answerEntity,
+          null,
+          answerEntity.user,
+          iLike,
+        );
       }),
     );
 
