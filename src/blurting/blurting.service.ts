@@ -201,7 +201,6 @@ export class BlurtingService {
     const user = await this.userService.findUserByVal('id', userId);
     const answerEntity = this.answerRepository.create({
       user: user,
-      sex: user.userInfo.sex,
       question: { id: questionId } as BlurtingQuestionEntity,
       postedAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
       answer: answer,
