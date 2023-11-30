@@ -356,6 +356,8 @@ export class BlurtingService {
 
   async getArrows(userId: number) {
     const user = await this.userService.findUserByVal('id', userId);
+    if (!user.group) return [];
+
     const sendArrows = await this.arrowRepository.find({
       where: {
         from: { id: userId },
