@@ -137,7 +137,8 @@ export class AuthController {
       if (page == 16) {
         const result = await this.authService.checkComplete(id);
         if (!result) throw new BadRequestException('invalid info');
-        this.pointService.giveSignupPoint(id);
+        await this.pointService.giveSignupPoint(id);
+        await this.userService.createSocketUser(id);
         return res.json({
           refreshToken: await this.authService.getRefreshToken({
             id: id,

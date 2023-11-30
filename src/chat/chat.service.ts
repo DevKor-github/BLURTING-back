@@ -51,12 +51,13 @@ export class ChatService {
     return true;
   }
 
+  // TODO : create socketUser when user signup
   async updateSocketUser(userId: number, socketId: string) {
     const socketUser = await this.socketUserModel.findOne({ userId: userId });
 
     if (socketUser == null) {
       // create socketUser
-      const user = await this.userService.findUser('id', userId);
+      const user = await this.userService.findUserByVal('id', userId);
       const userImages = await this.userService.getUserImages(userId);
 
       // TODO: BAN WITHOUT SEX
@@ -65,7 +66,7 @@ export class ChatService {
         notificationToken: null,
         userId: userId,
         userNickname: user.userNickname,
-        userSex: user.sex ?? 'F',
+        userSex: user.userInfo.sex ?? 'F',
         userImage: userImages.length ? userImages[0] : null,
         connection: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
       });
@@ -336,18 +337,15 @@ export class ChatService {
     );
   }
 
-  async pushNewChat(roomId: string) {
+  async pushNewChat(roomId: string, userId: number) {
     const room = await this.roomModel.findOne({
       id: roomId,
     });
-    room.users.map(async (user) => {
-      const socketUser = await this.findUserSocket(user.userId);
-      if (!socketUser.socketId)
-        this.fcmService.sendPush(
-          user.userId,
-          '새로운 귓속말',
-          '새로운 귓속말이 도착했습니다!',
-        );
-    });
+    const otherUser = room.users.find((user) => user.userId != userId);
+    this.fcmService.sendPush(
+      otherUser.userId,
+      '새로운 귓속말',
+      '새로운 귓속말이 도착했습니다!',
+    );
   }
 }

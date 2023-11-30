@@ -11,12 +11,17 @@ import {
 import { Server, Socket } from 'socket.io';
 import { AddChatDto, ChatDto, InRoomDto } from 'src/dtos/chat.dto';
 import { ChatService } from './chat.service';
+import { ReportService } from 'src/report/report.service';
+import { ReportingRequestDto } from 'src/report/dtos/reportingRequest.dto';
 
 @WebSocketGateway({ namespace: 'whisper' })
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly reportService: ReportService,
+  ) {}
 
   @WebSocketServer()
   private server: Server;
@@ -120,7 +125,7 @@ export class ChatGateway
   }
 
   @SubscribeMessage('send_chat')
-  handleChatting(
+  async handleChatting(
     @ConnectedSocket() client: Socket,
     @MessageBody() chatData: AddChatDto,
   ) {
@@ -142,11 +147,11 @@ export class ChatGateway
         this.server
           .to(`${chatData.roomId}_list`)
           .emit('new_chat', { ...addChat, read: read });
+        await this.chatService.pushNewChat(chatData.roomId, client.data.id);
       }
       this.server
         .to(chatData.roomId)
         .emit('new_chat', { ...addChat, read: read });
-      this.chatService.pushNewChat(chatData.roomId);
     }
   }
 
@@ -155,7 +160,7 @@ export class ChatGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() roomId: string,
   ) {
-    this.chatService.leaveChatRoom(client.data.userId, roomId);
+    await this.chatService.leaveChatRoom(client.data.userId, roomId);
     await this.server
       .to(roomId)
       .emit('leave_room', { roomId: roomId, userId: client.data.userId });
@@ -164,5 +169,27 @@ export class ChatGateway
       .emit('leave_room', { roomId: roomId, userId: client.data.userId });
 
     client.leave(`${roomId}_list`);
+  }
+
+  @SubscribeMessage('report')
+  async handleReport(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() reportDto: ReportingRequestDto,
+  ) {
+    await this.chatService.disconnectChatRoom([
+      reportDto.reportingId,
+      client.data.userId,
+    ]);
+    await this.reportService.reportUser(
+      client.data.userId,
+      reportDto.reportingId,
+      reportDto.reason,
+    );
+
+    const room = await this.chatService.findCreatedRoom([
+      reportDto.reportingId,
+      client.data.userId,
+    ]);
+    await this.server.to(room.id).emit('report');
   }
 }

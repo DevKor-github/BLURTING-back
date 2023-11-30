@@ -54,9 +54,12 @@ export class UserController {
   async setNotificationToken(
     @Req() req: Request,
     @Body() notificationToken: { token: string },
+    @Res() res: Response,
   ) {
     const { id } = req.user as JwtPayload;
-    this.fcmService.enableNotification(id, notificationToken.token);
+    await this.userService.createSocketUser(id);
+    await this.fcmService.enableNotification(id, notificationToken.token);
+    return res.sendStatus(200);
   }
 
   @UseGuards(AuthGuard('access'))
