@@ -376,16 +376,25 @@ export class BlurtingService {
       relations: ['from'],
     });
     const sendDto = sendArrows.map((arrow) => {
-      return { fromId: userId, toId: arrow.to.id, day: arrow.no };
+      return {
+        fromId: userId,
+        toId: arrow.to === null ? -1 : arrow.to.id,
+        day: arrow.no,
+      };
     });
 
     const receiveDto = receiveArrows.map((arrow) => {
-      return { fromId: arrow.from.id, toId: userId, day: arrow.no };
+      return {
+        fromId: arrow.from === null ? -1 : arrow.from.id,
+        toId: userId,
+        day: arrow.no,
+      };
     });
     return { iSended: sendDto, iReceived: receiveDto };
   }
   async getGroupInfo(userId: number): Promise<OtherPeopleInfoDto[]> {
     const groupUsers = await this.userService.getGroupUsers(userId);
+
     const reports = await this.reportRepository.find({
       where: { reportedUser: In(groupUsers.map((user) => user.id)) },
       relations: ['reportedUser'],
