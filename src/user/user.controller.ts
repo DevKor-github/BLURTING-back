@@ -230,8 +230,8 @@ export class UserController {
       },
     },
   })
-  @Get()
-  async getUserPraivacy(@Req() req: Request, @Res() res: Response) {
+  @Get('/account')
+  async getUserAccount(@Req() req: Request, @Res() res: Response) {
     const { id } = req.user as JwtPayload;
     try {
       const user = await this.userService.findUserByVal('id', id);
