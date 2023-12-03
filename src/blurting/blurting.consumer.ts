@@ -31,6 +31,7 @@ export class BlurtingConsumer {
           userid,
           `${job.data.no}번쨰 질문이 등록되었습니다!`,
           `그룹 질문에 응답해주세요.`,
+          'blurting',
         );
       }),
     );
