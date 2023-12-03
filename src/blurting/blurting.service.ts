@@ -115,8 +115,19 @@ export class BlurtingService {
         );
       }),
     );
+    await this.queue.add(
+      { group, question: null },
+      { delay: 9 * questionDelay },
+    );
   }
 
+  async deleteGroup(group: BlurtingGroupEntity) {
+    const users = await this.userService.getGroupUsers(group.id);
+    for (const user of users) {
+      user.group = null;
+    }
+    await this.userService.saveUsers(users);
+  }
   async insertQuestionToGroup(
     question: string,
     group: BlurtingGroupEntity,
@@ -376,32 +387,60 @@ export class BlurtingService {
       relations: ['from'],
     });
     const sendDto = sendArrows.map((arrow) => {
-      return { fromId: userId, toId: arrow.to.id, day: arrow.no };
+      return {
+        fromId: userId,
+        toId: arrow.to === null ? -1 : arrow.to.id,
+        day: arrow.no,
+      };
     });
 
     const receiveDto = receiveArrows.map((arrow) => {
-      return { fromId: arrow.from.id, toId: userId, day: arrow.no };
+      return {
+        fromId: arrow.from === null ? -1 : arrow.from.id,
+        toId: userId,
+        day: arrow.no,
+      };
     });
     return { iSended: sendDto, iReceived: receiveDto };
   }
   async getGroupInfo(userId: number): Promise<OtherPeopleInfoDto[]> {
     const groupUsers = await this.userService.getGroupUsers(userId);
+
     const reports = await this.reportRepository.find({
       where: { reportedUser: In(groupUsers.map((user) => user.id)) },
       relations: ['reportedUser'],
     });
-    const result = groupUsers.map((user) => {
-      return {
-        userId: user.id,
-        userNickname: user.userNickname,
-        userSex: user.userInfo.sex,
-        reported:
-          reports.filter((report) => report.reportedUser.id === user.id)
-            .length > 0
-            ? true
-            : false,
-      };
-    });
+    const userSex = groupUsers.filter((user) => user.id === userId)[0].userInfo
+      .sex;
+
+    const userSexOrient = groupUsers.filter((user) => user.id === userId)[0]
+      .userInfo.sexOrient;
+
+    const filteredSex = [];
+
+    if (userSexOrient === SexOrient.Bisexual) {
+      filteredSex.push(Sex.Female, Sex.Male);
+    } else if (userSexOrient === SexOrient.Heterosexual) {
+      const sex = userSex === Sex.Female ? Sex.Male : Sex.Female;
+      filteredSex.push(sex);
+    } else {
+      filteredSex.push(userSex);
+    }
+
+    const result = groupUsers
+      .filter((user) => filteredSex.includes(user.userInfo.sex))
+      .map((user) => {
+        return {
+          userId: user.id,
+          userNickname: user.userNickname,
+          userSex: user.userInfo.sex,
+          reported:
+            reports.filter((report) => report.reportedUser.id === user.id)
+              .length > 0
+              ? true
+              : false,
+        };
+      });
     return result;
   }
 }

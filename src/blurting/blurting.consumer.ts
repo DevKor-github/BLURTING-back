@@ -13,6 +13,11 @@ export class BlurtingConsumer {
   @Process()
   async processNewBlurtingQuestion(job: Job) {
     const question: string = job.data.question;
+    if (question === null) {
+      const group = job.data.group;
+      await this.blurtingService.deleteGroup(group);
+      return;
+    }
     const group: BlurtingGroupEntity = job.data.group;
     const users: number[] = job.data.users;
     await this.blurtingService.insertQuestionToGroup(
