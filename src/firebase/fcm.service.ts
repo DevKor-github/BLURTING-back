@@ -49,8 +49,16 @@ export class FcmService {
         await firebase
           .messaging()
           .send({
-            notification: { title, body },
+            notification: {
+              title: title,
+              body: body,
+            },
             data: {},
+            android: {
+              notification: {
+                channelId: 'blurting_project',
+              },
+            },
             token: socketUser.notificationToken,
           })
           .catch((error: any) => {
