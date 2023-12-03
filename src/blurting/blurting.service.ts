@@ -410,18 +410,37 @@ export class BlurtingService {
       where: { reportedUser: In(groupUsers.map((user) => user.id)) },
       relations: ['reportedUser'],
     });
-    const result = groupUsers.map((user) => {
-      return {
-        userId: user.id,
-        userNickname: user.userNickname,
-        userSex: user.userInfo.sex,
-        reported:
-          reports.filter((report) => report.reportedUser.id === user.id)
-            .length > 0
-            ? true
-            : false,
-      };
-    });
+    const userSex = groupUsers.filter((user) => user.id === userId)[0].userInfo
+      .sex;
+
+    const userSexOrient = groupUsers.filter((user) => user.id === userId)[0]
+      .userInfo.sexOrient;
+
+    const filteredSex = [];
+
+    if (userSexOrient === SexOrient.Bisexual) {
+      filteredSex.push(Sex.Female, Sex.Male);
+    } else if (userSexOrient === SexOrient.Heterosexual) {
+      const sex = userSex === Sex.Female ? Sex.Male : Sex.Female;
+      filteredSex.push(sex);
+    } else {
+      filteredSex.push(userSex);
+    }
+
+    const result = groupUsers
+      .filter((user) => filteredSex.includes(user.userInfo.sex))
+      .map((user) => {
+        return {
+          userId: user.id,
+          userNickname: user.userNickname,
+          userSex: user.userInfo.sex,
+          reported:
+            reports.filter((report) => report.reportedUser.id === user.id)
+              .length > 0
+              ? true
+              : false,
+        };
+      });
     return result;
   }
 }

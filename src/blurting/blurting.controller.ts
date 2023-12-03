@@ -225,7 +225,7 @@ export class BlurtingController {
   @ApiUnauthorizedResponse({ description: '토큰 만료' })
   @ApiOkResponse({
     description: '그룹 정보',
-    type: OtherPeopleInfoDto,
+    type: [OtherPeopleInfoDto],
   })
   async getGroupInfo(@Req() req: Request): Promise<OtherPeopleInfoDto[]> {
     const { id } = req.user as JwtPayload;
