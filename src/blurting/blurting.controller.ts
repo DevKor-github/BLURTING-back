@@ -212,7 +212,7 @@ export class BlurtingController {
     description: '내 화살표 보기 성공',
     type: ArrowInfoResponseDto,
   })
-  async getArrows(@Req() req: Request) {
+  async getArrows(@Req() req: Request): Promise<ArrowInfoResponseDto> {
     const { id } = req.user as JwtPayload;
     return await this.blurtingService.getArrows(id);
   }

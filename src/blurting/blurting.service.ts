@@ -28,6 +28,7 @@ import { BlurtingProfileDto } from 'src/dtos/user.dto';
 import { PointService } from 'src/point/point.service';
 import { OtherPeopleInfoDto } from './dtos/otherPeopleInfo.dto';
 import { ReportEntity } from 'src/entities/report.entity';
+import { ArrowInfoResponseDto } from './dtos/arrowInfoResponse.dto';
 
 @Injectable()
 export class BlurtingService {
@@ -365,9 +366,9 @@ export class BlurtingService {
     await this.arrowRepository.save(newArrow);
   }
 
-  async getArrows(userId: number) {
+  async getArrows(userId: number): Promise<ArrowInfoResponseDto> {
     const user = await this.userService.findUserByVal('id', userId);
-    if (!user.group) return [];
+    if (!user.group) return { iSended: [], iReceived: [] };
 
     const sendArrows = await this.arrowRepository.find({
       where: {
@@ -375,7 +376,7 @@ export class BlurtingService {
         group: user.group,
       },
       order: { no: 'ASC' },
-      relations: ['to'],
+      relations: ['to', 'to.userInfo'],
     });
 
     const receiveArrows = await this.arrowRepository.find({
@@ -384,13 +385,15 @@ export class BlurtingService {
         group: user.group,
       },
       order: { no: 'ASC' },
-      relations: ['from'],
+      relations: ['from', 'from.userInfo'],
     });
     const sendDto = sendArrows.map((arrow) => {
       return {
         fromId: userId,
         toId: arrow.to === null ? -1 : arrow.to.id,
         day: arrow.no,
+        username: arrow.to === null ? null : arrow.to.userNickname,
+        userSex: arrow.to === null ? null : arrow.to.userInfo.sex,
       };
     });
 
@@ -399,6 +402,8 @@ export class BlurtingService {
         fromId: arrow.from === null ? -1 : arrow.from.id,
         toId: userId,
         day: arrow.no,
+        username: arrow.from === null ? null : arrow.from.userNickname,
+        userSex: arrow.from === null ? null : arrow.from.userInfo.sex,
       };
     });
     return { iSended: sendDto, iReceived: receiveDto };
