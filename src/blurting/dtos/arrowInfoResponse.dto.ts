@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Sex } from 'src/common/enums';
 
 export class ArrowInfoResponseDto {
   @ApiProperty({ description: '보낸 화살표 정보' })
@@ -14,4 +15,9 @@ export class ArrowInfo {
   toId: number;
   @ApiProperty({ description: '몇번째 화살펴?, 1-2-3', example: 1 })
   day: number;
+
+  @ApiProperty({ description: '유저네임' })
+  username: string;
+  @ApiProperty({ description: '성별' })
+  userSex: Sex;
 }
