@@ -42,15 +42,24 @@ export class FcmService {
     );
   }
 
-  async sendPush(userId: number, title: string, body: string) {
+  async sendPush(userId: number, title: string, body: string, type: string) {
     try {
       const socketUser = await this.socketUserModel.findOne({ userId: userId });
       if (socketUser.notificationToken) {
         await firebase
           .messaging()
           .send({
-            notification: { title, body },
-            data: {},
+            notification: {
+              title: title,
+              body: body,
+            },
+            data: { type: type },
+            android: {
+              notification: {
+                channelId: 'blurting_project',
+                priority: 'high',
+              },
+            },
             token: socketUser.notificationToken,
           })
           .catch((error: any) => {

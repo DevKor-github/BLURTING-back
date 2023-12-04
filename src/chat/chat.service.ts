@@ -334,6 +334,7 @@ export class ChatService {
       userId,
       '새로운 귓속말',
       '지금 귓속말을 시작해보세요!',
+      'whisper',
     );
   }
 
@@ -346,6 +347,7 @@ export class ChatService {
       otherUser.userId,
       '새로운 귓속말',
       '새로운 귓속말이 도착했습니다!',
+      'whisper',
     );
   }
 }

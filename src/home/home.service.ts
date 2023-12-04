@@ -60,6 +60,7 @@ export class HomeService {
         allLikes: 'DESC',
       },
       relations: ['user', 'user.userInfo', 'question'],
+      take: 3,
     });
     const answersDto = await Promise.all(
       answers.map(async (answerEntity) => {

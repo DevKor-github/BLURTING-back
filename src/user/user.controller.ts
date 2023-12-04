@@ -15,6 +15,7 @@ import {
   ApiHeader,
   ApiOperation,
   ApiBody,
+  ApiResponse,
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { FcmService } from 'src/firebase/fcm.service';
@@ -79,6 +80,10 @@ export class UserController {
         text: {
           type: 'string',
         },
+        type: {
+          type: 'string',
+          example: 'whisper/blurting',
+        },
       },
     },
   })
@@ -89,10 +94,15 @@ export class UserController {
   @Post('/testfcm')
   async testNotification(
     @Req() req: Request,
-    @Body() notification: { title: string; text: string },
+    @Body() notification: { title: string; text: string; type: string },
   ) {
     const { id } = req.user as JwtPayload;
-    await this.fcmService.sendPush(id, notification.title, notification.text);
+    await this.fcmService.sendPush(
+      id,
+      notification.title,
+      notification.text,
+      notification.type,
+    );
   }
 
   @UseGuards(AuthGuard('access'))
@@ -195,6 +205,37 @@ export class UserController {
     try {
       const user = await this.userService.findUserByVal('id', id);
       return res.json({ point: user.point });
+    } catch (err) {
+      console.log(err);
+      return err;
+    }
+  }
+
+  @UseGuards(AuthGuard('access'))
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiOperation({
+    summary: '설정 - 계정/정보',
+    description: '설정에서 계정/정보 클릭 시 나오는 내용',
+  })
+  @ApiResponse({
+    description: 'email, phoneNumber',
+    schema: {
+      properties: {
+        email: { type: 'string' },
+        phoneNumber: { type: 'string' },
+      },
+    },
+  })
+  @Get('/account')
+  async getUserAccount(@Req() req: Request, @Res() res: Response) {
+    const { id } = req.user as JwtPayload;
+    try {
+      const user = await this.userService.findUserByVal('id', id);
+      return res.json({ email: user.email, phoneNumber: user.phoneNumber });
     } catch (err) {
       console.log(err);
       return err;

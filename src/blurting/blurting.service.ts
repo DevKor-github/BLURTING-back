@@ -64,6 +64,7 @@ export class BlurtingService {
           id,
           '그룹 매칭 완료!',
           '매칭이 완료되었습니다.',
+          'blurting',
         );
       }),
     );
