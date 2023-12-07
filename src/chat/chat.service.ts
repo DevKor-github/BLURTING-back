@@ -253,12 +253,8 @@ export class ChatService {
     }
 
     const otherUser = room.users.find((user) => user.userId != userId);
-    const otherSocketUser = await this.socketUserModel.findOne({
-      userId: otherUser.userId,
-    });
-    return await this.userService.getUserProfile(otherUser.userId, [
-      otherSocketUser.userImage,
-    ]);
+    const userImages = await this.userService.getUserImages(otherUser.userId);
+    return await this.userService.getUserProfile(otherUser.userId, userImages);
   }
 
   async updateReadTime(roomId: string, userId: number) {
