@@ -351,6 +351,6 @@ export class AuthService {
     const refreshJwt = await this.getRefreshToken({ id });
     const accessJwt = await this.getAccessToken({ id });
 
-    return { refreshToken: refreshJwt, accessToken: accessJwt };
+    return { refreshToken: refreshJwt, accessToken: accessJwt, id };
   }
 }

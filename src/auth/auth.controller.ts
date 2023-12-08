@@ -322,6 +322,7 @@ export class AuthController {
     });
     const accessToken = await this.authService.getAccessToken({ id: user.id });
     return res.json({
+      id: user.id,
       refreshToken: refreshToken,
       accessToken: accessToken,
     });
