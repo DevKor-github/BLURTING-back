@@ -124,6 +124,7 @@ export class RoomChatDto {
   readonly connectedAt: Date;
 
   @ValidateIf((o) => o.blurChange != null)
+  @ApiProperty({ description: 'blur step 별 처음 바뀔 때 blur step' })
   @IsNumber()
   blurChange: number;
 
