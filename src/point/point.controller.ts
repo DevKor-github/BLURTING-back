@@ -19,10 +19,14 @@ import {
 import { JwtPayload } from 'src/interfaces/auth';
 import { PointService } from './point.service';
 import { PointHistoryDto } from 'src/dtos/point.dto';
+import { ReportService } from 'src/report/report.service';
 
 @Controller('point')
 export class PointController {
-  constructor(private readonly pointService: PointService) {}
+  constructor(
+    private readonly pointService: PointService,
+    private readonly reportService: ReportService,
+  ) {}
 
   @UseGuards(AuthGuard('access'))
   @ApiResponse({
@@ -95,6 +99,11 @@ export class PointController {
     @Res() res: Response,
   ) {
     const { id } = req.user as JwtPayload;
+    const report = await this.reportService.checkReport([id, other.id]);
+    if (report) {
+      return res.send(false);
+    }
+
     const updatedPoint = await this.pointService.checkChatPoint([id, other.id]);
     if (updatedPoint) {
       return res.json({ point: updatedPoint.point });

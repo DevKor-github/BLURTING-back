@@ -21,4 +21,21 @@ export class ReportService {
       reason,
     });
   }
+
+  async checkReport(users: number[]): Promise<boolean> {
+    const report = await this.reportRepository.findOne({
+      where: {
+        reporterUser: { id: users[0] },
+        reportedUser: { id: users[1] },
+      },
+    });
+    const report2 = await this.reportRepository.findOne({
+      where: {
+        reporterUser: { id: users[1] },
+        reportedUser: { id: users[0] },
+      },
+    });
+    if (report || report2) return true;
+    else return false;
+  }
 }
