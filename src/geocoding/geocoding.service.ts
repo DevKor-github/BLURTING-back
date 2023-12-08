@@ -12,7 +12,7 @@ export class GeocodingService {
 
       const size = 10;
 
-      const buffer = 15000;
+      const buffer = 20000;
 
       const requestURL =
         URL +
@@ -47,7 +47,7 @@ export class GeocodingService {
   async searchDistrictByGeo(geo: string, page: number = 1) {
     const data = await this.queryVworldAPI(page, geo);
     console.log(data);
-    if (data.status === 'NOT_FOUND') return [];
+    if (!data.result) return [];
     return data.result.featureCollection.features.map(
       (feat) => feat.properties.full_nm,
     );
