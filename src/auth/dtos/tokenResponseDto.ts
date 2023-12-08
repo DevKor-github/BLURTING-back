@@ -5,6 +5,12 @@ export class TokenResponseDto {
     description: 'new access token',
     example: 'asda.123asc.asd123',
   })
+  refreshToken: string;
+
+  @ApiProperty({
+    description: 'new access token',
+    example: 'asda.123asc.asd123',
+  })
   accessToken: string;
 }
 

@@ -344,8 +344,12 @@ export class AuthController {
   })
   async refresh(@Req() req: Request): Promise<TokenResponseDto> {
     const { id } = req.user as JwtPayload;
+    const refreshToken = await this.authService.getRefreshToken({
+      id: id,
+    });
     const accessToken = await this.authService.getAccessToken({ id: id });
     return {
+      refreshToken: refreshToken,
       accessToken: accessToken,
     };
   }
