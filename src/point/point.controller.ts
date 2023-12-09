@@ -99,7 +99,9 @@ export class PointController {
     @Res() res: Response,
   ) {
     const { id } = req.user as JwtPayload;
+    console.log(id, other.id);
     const report = await this.reportService.checkReport([id, other.id]);
+    console.log(report);
     if (report) {
       return res.send(false);
     }
