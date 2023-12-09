@@ -254,7 +254,10 @@ export class ChatService {
 
     const otherUser = room.users.find((user) => user.userId != userId);
     const userImages = await this.userService.getUserImages(otherUser.userId);
-    return await this.userService.getUserProfile(otherUser.userId, userImages);
+    return {
+      ...(await this.userService.getUserProfile(otherUser.userId, userImages)),
+      blur: otherUser.blur,
+    };
   }
 
   async updateReadTime(roomId: string, userId: number) {
