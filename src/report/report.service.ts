@@ -23,21 +23,18 @@ export class ReportService {
   }
 
   async checkReport(users: number[]): Promise<boolean> {
-    console.log(users[0], users[1]);
     const report = await this.reportRepository.findOne({
       where: {
         reporterUser: { id: users[0] },
         reportedUser: { id: users[1] },
       },
     });
-    console.log(report);
     const report2 = await this.reportRepository.findOne({
       where: {
         reporterUser: { id: users[1] },
         reportedUser: { id: users[0] },
       },
     });
-    console.log(report2);
     if (report || report2) return true;
     else return false;
   }
