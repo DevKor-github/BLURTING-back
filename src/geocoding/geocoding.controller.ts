@@ -28,6 +28,7 @@ export class GeocodingController {
     description: '이름 형식 기반 LIKE 연산, 시군구 리스트 반환',
   })
   async getDistrictListByName(@Query('name') name: string) {
+    console.log(name);
     return await this.geocodingService.searchDistrictByName(name);
   }
 
