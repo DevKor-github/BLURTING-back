@@ -226,8 +226,8 @@ export class ChatService {
       userId: otherUser.userId,
     });
 
-    const blurChange = await this.updateBlurStep(room, otherUserIndex);
-
+    //const blurChange = await this.updateBlurStep(room, otherUserIndex);
+    const blurChange = 2;
     const chats = await this.chattingModel
       .find()
       .where('roomId')
