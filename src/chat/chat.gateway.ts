@@ -99,7 +99,6 @@ export class ChatGateway
     @MessageBody() inRoomDto: InRoomDto,
   ) {
     const adapter = this.server.adapter as any;
-    console.log(adapter.room.get(inRoomDto.roomId));
     if (
       !inRoomDto.inRoom &&
       adapter.rooms.get(inRoomDto.roomId) &&
