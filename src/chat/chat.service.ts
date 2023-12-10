@@ -243,7 +243,7 @@ export class ChatService {
     );
   }
 
-  async getOtherProfile(roomId: string, userId: number) {
+  async findOtherUser(roomId: string, userId: number) {
     const room = await this.roomModel.findOne({
       id: roomId,
       'users.userId': userId,
@@ -253,6 +253,11 @@ export class ChatService {
     }
 
     const otherUser = room.users.find((user) => user.userId != userId);
+    return otherUser;
+  }
+
+  async getOtherProfile(roomId: string, userId: number) {
+    const otherUser = await this.findOtherUser(roomId, userId);
     const userImages = await this.userService.getUserImages(otherUser.userId);
     return {
       ...(await this.userService.getUserProfile(otherUser.userId, userImages)),

@@ -113,10 +113,16 @@ export class ChatGateway
       this.chatService.updateReadTime(inRoomDto.roomId, client.data.userId);
     }
 
+    console.log(
+      new Date(new Date().getTime() + 9 * 9 * 60 * 1000),
+      ' ',
+      inRoomDto.inRoom,
+    );
+
     if (inRoomDto.inRoom) {
       client.leave(`${inRoomDto.roomId}_list`);
       client.join(inRoomDto.roomId);
-      this.server.to(inRoomDto.roomId).emit('read_all');
+      client.to(inRoomDto.roomId).emit('read_all');
     } else {
       this.server.to(inRoomDto.roomId).emit('out_room', inRoomDto.roomId);
       client.leave(inRoomDto.roomId);
@@ -147,7 +153,7 @@ export class ChatGateway
         this.server
           .to(`${chatData.roomId}_list`)
           .emit('new_chat', { ...addChat, read: read });
-        await this.chatService.pushNewChat(chatData.roomId, client.data.id);
+        await this.chatService.pushNewChat(chatData.roomId, client.data.userId);
       }
       this.server
         .to(chatData.roomId)
