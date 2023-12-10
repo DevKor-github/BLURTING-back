@@ -113,11 +113,7 @@ export class ChatGateway
       this.chatService.updateReadTime(inRoomDto.roomId, client.data.userId);
     }
 
-    console.log(
-      new Date(new Date().getTime() + 9 * 9 * 60 * 1000),
-      ' ',
-      inRoomDto.inRoom,
-    );
+    console.log(new Date(), ' ', inRoomDto.inRoom);
 
     if (inRoomDto.inRoom) {
       await client.leave(`${inRoomDto.roomId}_list`);
@@ -147,11 +143,9 @@ export class ChatGateway
       adapter.rooms.get(chatData.roomId) != undefined
     ) {
       this.chatService.addChat(addChat);
-      console.log(adapter.rooms.get(chatData.roomId).size);
       if (adapter.rooms.get(chatData.roomId).size < 2) {
         read = false;
-        console.log(adapter.rooms.get(`${chatData.roomId}_list`).size);
-        this.server
+        client
           .to(`${chatData.roomId}_list`)
           .emit('new_chat', { ...addChat, read: read });
         await this.chatService.pushNewChat(chatData.roomId, client.data.userId);
