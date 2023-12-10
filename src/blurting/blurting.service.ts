@@ -174,14 +174,6 @@ export class BlurtingService {
 
     const answersDto = await Promise.all(
       answers.map(async (answerEntity) => {
-        const room = await this.chatService.findCreatedRoom([
-          id,
-          answerEntity.user.id,
-        ]);
-        const user = await this.userService.findUserByVal(
-          'id',
-          answerEntity.user.id,
-        );
         const like = await this.likeRepository.findOne({
           where: {
             answerId: answerEntity.id,
@@ -190,6 +182,19 @@ export class BlurtingService {
         });
         let iLike = false;
         if (like) iLike = true;
+
+        if (answerEntity.user == null) {
+          return BlurtingAnswerDto.ToDto(answerEntity, null, null, iLike);
+        }
+
+        const room = await this.chatService.findCreatedRoom([
+          id,
+          answerEntity.user.id,
+        ]);
+        const user = await this.userService.findUserByVal(
+          'id',
+          answerEntity.user.id,
+        );
         const roomId = room ? room.id : null;
         return BlurtingAnswerDto.ToDto(answerEntity, roomId, user, iLike);
       }),

@@ -62,12 +62,12 @@ export class BlurtingAnswerDto {
   ): BlurtingAnswerDto {
     return {
       id: answerEntity.id,
-      userId: user.id,
-      userNickname: user.userNickname,
-      userSex: user.userInfo.sex ?? Sex.Female,
+      userId: user?.id ?? null,
+      userNickname: user?.userNickname ?? '탈퇴한 사용자',
+      userSex: user?.userInfo?.sex ?? Sex.Female,
       answer: answerEntity.answer,
       postedAt: answerEntity.postedAt,
-      mbti: user.userInfo.mbti,
+      mbti: user?.userInfo?.mbti ?? null,
       room: room ?? null,
       likes: answerEntity.groupLikes,
       ilike,

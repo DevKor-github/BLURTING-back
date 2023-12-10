@@ -11,7 +11,7 @@ import {
   UserInfoEntity,
   UserImageEntity,
 } from 'src/entities';
-import { SocketUser } from 'src/chat/models';
+import { SocketUser, Room } from 'src/chat/models';
 import { UserProfileDto } from 'src/dtos/user.dto';
 @Injectable()
 export class UserService {
@@ -24,6 +24,8 @@ export class UserService {
     private readonly userImageRepository: Repository<UserImageEntity>,
     @InjectModel(SocketUser.name)
     private readonly socketUserModel: Model<SocketUser>,
+    @InjectModel(Room.name)
+    private readonly roomModel: Model<Room>,
   ) {}
 
   async getGroupUsers(userId: number) {
@@ -214,5 +216,6 @@ export class UserService {
     this.socketUserModel.findOneAndDelete({
       userId: userId,
     });
+    this.roomModel.updateMany({ 'users.userId': userId }, { connected: false });
   }
 }
