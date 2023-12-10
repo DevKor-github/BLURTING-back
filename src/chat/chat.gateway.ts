@@ -99,9 +99,10 @@ export class ChatGateway
     @MessageBody() inRoomDto: InRoomDto,
   ) {
     const adapter = this.server.adapter as any;
+    console.log(adapter.room.get(inRoomDto.roomId));
     if (
-      !inRoomDto.inRoom ||
-      adapter.rooms.get(inRoomDto.roomId) ||
+      !inRoomDto.inRoom &&
+      adapter.rooms.get(inRoomDto.roomId) &&
       adapter.rooms.get(inRoomDto.roomId) != undefined
     ) {
       if ((await adapter.rooms.get(inRoomDto.roomId).size) == 2) {
@@ -120,13 +121,13 @@ export class ChatGateway
     );
 
     if (inRoomDto.inRoom) {
-      client.leave(`${inRoomDto.roomId}_list`);
-      client.join(inRoomDto.roomId);
+      await client.leave(`${inRoomDto.roomId}_list`);
+      await client.join(inRoomDto.roomId);
       client.to(inRoomDto.roomId).emit('read_all');
     } else {
       this.server.to(inRoomDto.roomId).emit('out_room', inRoomDto.roomId);
-      client.leave(inRoomDto.roomId);
-      client.join(`${inRoomDto.roomId}_list`);
+      await client.leave(inRoomDto.roomId);
+      await client.join(`${inRoomDto.roomId}_list`);
     }
   }
 
@@ -143,13 +144,14 @@ export class ChatGateway
     const adapter = this.server.adapter as any;
     let read = true;
     if (
-      adapter.rooms.get(chatData.roomId) ||
+      adapter.rooms.get(chatData.roomId) &&
       adapter.rooms.get(chatData.roomId) != undefined
     ) {
       this.chatService.addChat(addChat);
-
+      console.log(adapter.rooms.get(chatData.roomId).size);
       if (adapter.rooms.get(chatData.roomId).size < 2) {
         read = false;
+        console.log(adapter.rooms.get(`${chatData.roomId}_list`).size);
         this.server
           .to(`${chatData.roomId}_list`)
           .emit('new_chat', { ...addChat, read: read });
