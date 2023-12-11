@@ -1,5 +1,6 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { BlurtingQuestionEntity, UserEntity } from '../entities';
+import { Sex } from 'src/common/enums';
 
 @Entity()
 export class BlurtingAnswerEntity {
@@ -18,6 +19,9 @@ export class BlurtingAnswerEntity {
 
   @Column()
   answer: string;
+
+  @Column({ nullable: true })
+  userSex: Sex;
 
   @Column()
   postedAt: Date;

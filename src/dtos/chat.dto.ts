@@ -85,15 +85,15 @@ export class RoomInfoDto {
     otherUserSchema: SocketUser,
     chattingSchema: Chatting,
   ): RoomInfoDto {
-    const nickname = otherUserSchema ? otherUserSchema.userNickname : null;
-    const sex = otherUserSchema ? otherUserSchema.userSex : null;
     return {
       roomId: roomId,
       hasRead: hasRead,
-      nickname: nickname ?? '탈퇴한 사용자',
-      sex: sex ?? null,
-      latest_chat: chattingSchema ? chattingSchema.chat : null,
-      latest_time: chattingSchema ? chattingSchema.createdAt : null,
+      nickname: otherUserSchema.isDeleted
+        ? otherUserSchema.userNickname
+        : '탈퇴한 사용자',
+      sex: otherUserSchema?.userSex ?? null,
+      latest_chat: chattingSchema?.chat ?? null,
+      latest_time: chattingSchema?.createdAt ?? null,
     };
   }
 }
@@ -138,18 +138,17 @@ export class RoomChatDto {
 
   static ToDto(
     otherUser: ChatUserDto,
-    otherImage: SocketUser,
+    othereSocketUser: SocketUser,
     roomInfo: Room,
     blurChange: number,
     chattings: ChatDto[],
   ): RoomChatDto {
-    const image = otherImage ? otherImage.userImage : null;
     return {
-      otherId: otherUser.userId,
-      otherImage: image ?? null,
+      otherId: othereSocketUser.isDeleted ? 0 : othereSocketUser.userId,
+      otherImage: othereSocketUser?.userImage ?? null,
       hasRead: otherUser.hasRead,
       blur: otherUser.blur ?? 1,
-      connected: roomInfo.connected ?? true,
+      connected: othereSocketUser.isDeleted ? true : roomInfo.connected ?? true,
       connectedAt: roomInfo.connectedAt ?? null,
       blurChange: blurChange ?? null,
       chats: chattings,

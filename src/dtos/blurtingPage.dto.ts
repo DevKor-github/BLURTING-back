@@ -64,7 +64,7 @@ export class BlurtingAnswerDto {
       id: answerEntity.id,
       userId: user?.id ?? 0,
       userNickname: user?.userNickname ?? '탈퇴한 사용자',
-      userSex: user?.userInfo?.sex ?? Sex.Female,
+      userSex: answerEntity.userSex ?? Sex.Female,
       answer: answerEntity.answer,
       postedAt: answerEntity.postedAt,
       mbti: user?.userInfo?.mbti ?? null,

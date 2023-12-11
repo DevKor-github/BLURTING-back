@@ -222,6 +222,7 @@ export class BlurtingService {
       question: { id: questionId } as BlurtingQuestionEntity,
       postedAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
       answer: answer,
+      userSex: user.userInfo.sex,
     });
 
     this.answerRepository.save(answerEntity);

@@ -213,9 +213,9 @@ export class UserService {
   async deleteUser(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     await this.userRepository.remove(user);
-    this.socketUserModel.findOneAndDelete({
-      userId: userId,
-    });
-    this.roomModel.updateMany({ 'users.userId': userId }, { connected: false });
+    await this.socketUserModel.updateOne(
+      { userId: userId },
+      { isDeleted: true },
+    );
   }
 }
