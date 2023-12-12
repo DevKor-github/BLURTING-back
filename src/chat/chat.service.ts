@@ -226,8 +226,8 @@ export class ChatService {
       userId: otherUser.userId,
     });
 
-    //const blurChange = await this.updateBlurStep(room, otherUserIndex);
-    const blurChange = 2;
+    const blurChange = await this.updateBlurStep(room, otherUserIndex);
+
     const chats = await this.chattingModel
       .find()
       .where('roomId')
@@ -292,9 +292,8 @@ export class ChatService {
   }
 
   async updateBlurStep(room: Room, index: number) {
-    const chatCount = await this.chattingModel
-      .find({ roomId: room.id })
-      .countDocuments();
+    const chatCount = await this.chattingModel.count({ roomId: room.id });
+    console.log(chatCount);
     let blurChange = true;
 
     switch (room.users[index].blur) {
