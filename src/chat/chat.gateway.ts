@@ -120,11 +120,13 @@ export class ChatGateway
     if (inRoomDto.inRoom) {
       await client.leave(`${inRoomDto.roomId}_list`);
       await client.join(inRoomDto.roomId);
+      console.log(client.rooms, ' ', inRoomDto.roomId);
       client.to(inRoomDto.roomId).emit('read_all');
     } else {
       this.server.to(inRoomDto.roomId).emit('out_room', inRoomDto.roomId);
       await client.leave(inRoomDto.roomId);
       await client.join(`${inRoomDto.roomId}_list`);
+      console.log(client.rooms, ' ', inRoomDto.roomId);
     }
   }
 
