@@ -350,6 +350,7 @@ export class AuthService {
     const id = phone.user.id;
     const refreshJwt = await this.getRefreshToken({ id });
     const accessJwt = await this.getAccessToken({ id });
+    await this.userService.createSocketUser(id);
 
     return { refreshToken: refreshJwt, accessToken: accessJwt, id };
   }
