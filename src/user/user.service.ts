@@ -43,7 +43,7 @@ export class UserService {
 
   async createUser() {
     const nicknames = Object.values(Nickname);
-    const rand = Math.floor(Math.random() * 100000);
+    const rand = Math.floor(Math.random() * 1000);
     const index = rand % nicknames.length;
     const nickname = nicknames[index].toString() + rand.toString();
     const user = await this.userRepository.create({
