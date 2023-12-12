@@ -75,7 +75,7 @@ export class ChatGateway
       client.join(`${roomId}_list`);
       client.emit('create_room', {
         roomId: roomId,
-        nickname: createUser.userNickname,
+        nickname: socketUser.userNickname,
       });
     }
   }
