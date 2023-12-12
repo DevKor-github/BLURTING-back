@@ -58,7 +58,9 @@ export class ChatGateway
       client.emit('create_room', roomId);
     } else {
       const roomId = await this.chatService.createChatRoom(users);
-      const createUser = await this.chatService.findUserSocket(user);
+      const createUser = await this.chatService.findUserSocket(
+        client.data.userId,
+      );
       const socketUser = await this.chatService.findUserSocket(user);
       if (socketUser) {
         this.server.to(socketUser.socketId).emit('invite_chat', {
@@ -73,7 +75,7 @@ export class ChatGateway
       client.join(`${roomId}_list`);
       client.emit('create_room', {
         roomId: roomId,
-        nickname: socketUser.userNickname,
+        nickname: createUser.userNickname,
       });
     }
   }
