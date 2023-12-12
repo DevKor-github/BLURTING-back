@@ -333,12 +333,7 @@ export class ChatService {
   }
 
   pushCreateRoom(userId: number) {
-    this.fcmService.sendPush(
-      userId,
-      '새로운 귓속말',
-      '지금 귓속말을 시작해보세요!',
-      'whisper',
-    );
+    this.fcmService.sendPush(userId, '지금 귓속말을 시작해보세요!', 'whisper');
   }
 
   async pushNewChat(roomId: string, userId: number) {
@@ -348,7 +343,6 @@ export class ChatService {
     const otherUser = room.users.find((user) => user.userId != userId);
     this.fcmService.sendPush(
       otherUser.userId,
-      '새로운 귓속말',
       '새로운 귓속말이 도착했습니다!',
       'whisper',
     );

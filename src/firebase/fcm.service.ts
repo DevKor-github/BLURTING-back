@@ -42,7 +42,7 @@ export class FcmService {
     );
   }
 
-  async sendPush(userId: number, title: string, body: string, type: string) {
+  async sendPush(userId: number, body: string, type: string) {
     try {
       const socketUser = await this.socketUserModel.findOne({ userId: userId });
       if (socketUser.notificationToken) {
@@ -50,7 +50,6 @@ export class FcmService {
           .messaging()
           .send({
             notification: {
-              title: title,
               body: body,
             },
             data: { type: type },

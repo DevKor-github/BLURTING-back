@@ -62,8 +62,7 @@ export class BlurtingService {
         await this.userService.updateUser(id, 'group', group);
         await this.fcmService.sendPush(
           id,
-          '그룹 매칭 완료!',
-          '매칭이 완료되었습니다.',
+          '그룹 매칭이 완료되었습니다.',
           'blurting',
         );
       }),
