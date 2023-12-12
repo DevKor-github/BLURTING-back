@@ -29,7 +29,7 @@ export class BlurtingConsumer {
       users.map(async (userid) => {
         await this.fcmService.sendPush(
           userid,
-          `${job.data.no}번쨰 질문이 등록되었습니다!`,
+          `${job.data.no}번째 질문이 등록되었습니다!`,
           'blurting',
         );
       }),

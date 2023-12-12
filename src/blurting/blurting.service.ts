@@ -210,6 +210,7 @@ export class BlurtingService {
   async postAnswer(userId: number, questionId: number, answer: string) {
     const question = await this.questionRepository.findOne({
       where: { id: questionId },
+      relations: ['group'],
     });
     if (!question || question == null) {
       throw new BadRequestException('존재하지 않는 질문입니다.');
@@ -229,6 +230,18 @@ export class BlurtingService {
       const point = await this.pointService.giveBlurtingPoint(userId);
       return point;
     }
+
+    const users = await this.userService.getGroupUsers(userId);
+    users.map(async (user) => {
+      if (user.id !== userId) {
+        await this.fcmService.sendPush(
+          user.id,
+          `${question.no}번째 질문에 새로운 답변이 등록되었습니다!`,
+          'blurting',
+        );
+      }
+    });
+
     return false;
   }
 
@@ -370,6 +383,12 @@ export class BlurtingService {
     });
 
     await this.arrowRepository.save(newArrow);
+
+    this.fcmService.sendPush(
+      toId,
+      `${user.userNickname}님이 당신에게 화살표를 보냈습니다!`,
+      'blurting',
+    );
   }
 
   async getArrows(userId: number): Promise<ArrowInfoResponseDto> {
