@@ -89,8 +89,8 @@ export class RoomInfoDto {
       roomId: roomId,
       hasRead: hasRead,
       nickname: otherUserSchema.isDeleted
-        ? otherUserSchema.userNickname
-        : '탈퇴한 사용자',
+        ? '탈퇴한 사용자'
+        : otherUserSchema.userNickname,
       sex: otherUserSchema?.userSex ?? null,
       latest_chat: chattingSchema?.chat ?? null,
       latest_time: chattingSchema?.createdAt ?? null,
