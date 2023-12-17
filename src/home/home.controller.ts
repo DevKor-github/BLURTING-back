@@ -1,10 +1,11 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Put, Req, UseGuards } from '@nestjs/common';
+import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { HomeInfoResponseDto } from './dtos/homInfoResponse.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { HomeService } from './home.service';
 import { JwtPayload } from 'src/interfaces/auth';
 import { Request } from 'express';
+import { likeHomeAnswerDto } from './dtos/likeHomeAnswer.dto';
 
 @Controller('home')
 @ApiTags('home')
@@ -22,5 +23,20 @@ export class HomeController {
   async getHomeInfo(@Req() req: Request) {
     const { id } = req.user as JwtPayload;
     return await this.homeService.getHomeInfo(id);
+  }
+
+  @Put('/like')
+  @UseGuards(AuthGuard('access'))
+  @ApiOperation({
+    summary: '좋아요',
+    description: '좋아요',
+  })
+  @ApiBody({
+    type: likeHomeAnswerDto,
+  })
+  async like(@Req() req: Request) {
+    const { id } = req.user as JwtPayload;
+    const { answerId } = req.body as likeHomeAnswerDto;
+    return await this.homeService.like(id, answerId);
   }
 }

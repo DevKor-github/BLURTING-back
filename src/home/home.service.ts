@@ -27,6 +27,51 @@ export class HomeService {
     @InjectModel(Chatting.name)
     private readonly chattingModel: Model<Chatting>,
   ) {}
+
+  async like(userId: number, answerId: number) {
+    const like = await this.likeRepository.findOne({
+      where: {
+        answerId,
+        userId,
+      },
+    });
+    if (like) {
+      const answer = await this.answerRepository.findOne({
+        where: { id: answerId },
+        relations: ['question', 'question.group'],
+      });
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ['group'],
+      });
+      if (answer.question.group === user.group) {
+        answer.groupLikes--;
+      }
+      answer.allLikes--;
+      await this.answerRepository.save(answer);
+      await this.likeRepository.delete(like);
+    } else {
+      const newLike = this.likeRepository.create({
+        answerId,
+        userId,
+      });
+      const answer = await this.answerRepository.findOne({
+        where: { id: answerId },
+        relations: ['question', 'question.group'],
+      });
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ['group'],
+      });
+      if (answer.question.group === user.group) {
+        answer.groupLikes++;
+      }
+      answer.allLikes++;
+      await this.answerRepository.save(answer);
+      await this.likeRepository.save(newLike);
+    }
+  }
+
   async getHomeInfo(userId: number): Promise<HomeInfoResponseDto> {
     const likes = await this.likeRepository.count({
       where: { answer: { user: { id: userId } } },
