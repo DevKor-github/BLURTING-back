@@ -11,7 +11,7 @@ import {
   UserInfoEntity,
   UserImageEntity,
 } from 'src/entities';
-import { SocketUser } from 'src/chat/models';
+import { SocketUser, Room } from 'src/chat/models';
 import { UserProfileDto } from 'src/dtos/user.dto';
 @Injectable()
 export class UserService {
@@ -24,6 +24,8 @@ export class UserService {
     private readonly userImageRepository: Repository<UserImageEntity>,
     @InjectModel(SocketUser.name)
     private readonly socketUserModel: Model<SocketUser>,
+    @InjectModel(Room.name)
+    private readonly roomModel: Model<Room>,
   ) {}
 
   async getGroupUsers(userId: number) {
@@ -32,6 +34,7 @@ export class UserService {
       relations: ['group'],
     });
     if (!user.group) return [];
+
     const users = await this.userRepository.find({
       where: { group: { id: user.group.id } },
       relations: ['userInfo', 'group'],
@@ -41,7 +44,7 @@ export class UserService {
 
   async createUser() {
     const nicknames = Object.values(Nickname);
-    const rand = Math.floor(Math.random() * 100000);
+    const rand = Math.floor(Math.random() * 1000);
     const index = rand % nicknames.length;
     const nickname = nicknames[index].toString() + rand.toString();
     const user = await this.userRepository.create({
@@ -211,8 +214,9 @@ export class UserService {
   async deleteUser(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     await this.userRepository.remove(user);
-    this.socketUserModel.findOneAndDelete({
-      userId: userId,
-    });
+    await this.socketUserModel.updateOne(
+      { userId: userId },
+      { isDeleted: true },
+    );
   }
 }

@@ -58,7 +58,9 @@ export class ChatGateway
       client.emit('create_room', roomId);
     } else {
       const roomId = await this.chatService.createChatRoom(users);
-      const createUser = await this.chatService.findUserSocket(user);
+      const createUser = await this.chatService.findUserSocket(
+        client.data.userId,
+      );
       const socketUser = await this.chatService.findUserSocket(user);
       if (socketUser) {
         this.server.to(socketUser.socketId).emit('invite_chat', {
@@ -100,8 +102,8 @@ export class ChatGateway
   ) {
     const adapter = this.server.adapter as any;
     if (
-      !inRoomDto.inRoom ||
-      adapter.rooms.get(inRoomDto.roomId) ||
+      !inRoomDto.inRoom &&
+      adapter.rooms.get(inRoomDto.roomId) &&
       adapter.rooms.get(inRoomDto.roomId) != undefined
     ) {
       if ((await adapter.rooms.get(inRoomDto.roomId).size) == 2) {
@@ -113,14 +115,18 @@ export class ChatGateway
       this.chatService.updateReadTime(inRoomDto.roomId, client.data.userId);
     }
 
+    console.log(new Date(), ' ', inRoomDto.inRoom);
+
     if (inRoomDto.inRoom) {
-      client.leave(`${inRoomDto.roomId}_list`);
-      client.join(inRoomDto.roomId);
-      this.server.to(inRoomDto.roomId).emit('read_all');
+      await client.leave(`${inRoomDto.roomId}_list`);
+      await client.join(inRoomDto.roomId);
+      console.log(client.rooms, ' ', inRoomDto.roomId);
+      client.to(inRoomDto.roomId).emit('read_all');
     } else {
       this.server.to(inRoomDto.roomId).emit('out_room', inRoomDto.roomId);
-      client.leave(inRoomDto.roomId);
-      client.join(`${inRoomDto.roomId}_list`);
+      await client.leave(inRoomDto.roomId);
+      await client.join(`${inRoomDto.roomId}_list`);
+      console.log(client.rooms, ' ', inRoomDto.roomId);
     }
   }
 
@@ -137,17 +143,16 @@ export class ChatGateway
     const adapter = this.server.adapter as any;
     let read = true;
     if (
-      adapter.rooms.get(chatData.roomId) ||
+      adapter.rooms.get(chatData.roomId) &&
       adapter.rooms.get(chatData.roomId) != undefined
     ) {
       this.chatService.addChat(addChat);
-
       if (adapter.rooms.get(chatData.roomId).size < 2) {
         read = false;
-        this.server
+        client
           .to(`${chatData.roomId}_list`)
           .emit('new_chat', { ...addChat, read: read });
-        await this.chatService.pushNewChat(chatData.roomId, client.data.id);
+        await this.chatService.pushNewChat(chatData.roomId, client.data.userId);
       }
       this.server
         .to(chatData.roomId)
@@ -168,7 +173,7 @@ export class ChatGateway
       .to(`${roomId}_list`)
       .emit('leave_room', { roomId: roomId, userId: client.data.userId });
 
-    client.leave(`${roomId}_list`);
+    await client.leave(`${roomId}_list`);
   }
 
   @SubscribeMessage('report')

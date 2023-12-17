@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsString,
   IsDate,
+  IsBoolean,
 } from 'class-validator';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaOptions } from 'mongoose';
@@ -64,6 +65,13 @@ export class SocketUser extends Document {
   })
   @IsDate()
   connection: Date;
+
+  @Prop({
+    type: Boolean,
+    default: false,
+  })
+  @IsBoolean()
+  isDeleted?: boolean;
 }
 
 export const SocketUserSchema = SchemaFactory.createForClass(SocketUser);

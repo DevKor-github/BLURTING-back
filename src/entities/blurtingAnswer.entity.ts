@@ -1,5 +1,6 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { BlurtingQuestionEntity, UserEntity } from '../entities';
+import { Sex } from 'src/common/enums';
 
 @Entity()
 export class BlurtingAnswerEntity {
@@ -9,11 +10,18 @@ export class BlurtingAnswerEntity {
   @ManyToOne(() => BlurtingQuestionEntity)
   question: BlurtingQuestionEntity;
 
-  @ManyToOne(() => UserEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @ManyToOne(() => UserEntity, {
+    nullable: true,
+    onDelete: 'SET NULL',
+    onUpdate: 'CASCADE',
+  })
   user: UserEntity;
 
   @Column()
   answer: string;
+
+  @Column({ nullable: true })
+  userSex: Sex;
 
   @Column()
   postedAt: Date;

@@ -62,8 +62,7 @@ export class BlurtingService {
         await this.userService.updateUser(id, 'group', group);
         await this.fcmService.sendPush(
           id,
-          '그룹 매칭 완료!',
-          '매칭이 완료되었습니다.',
+          '그룹 매칭이 완료되었습니다.',
           'blurting',
         );
       }),
@@ -174,14 +173,6 @@ export class BlurtingService {
 
     const answersDto = await Promise.all(
       answers.map(async (answerEntity) => {
-        const room = await this.chatService.findCreatedRoom([
-          id,
-          answerEntity.user.id,
-        ]);
-        const user = await this.userService.findUserByVal(
-          'id',
-          answerEntity.user.id,
-        );
         const like = await this.likeRepository.findOne({
           where: {
             answerId: answerEntity.id,
@@ -190,6 +181,19 @@ export class BlurtingService {
         });
         let iLike = false;
         if (like) iLike = true;
+
+        if (answerEntity.user == null) {
+          return BlurtingAnswerDto.ToDto(answerEntity, null, null, iLike);
+        }
+
+        const room = await this.chatService.findCreatedRoom([
+          id,
+          answerEntity.user.id,
+        ]);
+        const user = await this.userService.findUserByVal(
+          'id',
+          answerEntity.user.id,
+        );
         const roomId = room ? room.id : null;
         return BlurtingAnswerDto.ToDto(answerEntity, roomId, user, iLike);
       }),
@@ -206,6 +210,7 @@ export class BlurtingService {
   async postAnswer(userId: number, questionId: number, answer: string) {
     const question = await this.questionRepository.findOne({
       where: { id: questionId },
+      relations: ['group'],
     });
     if (!question || question == null) {
       throw new BadRequestException('존재하지 않는 질문입니다.');
@@ -217,6 +222,7 @@ export class BlurtingService {
       question: { id: questionId } as BlurtingQuestionEntity,
       postedAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
       answer: answer,
+      userSex: user.userInfo.sex,
     });
 
     this.answerRepository.save(answerEntity);
@@ -224,6 +230,18 @@ export class BlurtingService {
       const point = await this.pointService.giveBlurtingPoint(userId);
       return point;
     }
+
+    const users = await this.userService.getGroupUsers(userId);
+    users.map(async (user) => {
+      if (user.id !== userId) {
+        await this.fcmService.sendPush(
+          user.id,
+          `${question.no}번째 질문에 새로운 답변이 등록되었습니다!`,
+          'blurting',
+        );
+      }
+    });
+
     return false;
   }
 
@@ -365,6 +383,12 @@ export class BlurtingService {
     });
 
     await this.arrowRepository.save(newArrow);
+
+    this.fcmService.sendPush(
+      toId,
+      `${user.userNickname}님이 당신에게 화살표를 보냈습니다!`,
+      'blurting',
+    );
   }
 
   async getArrows(userId: number): Promise<ArrowInfoResponseDto> {

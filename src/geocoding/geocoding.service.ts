@@ -38,7 +38,7 @@ export class GeocodingService {
 
   async searchDistrictByName(name: string, page: number = 1) {
     const data = await this.queryVworldAPI(page, undefined, name);
-    if (data.status === 'NOT_FOUND') return [];
+    if (data.status === 'NOT_FOUND' || data.result == undefined) return [];
     return data.result.featureCollection.features.map(
       (feat) => feat.properties.full_nm,
     );

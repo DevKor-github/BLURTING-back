@@ -54,7 +54,7 @@ export class PointService {
   async giveSignupPoint(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (user.point == 0) {
-      const updatedPoint = await this.updatePoint(userId, 100);
+      const updatedPoint = await this.updatePoint(userId, 20);
       if (updatedPoint) {
         const history = '회원가입 기념 20p가 적립 되었습니다.';
         this.recordPointHistory(userId, 20, history);

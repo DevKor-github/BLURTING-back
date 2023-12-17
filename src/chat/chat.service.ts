@@ -243,7 +243,7 @@ export class ChatService {
     );
   }
 
-  async getOtherProfile(roomId: string, userId: number) {
+  async findOtherUser(roomId: string, userId: number) {
     const room = await this.roomModel.findOne({
       id: roomId,
       'users.userId': userId,
@@ -253,8 +253,16 @@ export class ChatService {
     }
 
     const otherUser = room.users.find((user) => user.userId != userId);
+    return otherUser;
+  }
+
+  async getOtherProfile(roomId: string, userId: number) {
+    const otherUser = await this.findOtherUser(roomId, userId);
     const userImages = await this.userService.getUserImages(otherUser.userId);
-    return await this.userService.getUserProfile(otherUser.userId, userImages);
+    return {
+      ...(await this.userService.getUserProfile(otherUser.userId, userImages)),
+      blur: otherUser.blur,
+    };
   }
 
   async updateReadTime(roomId: string, userId: number) {
@@ -284,9 +292,8 @@ export class ChatService {
   }
 
   async updateBlurStep(room: Room, index: number) {
-    const chatCount = await this.chattingModel
-      .find({ roomId: room.id })
-      .countDocuments();
+    const chatCount = await this.chattingModel.count({ roomId: room.id });
+    console.log(chatCount);
     let blurChange = true;
 
     switch (room.users[index].blur) {
@@ -326,12 +333,7 @@ export class ChatService {
   }
 
   pushCreateRoom(userId: number) {
-    this.fcmService.sendPush(
-      userId,
-      '새로운 귓속말',
-      '지금 귓속말을 시작해보세요!',
-      'whisper',
-    );
+    this.fcmService.sendPush(userId, '지금 귓속말을 시작해보세요!', 'whisper');
   }
 
   async pushNewChat(roomId: string, userId: number) {
@@ -341,7 +343,6 @@ export class ChatService {
     const otherUser = room.users.find((user) => user.userId != userId);
     this.fcmService.sendPush(
       otherUser.userId,
-      '새로운 귓속말',
       '새로운 귓속말이 도착했습니다!',
       'whisper',
     );
