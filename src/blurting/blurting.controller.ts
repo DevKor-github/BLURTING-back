@@ -241,17 +241,17 @@ export class BlurtingController {
   @ApiCreatedResponse({
     description: '매칭 완료 시 1, 전일 시 0, 매칭 중이면 2',
   })
-  async getMatching(@Req() req: Request, @Res() res: Response) {
+  async getMatching(@Req() req: Request) {
     const { id } = req.user as JwtPayload;
     const user = await this.userService.findUserByVal('id', id);
     const isMatching = await this.blurtingService.isMatching(user);
     if (isMatching == true) {
-      res.send(2);
+      return 2;
     }
     if (user.group == null || user.group == undefined) {
-      return res.send(0);
+      return 0;
     } else {
-      return res.send(1);
+      return 1;
     }
   }
   @UseGuards(AuthGuard('access'))
