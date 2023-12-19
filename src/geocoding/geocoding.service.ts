@@ -12,7 +12,7 @@ export class GeocodingService {
 
       const size = 10;
 
-      const buffer = 10000;
+      const buffer = 0;
 
       const requestURL =
         URL +
