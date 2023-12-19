@@ -3,12 +3,18 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as firebase from 'firebase-admin';
 import { SocketUser } from 'src/chat/models';
+import { InjectRepository } from '@nestjs/typeorm';
+import { NotificationEntity } from 'src/entities';
+import { Repository } from 'typeorm';
+import { NotificationListDto } from './dtos/notificationList.dto';
 
 @Injectable()
 export class FcmService {
   constructor(
     @InjectModel(SocketUser.name)
     private readonly socketUserModel: Model<SocketUser>,
+    @InjectRepository(NotificationEntity)
+    private readonly notificationRepository: Repository<NotificationEntity>,
   ) {
     const firebase_key = {
       type: process.env.FCM_TYPE,
@@ -71,5 +77,28 @@ export class FcmService {
     } catch (error) {
       return error;
     }
+  }
+
+  async getNotificationList(userId: number): Promise<NotificationListDto[]> {
+    const result = await this.notificationRepository.find({
+      where: { user: { id: userId } },
+      order: { createdAt: 'DESC' },
+    });
+    const timezoneAcceptedData = result.map((notification) => {
+      return {
+        createdAt: new Date(
+          notification.createdAt.getTime() + 9 * 60 * 60 * 1000,
+        ),
+        body: notification.body,
+      };
+    });
+
+    return timezoneAcceptedData.map((notification) => {
+      return {
+        message: notification.body,
+        date: notification.createdAt.toLocaleDateString('en-GB'),
+        time: notification.createdAt.toLocaleTimeString('en-GB'),
+      };
+    });
   }
 }
