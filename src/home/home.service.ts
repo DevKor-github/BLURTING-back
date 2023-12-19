@@ -49,7 +49,7 @@ export class HomeService {
       }
       answer.allLikes--;
       await this.answerRepository.save(answer);
-      await this.likeRepository.delete(like);
+      await this.likeRepository.remove(like);
     } else {
       const newLike = this.likeRepository.create({
         answerId,
