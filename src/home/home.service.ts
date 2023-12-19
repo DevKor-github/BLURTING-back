@@ -77,15 +77,26 @@ export class HomeService {
       where: { answer: { user: { id: userId } } },
     });
 
-    const arrows = await this.arrowRepository.find();
+    const arrows = await this.arrowRepository.find({
+      relations: ['from', 'to'],
+    });
+
     let matchedArrows: number = 0;
+
     for (let i = 0; i < arrows.length; i++) {
-      for (let j = 0; j < arrows.length; ++j) {
-        if (arrows[i].from == arrows[j].to && arrows[i].to == arrows[j].from)
+      for (let j = i + 1; j < arrows.length; ++j) {
+        if (
+          arrows[i].from != null &&
+          arrows[i].to != null &&
+          arrows[j].from != null &&
+          arrows[j].to != null &&
+          arrows[i].from.id == arrows[j].to.id &&
+          arrows[i].to.id == arrows[j].from.id
+        ) {
           matchedArrows++;
+        }
       }
     }
-    matchedArrows = Math.ceil(matchedArrows / 2);
 
     const user = await this.userRepository.findOne({
       where: { id: userId },
