@@ -104,7 +104,10 @@ export class HomeService {
     });
     let seconds = -1;
     if (user.group) {
-      const timeOffset = new Date().getTime() - user.group.createdAt.getTime();
+      const timeOffset =
+        new Date().getTime() +
+        9 * 60 * 60 * 1000 -
+        user.group.createdAt.getTime();
       seconds = 8 * 60 * 60 * 1000 - (timeOffset % (8 * 60 * 60 * 1000));
     }
     const chats = await this.chattingModel.find();
