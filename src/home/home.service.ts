@@ -68,7 +68,7 @@ export class HomeService {
       }
       answer.allLikes++;
       await this.answerRepository.save(answer);
-      await this.likeRepository.save(newLike);
+      await this.likeRepository.insert(newLike);
     }
   }
 
