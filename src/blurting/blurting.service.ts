@@ -249,6 +249,7 @@ export class BlurtingService {
     const sexOrient = this.getUserSexOrient(user.userInfo);
 
     const groupQueue: number[] = await this.cacheManager.get(sexOrient);
+    if (!groupQueue) return false;
     if (groupQueue.includes(user.id)) {
       return true;
     }
