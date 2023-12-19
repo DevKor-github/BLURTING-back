@@ -54,7 +54,7 @@ export class GeocodingService {
     const data = await this.queryVworldAPI(page, geo);
     console.log(data);
     if (!rawdata.result) return [];
-    const name = data.result.featureCollection.features.properties.full_nm;
+    const name = data.result.featureCollection.features.properties[0].full_nm;
     const names = rawdata.result.featureCollection.features.map(
       (feat) => feat.properties.full_nm,
     );
