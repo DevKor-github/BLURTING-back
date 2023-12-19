@@ -1,7 +1,6 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   BadRequestException,
-  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -248,20 +247,18 @@ export class BlurtingService {
   async registerGroupQueue(id: number) {
     const user = await this.userService.findUserByVal('id', id);
     if (user.group) {
-      throw new ConflictException('이미 그룹이 있습니다.');
+      return 1;
     }
     const sexOrient = this.getUserSexOrient(user.userInfo);
 
     const groupQueue: number[] = await this.cacheManager.get(sexOrient);
     if (groupQueue.includes(id)) {
-      throw new BadRequestException(
-        '이미 블러팅 매치메이킹 큐에 등록되어 있습니다.',
-      );
+      return 2;
     }
     if (groupQueue.length < 2) {
       groupQueue.push(id);
       await this.cacheManager.set(sexOrient, groupQueue);
-      return false;
+      return 0;
     }
     if (sexOrient.endsWith('homo')) {
       if (groupQueue.length >= 5) {
@@ -269,11 +266,11 @@ export class BlurtingService {
         groupIds.push(id);
         await this.createGroup(groupIds);
         await this.cacheManager.set(sexOrient, groupQueue.slice(5));
-        return true;
+        return 1;
       } else {
         groupQueue.push(id);
         await this.cacheManager.set(sexOrient, groupQueue);
-        return false;
+        return 0;
       }
     }
     const oppositeQueueName = this.getOppositeQueueName(sexOrient);
@@ -289,11 +286,11 @@ export class BlurtingService {
       const groupIds = firstGroupIds.concat(secondGroupIds);
 
       await this.createGroup(groupIds);
-      return true;
+      return 1;
     } else {
       groupQueue.push(id);
       await this.cacheManager.set(sexOrient, groupQueue);
-      return false;
+      return 0;
     }
   }
 

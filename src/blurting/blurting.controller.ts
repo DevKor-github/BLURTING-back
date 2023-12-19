@@ -16,8 +16,6 @@ import { JwtPayload } from 'src/interfaces/auth';
 import { UserService } from 'src/user/user.service';
 import { AnswerDto, BlurtingPageDto } from 'src/dtos/blurtingPage.dto';
 import {
-  ApiBadRequestResponse,
-  ApiConflictResponse,
   ApiCreatedResponse,
   ApiHeader,
   ApiBody,
@@ -120,15 +118,13 @@ export class BlurtingController {
 
   @UseGuards(AuthGuard('access'))
   @Post('/register')
-  @ApiBadRequestResponse({ description: '이미 큐에 있음' })
-  @ApiConflictResponse({ description: '이미 블러팅 그룹이 있음' })
   @ApiCreatedResponse({
-    description: '큐에 등록 시 false, 그룹이 만들어졌을 시 true',
+    description: '큐에 등록시 0 , 그룹이 있으면 1, 매칭 중이면 2',
   })
   async registerGroupQueue(@Req() req: Request) {
     const { id } = req.user as JwtPayload;
 
-    await this.blurtingService.registerGroupQueue(id);
+    return await this.blurtingService.registerGroupQueue(id);
   }
 
   @UseGuards(AuthGuard('access'))
