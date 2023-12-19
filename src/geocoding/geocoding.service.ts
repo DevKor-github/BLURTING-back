@@ -12,7 +12,7 @@ export class GeocodingService {
 
       const size = 10;
 
-      const buffer = 0;
+      //const buffer = 1000;
 
       const requestURL =
         URL +
@@ -21,7 +21,6 @@ export class GeocodingService {
         `&domain=${domain}` +
         `&size=${size}` +
         `&request=${operation}` +
-        (geo ? `&buffer=${buffer}` : '') +
         `&page=${page}` +
         '&data=LT_C_ADSIGG_INFO' +
         (geo ? `&geomFilter=${geo}` : '') +
