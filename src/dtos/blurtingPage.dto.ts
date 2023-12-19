@@ -59,6 +59,7 @@ export class BlurtingAnswerDto {
     room: string,
     user: UserEntity,
     ilike: boolean = false,
+    home: boolean = false,
   ): BlurtingAnswerDto {
     return {
       id: answerEntity.id,
@@ -69,7 +70,7 @@ export class BlurtingAnswerDto {
       postedAt: answerEntity.postedAt,
       mbti: user?.userInfo?.mbti ?? null,
       room: room ?? null,
-      likes: answerEntity.groupLikes,
+      likes: home ? answerEntity.allLikes : answerEntity.groupLikes,
       ilike,
     };
   }
