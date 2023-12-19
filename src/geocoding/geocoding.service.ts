@@ -2,7 +2,12 @@ import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 @Injectable()
 export class GeocodingService {
-  async queryVworldAPI(page: number = 1, geo?: string, name?: string) {
+  async queryVworldAPI(
+    page: number = 1,
+    geo?: string,
+    name?: string,
+    useBuffer: boolean = false,
+  ) {
     try {
       const URL = 'https://api.vworld.kr/req/data';
       const key = process.env.VWORLD_API_KEY;
@@ -12,7 +17,7 @@ export class GeocodingService {
 
       const size = 10;
 
-      //const buffer = 1000;
+      const buffer = 10000;
 
       const requestURL =
         URL +
@@ -21,6 +26,7 @@ export class GeocodingService {
         `&domain=${domain}` +
         `&size=${size}` +
         `&request=${operation}` +
+        (useBuffer ? `&buffer=${buffer}` : '') +
         `&page=${page}` +
         '&data=LT_C_ADSIGG_INFO' +
         (geo ? `&geomFilter=${geo}` : '') +
@@ -44,12 +50,15 @@ export class GeocodingService {
   }
 
   async searchDistrictByGeo(geo: string, page: number = 1) {
+    const rawdata = await this.queryVworldAPI(page, geo, undefined, true);
     const data = await this.queryVworldAPI(page, geo);
     console.log(data);
-    if (!data.result) return [];
-    return data.result.featureCollection.features.map(
+    if (!rawdata.result) return [];
+    const name = data.result.featureCollection.features.properties.full_nm;
+    const names = rawdata.result.featureCollection.features.map(
       (feat) => feat.properties.full_nm,
     );
+    return [name].concat(names.filter((n) => name !== n));
   }
 
   async searchOneDistrictByName(name: string) {
