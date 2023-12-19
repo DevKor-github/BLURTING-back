@@ -121,7 +121,7 @@ export class BlurtingController {
   @ApiCreatedResponse({
     description: '큐에 등록시 0 , 그룹이 있으면 1, 매칭 중이면 2',
   })
-  async registerGroupQueue(@Req() req: Request) {
+  async registerGroupQueue(@Req() req: Request): Promise<0 | 1 | 2> {
     const { id } = req.user as JwtPayload;
 
     return await this.blurtingService.registerGroupQueue(id);
@@ -239,15 +239,19 @@ export class BlurtingController {
     description: '블러팅 탭 클릭 시 매칭 여부 반환',
   })
   @ApiCreatedResponse({
-    description: '매칭 완료 시 true, 매칭 중이거나 전일 시 false',
+    description: '매칭 완료 시 1, 전일 시 0, 매칭 중이면 2',
   })
   async getMatching(@Req() req: Request, @Res() res: Response) {
     const { id } = req.user as JwtPayload;
     const user = await this.userService.findUserByVal('id', id);
+    const isMatching = await this.blurtingService.isMatching(user);
+    if (isMatching == true) {
+      res.send(2);
+    }
     if (user.group == null || user.group == undefined) {
-      return res.send(false);
+      return res.send(0);
     } else {
-      return res.send(true);
+      return res.send(1);
     }
   }
   @UseGuards(AuthGuard('access'))

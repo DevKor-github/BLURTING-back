@@ -14,6 +14,7 @@ import {
   BlurtingGroupEntity,
   BlurtingQuestionEntity,
   LikeEntity,
+  UserEntity,
   UserInfoEntity,
 } from 'src/entities';
 import { UserService } from 'src/user/user.service';
@@ -241,6 +242,16 @@ export class BlurtingService {
       }
     });
 
+    return false;
+  }
+
+  async isMatching(user: UserEntity) {
+    const sexOrient = this.getUserSexOrient(user.userInfo);
+
+    const groupQueue: number[] = await this.cacheManager.get(sexOrient);
+    if (groupQueue.includes(user.id)) {
+      return true;
+    }
     return false;
   }
 
