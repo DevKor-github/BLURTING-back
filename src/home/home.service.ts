@@ -110,7 +110,7 @@ export class HomeService {
     const chats = await this.chattingModel.find();
     const startDayTime = new Date(new Date().getTime() - 5 * 60 * 60 * 1000);
     startDayTime.setHours(5, 0, 0, 0);
-    const answers = await this.answerRepository.find({
+    let answers = await this.answerRepository.find({
       where: { postedAt: MoreThan(startDayTime) },
       order: {
         allLikes: 'DESC',
@@ -118,6 +118,15 @@ export class HomeService {
       relations: ['user', 'user.userInfo', 'question'],
       take: 3,
     });
+    if (answers.length === 0) {
+      answers = await this.answerRepository.find({
+        order: {
+          allLikes: 'DESC',
+        },
+        relations: ['user', 'user.userInfo', 'question'],
+        take: 3,
+      });
+    }
     const answersDto = await Promise.all(
       answers.map(async (answerEntity) => {
         const like = await this.likeRepository.findOne({
