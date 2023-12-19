@@ -73,6 +73,11 @@ export class FcmService {
               this.disableNotification(userId);
             }
           });
+        const newEntity = this.notificationRepository.create({
+          user: { id: userId },
+          body: body,
+        });
+        await this.notificationRepository.insert(newEntity);
       }
     } catch (error) {
       return error;
