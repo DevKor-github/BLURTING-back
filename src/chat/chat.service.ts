@@ -226,7 +226,7 @@ export class ChatService {
       userId: otherUser.userId,
     });
 
-    const blurChange = await this.updateBlurStep(room, otherUserIndex);
+    const blurChange = await this.checkBlurChange(room, otherUserIndex);
 
     const chats = await this.chattingModel
       .find()
@@ -261,7 +261,7 @@ export class ChatService {
     const userImages = await this.userService.getUserImages(otherUser.userId);
     return {
       ...(await this.userService.getUserProfile(otherUser.userId, userImages)),
-      blur: otherUser.blur,
+      blur: await this.updateBlurStep(roomId, otherUser.userId),
     };
   }
 
@@ -291,10 +291,42 @@ export class ChatService {
     );
   }
 
-  async updateBlurStep(room: Room, index: number) {
+  async checkBlurChange(room: Room, index: number) {
     const chatCount = await this.chattingModel.count({ roomId: room.id });
-    console.log(chatCount);
     let blurChange = true;
+
+    switch (room.users[index].blur) {
+      case 0:
+        break;
+      case 1:
+        if (chatCount <= 20) {
+          blurChange = false;
+        }
+        break;
+      case 2:
+        if (chatCount <= 50) {
+          blurChange = false;
+        }
+        break;
+      case 3:
+        if (chatCount <= 100) {
+          blurChange = false;
+        }
+        break;
+      default:
+        blurChange = false;
+        break;
+    }
+
+    if (blurChange) {
+      return room.users[index].blur + 1;
+    }
+  }
+
+  async updateBlurStep(roomId: string, userId: number) {
+    const chatCount = await this.chattingModel.count({ roomId: roomId });
+    const room = await this.roomModel.findOne({ roomId: roomId });
+    const index = room.users.findIndex((user) => user.userId !== userId);
 
     switch (room.users[index].blur) {
       case 0:
@@ -303,33 +335,20 @@ export class ChatService {
       case 1:
         if (chatCount > 20) {
           room.users[index].blur += 1;
-        } else {
-          blurChange = false;
         }
         break;
       case 2:
         if (chatCount > 50) {
           room.users[index].blur += 1;
-        } else {
-          blurChange = false;
         }
         break;
       case 3:
         if (chatCount > 100) {
           room.users[index].blur += 1;
-        } else {
-          blurChange = false;
         }
-        break;
-      default:
-        blurChange = false;
         break;
     }
     await room.save();
-
-    if (blurChange) {
-      return room.users[index].blur;
-    }
   }
 
   pushCreateRoom(userId: number) {
