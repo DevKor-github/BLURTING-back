@@ -46,7 +46,6 @@ export class FcmService {
       { userId: userId },
       { notificationToken: null },
     );
-    return true;
   }
 
   async sendPush(userId: number, body: string, type: string) {
