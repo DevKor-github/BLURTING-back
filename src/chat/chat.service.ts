@@ -325,7 +325,7 @@ export class ChatService {
 
   async updateBlurStep(roomId: string, userId: number) {
     const chatCount = await this.chattingModel.count({ roomId: roomId });
-    const room = await this.roomModel.findOne({ roomId: roomId });
+    const room = await this.roomModel.findOne({ id: roomId });
     const index = room.users.findIndex((user) => user.userId !== userId);
 
     switch (room.users[index].blur) {
