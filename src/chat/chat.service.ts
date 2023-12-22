@@ -261,7 +261,7 @@ export class ChatService {
     const userImages = await this.userService.getUserImages(otherUser.userId);
     return {
       ...(await this.userService.getUserProfile(otherUser.userId, userImages)),
-      blur: await this.updateBlurStep(roomId, otherUser.userId),
+      blur: await this.updateBlurStep(roomId, userId),
     };
   }
 
