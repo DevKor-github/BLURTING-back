@@ -349,6 +349,8 @@ export class ChatService {
         break;
     }
     await room.save();
+
+    return room.users[index].blur;
   }
 
   pushCreateRoom(userId: number) {
