@@ -129,6 +129,7 @@ export class BlurtingService {
     }
     await this.userService.saveUsers(users);
   }
+
   async insertQuestionToGroup(
     question: string,
     group: BlurtingGroupEntity,
