@@ -48,6 +48,15 @@ export class FcmService {
     );
   }
 
+  async checkNotification(userId: number): Promise<boolean> {
+    const user = await this.socketUserModel.findOne({ userId: userId });
+    if (user.notificationToken != null) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   async sendPush(userId: number, body: string, type: string) {
     try {
       const socketUser = await this.socketUserModel.findOne({ userId: userId });
