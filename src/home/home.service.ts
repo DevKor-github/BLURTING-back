@@ -44,7 +44,7 @@ export class HomeService {
         where: { id: userId },
         relations: ['group'],
       });
-      if (answer.question.group === user.group) {
+      if (answer.question.group == user.group) {
         answer.groupLikes--;
       }
       answer.allLikes--;
@@ -63,12 +63,12 @@ export class HomeService {
         where: { id: userId },
         relations: ['group'],
       });
-      if (answer.question.group === user.group) {
+      if (answer.question.group.id == user.group.id) {
         answer.groupLikes++;
       }
       answer.allLikes++;
       await this.answerRepository.save(answer);
-      await this.likeRepository.insert(newLike);
+      await this.likeRepository.save(newLike);
     }
   }
 
