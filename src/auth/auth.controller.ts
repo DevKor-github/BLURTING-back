@@ -262,25 +262,17 @@ export class AuthController {
     description: 'new signup token',
     type: SignupTokenResponseDto,
   })
-  async signupEmail(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Body() body: SignupEmailRequestDto,
-  ) {
-    try {
-      const { id, page } = req.user as SignupPayload;
-      if (Page[page] != 'email') {
-        throw new BadRequestException('invalid signup token');
-      }
-      await this.authService.sendVerificationCode(id, body.email);
-      const signupToken = await this.authService.getSignupToken(
-        req.user as SignupPayload,
-      );
-
-      return res.json({ signupToken: signupToken });
-    } catch (err) {
-      res.status(err.status).json(err);
+  async signupEmail(@Req() req: Request, @Body() body: SignupEmailRequestDto) {
+    const { id, page } = req.user as SignupPayload;
+    if (Page[page] != 'email') {
+      throw new BadRequestException('invalid signup token');
     }
+    await this.authService.sendVerificationCode(id, body.email);
+    const signupToken = await this.authService.getSignupToken(
+      req.user as SignupPayload,
+    );
+
+    return { signupToken: signupToken };
   }
 
   @Get('/signup/back')
