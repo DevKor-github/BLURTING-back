@@ -195,7 +195,7 @@ export class AuthService {
       where: { user: { id: userId } },
       order: { createdAt: 'DESC' },
     });
-    if (mail && mail.createdAt.getTime() + 1000 * 60 * 10 > Date.now())
+    if (mail && mail.createdAt.getTime() + 1000 * 60 > Date.now())
       throw new NotAcceptableException('잠시 후에 다시 시도해주세요');
     if (mail) await this.authMailRepository.delete(mail);
 
