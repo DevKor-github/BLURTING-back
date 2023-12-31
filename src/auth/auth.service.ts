@@ -343,6 +343,7 @@ export class AuthService {
     const phone = await this.authPhoneNumberRepository.findOne({
       where: { code },
       relations: ['user'],
+      order: { createdAt: 'DESC' },
     });
     if (!phone) {
       throw new UnauthorizedException('인증번호가 일치하지 않습니다.');
