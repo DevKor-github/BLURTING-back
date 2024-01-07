@@ -236,4 +236,29 @@ export class UserController {
       return err;
     }
   }
+
+  @UseGuards(AuthGuard('access'))
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiOperation({
+    summary: '유저 성별',
+  })
+  @ApiResponse({
+    description: 'sex',
+    type: 'string',
+  })
+  @Get('/sex')
+  async getUserSex(@Req() req: Request, @Res() res: Response) {
+    const { id } = req.user as JwtPayload;
+    try {
+      const user = await this.userService.findUserByVal('id', id);
+      return res.json({ sex: user.userInfo.sex });
+    } catch (err) {
+      console.log(err);
+      return err;
+    }
+  }
 }
