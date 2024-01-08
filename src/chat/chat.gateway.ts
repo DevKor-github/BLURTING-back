@@ -115,18 +115,14 @@ export class ChatGateway
       this.chatService.updateReadTime(inRoomDto.roomId, client.data.userId);
     }
 
-    console.log(new Date(), ' ', inRoomDto.inRoom);
-
     if (inRoomDto.inRoom) {
       await client.leave(`${inRoomDto.roomId}_list`);
       await client.join(inRoomDto.roomId);
-      console.log(client.rooms, ' ', inRoomDto.roomId);
-      client.to(inRoomDto.roomId).emit('read_all');
+      client.to(inRoomDto.roomId).emit('read_all', inRoomDto.roomId);
     } else {
       this.server.to(inRoomDto.roomId).emit('out_room', inRoomDto.roomId);
       await client.leave(inRoomDto.roomId);
       await client.join(`${inRoomDto.roomId}_list`);
-      console.log(client.rooms, ' ', inRoomDto.roomId);
     }
   }
 
@@ -195,6 +191,6 @@ export class ChatGateway
       reportDto.reportingId,
       client.data.userId,
     ]);
-    await this.server.to(room.id).emit('report');
+    await this.server.to(room.id).emit('report', room.id);
   }
 }
