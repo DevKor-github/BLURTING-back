@@ -174,17 +174,31 @@ export class BlurtingService {
 
     const answersDto = await Promise.all(
       answers.map(async (answerEntity) => {
-        const like = await this.likeRepository.findOne({
+        const likes = await this.likeRepository.find({
           where: {
-            answerId: answerEntity.id,
-            userId: id,
+            answer: {
+              id: answerEntity.id,
+              question: {
+                group: {
+                  id: group.id,
+                },
+              },
+            },
           },
         });
+
         let iLike = false;
-        if (like) iLike = true;
+        if (likes.filter((item) => item.userId === user.id).length > 0)
+          iLike = true;
 
         if (answerEntity.user == null) {
-          return BlurtingAnswerDto.ToDto(answerEntity, null, null, iLike);
+          return BlurtingAnswerDto.ToDto(
+            answerEntity,
+            null,
+            null,
+            iLike,
+            likes.length,
+          );
         }
 
         const room = await this.chatService.findCreatedRoom([
@@ -196,7 +210,13 @@ export class BlurtingService {
           answerEntity.user.id,
         );
         const roomId = room ? room.id : null;
-        return BlurtingAnswerDto.ToDto(answerEntity, roomId, user, iLike);
+        return BlurtingAnswerDto.ToDto(
+          answerEntity,
+          roomId,
+          user,
+          iLike,
+          likes.length,
+        );
       }),
     );
 
@@ -341,7 +361,6 @@ export class BlurtingService {
       relations: ['user', 'user.group', 'question', 'question.group'],
     });
     if (!answer) throw new NotFoundException('answer not found');
-    const user = await this.userService.findUser('id', userId);
     const like = await this.likeRepository.findOne({
       where: {
         answerId,
@@ -353,7 +372,6 @@ export class BlurtingService {
         answerId,
         userId,
       });
-      if (user.group.id == answer.question.group.id) answer.groupLikes++;
       answer.allLikes++;
       await this.likeRepository.save(newLike);
       await this.answerRepository.save(answer);
@@ -363,7 +381,6 @@ export class BlurtingService {
         answerId,
         userId,
       });
-      if (user.group.id == answer.question.group.id) answer.groupLikes--;
       answer.allLikes--;
       await this.answerRepository.save(answer);
       return false;
