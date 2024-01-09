@@ -186,10 +186,8 @@ export class BlurtingService {
             },
           },
         });
-
         let iLike = false;
-        if (likes.filter((item) => item.userId === user.id).length > 0)
-          iLike = true;
+        if (likes.filter((item) => item.userId === id).length > 0) iLike = true;
 
         if (answerEntity.user == null) {
           return BlurtingAnswerDto.ToDto(
@@ -219,7 +217,6 @@ export class BlurtingService {
         );
       }),
     );
-
     const blurtingPage: BlurtingPageDto = BlurtingPageDto.ToDto(
       group,
       question,

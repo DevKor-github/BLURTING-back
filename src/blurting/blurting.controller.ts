@@ -8,6 +8,7 @@ import {
   Body,
   Param,
   Put,
+  NotFoundException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { BlurtingService } from './blurting.service';
@@ -273,24 +274,15 @@ export class BlurtingController {
     description: '선택 Q&A 정보 반환',
     type: BlurtingPageDto,
   })
-  async getBlurtingNo(
-    @Req() req: Request,
-    @Param('no') no: number,
-    @Res() res: Response,
-  ) {
+  async getBlurtingNo(@Req() req: Request, @Param('no') no: number) {
     const { id } = req.user as JwtPayload;
     const user = await this.userService.findUserByVal('id', id);
-    if (user.group == null) return res.sendStatus(404);
-    try {
-      const blurtingPage = await this.blurtingService.getBlurting(
-        id,
-        user.group,
-        no,
-      );
-      return res.json(blurtingPage);
-    } catch (error) {
-      console.log(error);
-      return res.status(error.status).json(error);
-    }
+    if (user.group == null) throw new NotFoundException();
+    const blurtingPage = await this.blurtingService.getBlurting(
+      id,
+      user.group,
+      no,
+    );
+    return blurtingPage;
   }
 }
