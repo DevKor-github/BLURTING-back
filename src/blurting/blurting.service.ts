@@ -341,7 +341,7 @@ export class BlurtingService {
       relations: ['user', 'user.group', 'question', 'question.group'],
     });
     if (!answer) throw new NotFoundException('answer not found');
-
+    const user = await this.userService.findUser('id', userId);
     const like = await this.likeRepository.findOne({
       where: {
         answerId,
@@ -353,8 +353,7 @@ export class BlurtingService {
         answerId,
         userId,
       });
-      if (answer.user.group.id === answer.question.group.id)
-        answer.groupLikes++;
+      if (user.group.id == answer.question.group.id) answer.groupLikes++;
       answer.allLikes++;
       await this.likeRepository.save(newLike);
       await this.answerRepository.save(answer);
@@ -364,8 +363,7 @@ export class BlurtingService {
         answerId,
         userId,
       });
-      if (answer.user.group.id === answer.question.group.id)
-        answer.groupLikes--;
+      if (user.group.id == answer.question.group.id) answer.groupLikes--;
       answer.allLikes--;
       await this.answerRepository.save(answer);
       return false;

@@ -44,7 +44,7 @@ export class HomeService {
         where: { id: userId },
         relations: ['group'],
       });
-      if (answer.question.group == user.group) {
+      if (answer.question.group.id == user.group.id) {
         answer.groupLikes--;
       }
       answer.allLikes--;
