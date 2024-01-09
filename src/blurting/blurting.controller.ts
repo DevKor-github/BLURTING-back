@@ -244,15 +244,14 @@ export class BlurtingController {
   async getMatching(@Req() req: Request) {
     const { id } = req.user as JwtPayload;
     const user = await this.userService.findUserByVal('id', id);
+    if (user.group) {
+      return 1;
+    }
     const isMatching = await this.blurtingService.isMatching(user);
     if (isMatching == true) {
       return 2;
     }
-    if (user.group == null || user.group == undefined) {
-      return 0;
-    } else {
-      return 1;
-    }
+    return 0;
   }
   @UseGuards(AuthGuard('access'))
   @Get('/:no')

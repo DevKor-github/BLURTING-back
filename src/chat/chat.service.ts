@@ -299,17 +299,17 @@ export class ChatService {
       case 0:
         break;
       case 1:
-        if (chatCount <= 20) {
-          blurChange = false;
-        }
-        break;
-      case 2:
         if (chatCount <= 50) {
           blurChange = false;
         }
         break;
-      case 3:
+      case 2:
         if (chatCount <= 100) {
+          blurChange = false;
+        }
+        break;
+      case 3:
+        if (chatCount <= 200) {
           blurChange = false;
         }
         break;
@@ -333,17 +333,17 @@ export class ChatService {
         room.users[index].blur += 1;
         break;
       case 1:
-        if (chatCount > 20) {
-          room.users[index].blur += 1;
-        }
-        break;
-      case 2:
         if (chatCount > 50) {
           room.users[index].blur += 1;
         }
         break;
-      case 3:
+      case 2:
         if (chatCount > 100) {
+          room.users[index].blur += 1;
+        }
+        break;
+      case 3:
+        if (chatCount > 200) {
           room.users[index].blur += 1;
         }
         break;
