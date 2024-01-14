@@ -110,7 +110,7 @@ export class FcmService {
     return timezoneAcceptedData.map((notification) => {
       return {
         message: notification.body,
-        date: notification.createdAt.toLocaleDateString('en-GB'),
+        date: notification.createdAt.toISOString().split('T')[0],
         time: notification.createdAt.toLocaleTimeString('en-GB'),
       };
     });
