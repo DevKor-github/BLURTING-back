@@ -40,13 +40,6 @@ export class HomeService {
         where: { id: answerId },
         relations: ['question', 'question.group'],
       });
-      const user = await this.userRepository.findOne({
-        where: { id: userId },
-        relations: ['group'],
-      });
-      if (answer.question.group == user.group) {
-        answer.groupLikes--;
-      }
       answer.allLikes--;
       await this.answerRepository.save(answer);
       await this.likeRepository.remove(like);
@@ -59,13 +52,6 @@ export class HomeService {
         where: { id: answerId },
         relations: ['question', 'question.group'],
       });
-      const user = await this.userRepository.findOne({
-        where: { id: userId },
-        relations: ['group'],
-      });
-      if (answer.question.group.id == user.group.id) {
-        answer.groupLikes++;
-      }
       answer.allLikes++;
       await this.answerRepository.save(answer);
       await this.likeRepository.save(newLike);
@@ -132,14 +118,18 @@ export class HomeService {
     }
     const answersDto = await Promise.all(
       answers.map(async (answerEntity) => {
-        const like = await this.likeRepository.findOne({
+        const likes = await this.likeRepository.find({
           where: {
-            answerId: answerEntity.id,
-            userId: userId,
+            answer: {
+              id: answerEntity.id,
+            },
           },
         });
+
         let iLike = false;
-        if (like) iLike = true;
+        if (likes.filter((item) => item.userId === user.id).length > 0)
+          iLike = true;
+
         return {
           question: answerEntity.question.question,
           ...BlurtingAnswerDto.ToDto(
@@ -147,7 +137,7 @@ export class HomeService {
             null,
             answerEntity.user,
             iLike,
-            true,
+            likes.length,
           ),
         };
       }),
