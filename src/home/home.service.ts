@@ -107,7 +107,7 @@ export class HomeService {
       relations: ['user', 'user.userInfo', 'question'],
       take: 3,
     });
-    if (answers.length === 0) {
+    if (answers.length < 3) {
       answers = await this.answerRepository.find({
         order: {
           allLikes: 'DESC',
