@@ -45,6 +45,16 @@ import { ReportEntity } from 'src/entities/report.entity';
     }),
     BullModule.registerQueue({
       name: 'blurtingQuestions',
+      settings: {
+        stalledInterval: 1000,
+        maxStalledCount: 3,
+        retryProcessDelay: 5000,
+      },
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: 3,
+        removeOnComplete: true,
+      },
     }),
     FcmModule,
     ChatModule,

@@ -103,9 +103,17 @@ export class BlurtingService {
       '연인이 1년간 외국으로 유학을 간다. 이때 나의 선택은?: 응원해주며 기다린다 vs 헤어진다',
       '자기 고민을 전부 나와 공유하는 애인 vs 고민이 있어도 절대 말 안해주는 애인',
     ];
-    const shuffled = questions.sort(() => 0.5 - Math.random());
 
-    const selected = shuffled.slice(0, 9);
+    const selected = [];
+    for (let i = 0; i < 9; ++i) {
+      let rand = 0;
+      do {
+        rand = Math.floor(Math.random() * questions.length);
+      } while (!selected.includes(questions[rand]));
+
+      selected.push(questions[rand]);
+    }
+
     const hourInMs = 1000 * 60 * 60;
     const questionDelay = hourInMs * 8;
     await Promise.all(
@@ -148,7 +156,7 @@ export class BlurtingService {
     group: BlurtingGroupEntity,
     no: number,
   ): Promise<BlurtingPageDto> {
-    let question;
+    let question: BlurtingQuestionEntity;
     if (no == 0) {
       question = await this.questionRepository.findOne({
         where: { group: group },
@@ -265,9 +273,13 @@ export class BlurtingService {
 
   async isMatching(user: UserEntity) {
     const sexOrient = this.getUserSexOrient(user.userInfo);
-
-    const groupQueue: number[] = await this.cacheManager.get(sexOrient);
-    if (!groupQueue) return false;
+    const region = user.userInfo.region.split(' ')[0];
+    const qName = `${region}_${sexOrient}`;
+    const groupQueue: number[] = await this.cacheManager.get(qName);
+    if (!groupQueue) {
+      await this.cacheManager.set(qName, []);
+      return false;
+    }
     if (groupQueue.includes(user.id)) {
       return true;
     }
@@ -275,51 +287,91 @@ export class BlurtingService {
   }
 
   async registerGroupQueue(id: number) {
-    const user = await this.userService.findUserByVal('id', id);
-    if (user.group) {
-      return 1;
-    }
-    const sexOrient = this.getUserSexOrient(user.userInfo);
+    try {
+      const user = await this.userService.findUserByVal('id', id);
+      if (user.group) {
+        return 1;
+      }
+      const sexOrient = this.getUserSexOrient(user.userInfo);
+      const region = user.userInfo.region.split(' ')[0];
+      const qName = `${region}_${sexOrient}`;
 
-    const groupQueue: number[] = await this.cacheManager.get(sexOrient);
-    if (groupQueue.includes(id)) {
-      return 2;
-    }
-    if (groupQueue.length < 2) {
-      groupQueue.push(id);
-      await this.cacheManager.set(sexOrient, groupQueue);
-      return 0;
-    }
-    if (sexOrient.endsWith('homo')) {
-      if (groupQueue.length >= 5) {
-        const groupIds = groupQueue.slice(0, 5);
-        groupIds.push(id);
+      let groupQueue: number[] = await this.cacheManager.get(qName);
+      if (!groupQueue) {
+        await this.cacheManager.set(qName, []);
+        groupQueue = await this.cacheManager.get(qName);
+      }
+      if (groupQueue.includes(id)) {
+        return 2;
+      }
+
+      if (groupQueue.length < 2) {
+        groupQueue.push(id);
+        await this.cacheManager.set(qName, groupQueue);
+        return 0;
+      }
+      if (sexOrient.endsWith('homo')) {
+        if (groupQueue.length >= 5) {
+          const groupIds = groupQueue.slice(0, 5);
+
+          groupIds.push(id);
+          if (groupIds.length !== 6) {
+            throw new Error(
+              '왜인지 모르겠지만 groupIds가 이상함.' + groupIds.toString(),
+            );
+          }
+          await this.createGroup(groupIds);
+          await this.cacheManager.set(qName, groupQueue.slice(5));
+          return 1;
+        } else {
+          groupQueue.push(id);
+          await this.cacheManager.set(qName, groupQueue);
+          return 0;
+        }
+      }
+      const oppositeSexorient = this.getOppositeQueueName(sexOrient);
+      const oppositeQueueName = `${region}_${oppositeSexorient}`;
+      let oppositeQueue: number[] =
+        await this.cacheManager.get(oppositeQueueName);
+
+      if (!oppositeQueue) {
+        oppositeQueue = [];
+        await this.cacheManager.set(oppositeQueueName, oppositeQueue);
+      }
+
+      if (oppositeQueue.length >= 3) {
+        const firstGroupIds = groupQueue.slice(0, 2);
+        firstGroupIds.push(id);
+        await this.cacheManager.set(qName, groupQueue.slice(2));
+
+        const secondGroupIds = oppositeQueue.slice(0, 3);
+        await this.cacheManager.set(oppositeQueueName, oppositeQueue.slice(3));
+        const groupIds = firstGroupIds.concat(secondGroupIds);
+        if (groupIds.length !== 6) {
+          throw new Error(
+            '왜인지 모르겠지만 groupIds가 이상함.' + groupIds.toString(),
+          );
+        }
         await this.createGroup(groupIds);
-        await this.cacheManager.set(sexOrient, groupQueue.slice(5));
         return 1;
       } else {
         groupQueue.push(id);
-        await this.cacheManager.set(sexOrient, groupQueue);
+        await this.cacheManager.set(qName, groupQueue);
         return 0;
       }
-    }
-    const oppositeQueueName = this.getOppositeQueueName(sexOrient);
-    const oppositeQueue: number[] =
-      await this.cacheManager.get(oppositeQueueName);
+    } catch (err) {
+      console.log(err);
+      const user = await this.userService.findUserByVal('id', id);
+      const sexOrient = this.getUserSexOrient(user.userInfo);
+      const region = user.userInfo.region.split(' ')[0];
+      const qName = `${region}_${sexOrient}`;
 
-    if (oppositeQueue.length >= 3) {
-      const firstGroupIds = groupQueue.slice(0, 2);
-      firstGroupIds.push(id);
-      await this.cacheManager.set(sexOrient, groupQueue.slice(2));
-      const secondGroupIds = oppositeQueue.slice(0, 3);
-      await this.cacheManager.set(oppositeQueueName, oppositeQueue.slice(3));
-      const groupIds = firstGroupIds.concat(secondGroupIds);
-
-      await this.createGroup(groupIds);
-      return 1;
-    } else {
+      const groupQueue: number[] = await this.cacheManager.get(qName);
+      if (groupQueue.includes(id)) {
+        return 2;
+      }
       groupQueue.push(id);
-      await this.cacheManager.set(sexOrient, groupQueue);
+      await this.cacheManager.set(qName, groupQueue);
       return 0;
     }
   }
@@ -349,7 +401,7 @@ export class BlurtingService {
     const userInfo = await this.userService.getUserProfile(other, []);
     const room = await this.chatService.findCreatedRoom([id, other]);
     const roomId = room ? room.id : null;
-    return await BlurtingProfileDto.ToDto(userInfo, roomId);
+    return BlurtingProfileDto.ToDto(userInfo, roomId);
   }
 
   async likeAnswer(userId: number, answerId: number) {

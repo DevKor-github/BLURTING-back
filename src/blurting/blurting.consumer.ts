@@ -1,5 +1,12 @@
-import { Processor, Process } from '@nestjs/bull';
-import { Job } from 'bull';
+import {
+  Processor,
+  Process,
+  InjectQueue,
+  OnQueueError,
+  OnQueueStalled,
+  OnQueueFailed,
+} from '@nestjs/bull';
+import { Job, Queue } from 'bull';
 import { BlurtingService } from './blurting.service';
 import { BlurtingGroupEntity } from 'src/entities';
 import { FcmService } from 'src/firebase/fcm.service';
@@ -9,6 +16,7 @@ export class BlurtingConsumer {
   constructor(
     private blurtingService: BlurtingService,
     private fcmService: FcmService,
+    @InjectQueue('blurtingQuestions') private readonly queue: Queue,
   ) {}
   @Process()
   async processNewBlurtingQuestion(job: Job) {
@@ -34,5 +42,26 @@ export class BlurtingConsumer {
         );
       }),
     );
+  }
+  @OnQueueError()
+  queueErrorHandler(error: Error) {
+    console.log('job error occured');
+    console.log(error);
+  }
+
+  @OnQueueStalled()
+  queueStallHandler(job: Job) {
+    console.log('job stalled');
+    console.log(job.data);
+
+    job.retry();
+  }
+
+  @OnQueueFailed()
+  queueFailHandler(job: Job, error: Error) {
+    console.log('job failed');
+    console.log(job.failedReason);
+    console.log(error);
+    job.retry();
   }
 }
