@@ -84,7 +84,10 @@ export class UserService {
     field: string,
     value: string | UserInfoEntity | BlurtingGroupEntity,
   ) {
-    const user = await this.userRepository.findOne({ where: { id: id } });
+    const user = await this.userRepository.findOne({
+      where: { id: id },
+      relations: ['group'],
+    });
     user[field] = value;
     return this.userRepository.save(user);
   }
