@@ -109,10 +109,12 @@ export class BlurtingService {
       let rand = 0;
       do {
         rand = Math.floor(Math.random() * questions.length);
-      } while (!selected.includes(questions[rand]));
+      } while (selected.includes(questions[rand]));
 
       selected.push(questions[rand]);
     }
+    console.log('question selected for group:', group.id, group.createdAt);
+    console.log(selected);
 
     const hourInMs = 1000 * 60 * 60;
     const questionDelay = hourInMs * 8;
