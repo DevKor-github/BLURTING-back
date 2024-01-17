@@ -63,6 +63,7 @@ export const UnivMailMap = {
   문경대학교: 'mkc.ac.kr',
   배화여자대학교: 'baewha.ac.kr',
   백석문화대학교: 'bscu.ac.kr',
+  백석예술대학교: 'bsa.ac.kr',
   백제예술대학교: 'paekche.ac.kr',
   벽성대학교: 'bs.ac.kr',
   부산경상대학교: 'bsks.ac.kr',
@@ -403,7 +404,7 @@ export const UnivMailMap = {
   호산대학교: 'hosan.ac.kr',
   호서대학교: 'hoseo.edu',
   호원대학교: 'howon.ac.kr',
-  홍익대학교: 'hongik.ac.kr',
+  홍익대학교: 'g.hongik.ac.kr',
   홍익대학교세종: 'hongik.ac.kr',
   화신사이버대학교: 'hscu.ac.kr',
 };
