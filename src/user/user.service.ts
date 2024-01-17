@@ -43,11 +43,13 @@ export class UserService {
   }
 
   async createUser() {
-    const nicknames = Object.values(Nickname);
+    const nicknames = Object.values(Nickname).filter((key) => {
+      return isNaN(Number(key));
+    });
     const rand = Math.floor(Math.random() * 1000);
     const index = rand % nicknames.length;
     const nickname = nicknames[index].toString() + rand.toString();
-    const user = await this.userRepository.create({
+    const user = this.userRepository.create({
       userNickname: nickname,
       point: 0,
     });
@@ -84,7 +86,10 @@ export class UserService {
     field: string,
     value: string | UserInfoEntity | BlurtingGroupEntity,
   ) {
-    const user = await this.userRepository.findOne({ where: { id: id } });
+    const user = await this.userRepository.findOne({
+      where: { id: id },
+      relations: ['group'],
+    });
     user[field] = value;
     return this.userRepository.save(user);
   }
