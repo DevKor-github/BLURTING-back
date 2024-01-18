@@ -18,6 +18,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
 import { UnivMailMap } from 'src/common/const';
+import { PointService } from 'src/point/point.service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const crypto = require('crypto');
@@ -32,6 +33,7 @@ export class AuthService {
     private readonly mailerService: MailerService,
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
+    private readonly pointService: PointService,
   ) {}
 
   private readonly logger = new Logger(AuthService.name);
@@ -253,6 +255,7 @@ export class AuthService {
 
     await this.userService.updateUser(mail.user.id, 'email', email);
     await this.userService.updateUserInfo(mail.user.id, 'university', univ);
+    await this.pointService.giveSignupPoint(mail.user.id);
     await this.authMailRepository.delete(mail);
   }
 
