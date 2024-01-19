@@ -28,6 +28,14 @@ export class UserService {
     private readonly roomModel: Model<Room>,
   ) {}
 
+  async getUsersInGroup(groupId: number) {
+    const users = await this.userRepository.find({
+      where: { group: { id: groupId } },
+      relations: ['userInfo', 'group'],
+    });
+    return users;
+  }
+
   async getGroupUsers(userId: number) {
     const user = await this.userRepository.findOne({
       where: { id: userId },
