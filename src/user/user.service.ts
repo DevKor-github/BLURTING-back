@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Not, Repository } from 'typeorm';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Hobby, Character, Nickname } from 'src/common/enums';
+import { Sex, SexOrient, Hobby, Character, Nickname } from 'src/common/enums';
 import { CharacterMask, HobbyMask } from 'src/common/const';
 import {
   BlurtingGroupEntity,
@@ -11,7 +13,7 @@ import {
   UserInfoEntity,
   UserImageEntity,
 } from 'src/entities';
-import { SocketUser, Room } from 'src/chat/models';
+import { SocketUser } from 'src/chat/models';
 import { UserProfileDto } from 'src/dtos/user.dto';
 @Injectable()
 export class UserService {
@@ -24,8 +26,7 @@ export class UserService {
     private readonly userImageRepository: Repository<UserImageEntity>,
     @InjectModel(SocketUser.name)
     private readonly socketUserModel: Model<SocketUser>,
-    @InjectModel(Room.name)
-    private readonly roomModel: Model<Room>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async getGroupUsers(userId: number) {
@@ -46,8 +47,9 @@ export class UserService {
     const nicknames = Object.values(Nickname).filter((key) => {
       return isNaN(Number(key));
     });
-    const rand = Math.floor(Math.random() * 1000);
+    let rand = Math.floor(Math.random() * 1000);
     const index = rand % nicknames.length;
+    rand = Math.floor(Math.random() * 1000);
     const nickname = nicknames[index].toString() + rand.toString();
     const user = this.userRepository.create({
       userNickname: nickname,
@@ -216,8 +218,36 @@ export class UserService {
     return await UserProfileDto.ToDto(userInfo, image);
   }
 
+  getUserSexOrient(info: UserInfoEntity) {
+    if (info.sex === Sex.Male) {
+      if (info.sexOrient === SexOrient.Homosexual) {
+        return 'male_homo';
+      } else {
+        return 'male';
+      }
+    } else if (info.sex === Sex.Female) {
+      if (info.sexOrient === SexOrient.Homosexual) {
+        return 'female_homo';
+      } else {
+        return 'female';
+      }
+    }
+  }
+
   async deleteUser(userId: number) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['userInfo'],
+    });
+
+    const sexOrient = this.getUserSexOrient(user.userInfo);
+    const region = user.userInfo.region.split(' ')[0];
+    const qName = `${region}_${sexOrient}`;
+    const groupQueue: number[] = await this.cacheManager.get(qName);
+    const idx = groupQueue.indexOf(user.id);
+    if (idx > -1) groupQueue.splice(idx, 1);
+    await this.cacheManager.set(qName, groupQueue);
+
     await this.userRepository.remove(user);
     await this.socketUserModel.updateOne(
       { userId: userId },

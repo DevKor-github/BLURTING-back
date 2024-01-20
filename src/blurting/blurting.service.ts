@@ -15,7 +15,6 @@ import {
   BlurtingQuestionEntity,
   LikeEntity,
   UserEntity,
-  UserInfoEntity,
 } from 'src/entities';
 import { UserService } from 'src/user/user.service';
 import { In, Repository } from 'typeorm';
@@ -325,7 +324,7 @@ export class BlurtingService {
   }
 
   async isMatching(user: UserEntity) {
-    const sexOrient = this.getUserSexOrient(user.userInfo);
+    const sexOrient = this.userService.getUserSexOrient(user.userInfo);
     const region = user.userInfo.region.split(' ')[0];
     const qName = `${region}_${sexOrient}`;
     const groupQueue: number[] = await this.cacheManager.get(qName);
@@ -345,7 +344,7 @@ export class BlurtingService {
       if (user.group) {
         return 1;
       }
-      const sexOrient = this.getUserSexOrient(user.userInfo);
+      const sexOrient = this.userService.getUserSexOrient(user.userInfo);
       const region = user.userInfo.region.split(' ')[0];
       const qName = `${region}_${sexOrient}`;
 
@@ -415,7 +414,7 @@ export class BlurtingService {
     } catch (err) {
       console.log(err);
       const user = await this.userService.findUserByVal('id', id);
-      const sexOrient = this.getUserSexOrient(user.userInfo);
+      const sexOrient = this.userService.getUserSexOrient(user.userInfo);
       const region = user.userInfo.region.split(' ')[0];
       const qName = `${region}_${sexOrient}`;
 
@@ -426,22 +425,6 @@ export class BlurtingService {
       groupQueue.push(id);
       await this.cacheManager.set(qName, groupQueue);
       return 0;
-    }
-  }
-
-  getUserSexOrient(info: UserInfoEntity) {
-    if (info.sex === Sex.Male) {
-      if (info.sexOrient === SexOrient.Homosexual) {
-        return 'male_homo';
-      } else {
-        return 'male';
-      }
-    } else if (info.sex === Sex.Female) {
-      if (info.sexOrient === SexOrient.Homosexual) {
-        return 'female_homo';
-      } else {
-        return 'female';
-      }
     }
   }
 
