@@ -53,7 +53,6 @@ export class BlurtingConsumer {
   queueStallHandler(job: Job) {
     console.log('job stalled');
     console.log(job.data);
-
   }
 
   @OnQueueFailed()
