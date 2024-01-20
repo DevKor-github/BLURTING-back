@@ -54,7 +54,6 @@ export class BlurtingConsumer {
     console.log('job stalled');
     console.log(job.data);
 
-    job.retry();
   }
 
   @OnQueueFailed()
@@ -62,6 +61,5 @@ export class BlurtingConsumer {
     console.log('job failed');
     console.log(job.failedReason);
     console.log(error);
-    job.retry();
   }
 }

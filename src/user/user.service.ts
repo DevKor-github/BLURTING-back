@@ -29,6 +29,14 @@ export class UserService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
+  async getUsersInGroup(groupId: number) {
+    const users = await this.userRepository.find({
+      where: { group: { id: groupId } },
+      relations: ['userInfo', 'group'],
+    });
+    return users;
+  }
+
   async getGroupUsers(userId: number) {
     const user = await this.userRepository.findOne({
       where: { id: userId },

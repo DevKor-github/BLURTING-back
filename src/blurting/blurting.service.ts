@@ -183,7 +183,7 @@ export class BlurtingService {
   }
 
   async deleteGroup(group: BlurtingGroupEntity) {
-    const users = await this.userService.getGroupUsers(group.id);
+    const users = await this.userService.getUsersInGroup(group.id);
     for (const user of users) {
       user.group = null;
     }
