@@ -228,6 +228,7 @@ export class BlurtingController {
     const { id } = req.user as JwtPayload;
     return await this.blurtingService.getGroupInfo(id);
   }
+
   @UseGuards(AuthGuard('access'))
   @Get()
   @ApiHeader({

@@ -45,7 +45,7 @@ export class UserService {
     if (!user.group) return [];
 
     const users = await this.userRepository.find({
-      where: { group: { id: user.group.id } },
+      where: { group: user.group },
       relations: ['userInfo', 'group'],
     });
     return users;
