@@ -15,6 +15,7 @@ import {
   BlurtingQuestionEntity,
   LikeEntity,
   UserEntity,
+  NotificationEntity,
 } from 'src/entities';
 import { UserService } from 'src/user/user.service';
 import { In, Repository } from 'typeorm';
@@ -41,6 +42,8 @@ export class BlurtingService {
     private readonly questionRepository: Repository<BlurtingQuestionEntity>,
     @InjectRepository(BlurtingAnswerEntity)
     private readonly answerRepository: Repository<BlurtingAnswerEntity>,
+    @InjectRepository(NotificationEntity)
+    private readonly notificationRepository: Repository<NotificationEntity>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @InjectQueue('blurtingQuestions') private readonly queue: Queue,
     private readonly fcmService: FcmService,
@@ -61,9 +64,14 @@ export class BlurtingService {
         await this.userService.updateUser(id, 'group', group);
         await this.fcmService.sendPush(
           id,
-          '그룹 매칭이 완료되었습니다.',
+          '그룹 매칭이 완료되었습니다!',
           'blurting',
         );
+        const newEntity = this.notificationRepository.create({
+          user: { id: id },
+          body: '그룹 매칭이 완료되었습니다!',
+        });
+        await this.notificationRepository.insert(newEntity);
       }),
     );
 
@@ -499,6 +507,11 @@ export class BlurtingService {
       `${user.userNickname}님이 당신에게 화살표를 보냈습니다!`,
       'blurting',
     );
+    const newEntity = this.notificationRepository.create({
+      user: { id: userId },
+      body: `${user.userNickname}님이 당신에게 화살표를 보냈습니다!`,
+    });
+    await this.notificationRepository.insert(newEntity);
   }
 
   async getArrows(userId: number): Promise<ArrowInfoResponseDto> {

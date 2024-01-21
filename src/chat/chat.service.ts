@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose/dist/common';
 import { Room, Chatting, SocketUser } from './models';
 import { Model } from 'mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { UnauthorizedException } from '@nestjs/common/exceptions';
 import { Socket } from 'socket.io';
 import * as jwt from 'jsonwebtoken';
@@ -13,6 +15,7 @@ import {
 } from 'src/dtos/chat.dto';
 import { UserService } from 'src/user/user.service';
 import { FcmService } from 'src/firebase/fcm.service';
+import { NotificationEntity } from 'src/entities';
 
 @Injectable()
 export class ChatService {
@@ -22,6 +25,8 @@ export class ChatService {
     private readonly roomModel: Model<Room>,
     @InjectModel(SocketUser.name)
     private readonly socketUserModel: Model<SocketUser>,
+    @InjectRepository(NotificationEntity)
+    private readonly notificationRepository: Repository<NotificationEntity>,
     private readonly userService: UserService,
     private readonly fcmService: FcmService,
   ) {}
@@ -352,8 +357,13 @@ export class ChatService {
     return room.users[index].blur;
   }
 
-  pushCreateRoom(userId: number) {
+  async pushCreateRoom(userId: number) {
     this.fcmService.sendPush(userId, '지금 귓속말을 시작해보세요!', 'whisper');
+    const newEntity = this.notificationRepository.create({
+      user: { id: userId },
+      body: '새로운 귓속말이 시작되었습니다!',
+    });
+    await this.notificationRepository.insert(newEntity);
   }
 
   async pushNewChat(roomId: string, userId: number) {
