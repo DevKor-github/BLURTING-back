@@ -108,7 +108,6 @@ export class ChatService {
       connected: true,
       connectedAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
     });
-    room.users[1].blur = 1;
     await room.save();
 
     return roomId;
@@ -261,7 +260,7 @@ export class ChatService {
     const userImages = await this.userService.getUserImages(otherUser.userId);
     return {
       ...(await this.userService.getUserProfile(otherUser.userId, userImages)),
-      blur: await this.updateBlurStep(roomId, userId),
+      blur: await this.updateBlurStep(roomId, otherUser.userId),
     };
   }
 
@@ -323,10 +322,10 @@ export class ChatService {
     }
   }
 
-  async updateBlurStep(roomId: string, userId: number) {
+  async updateBlurStep(roomId: string, otherUser: number) {
     const chatCount = await this.chattingModel.count({ roomId: roomId });
     const room = await this.roomModel.findOne({ id: roomId });
-    const index = room.users.findIndex((user) => user.userId !== userId);
+    const index = room.users.findIndex((user) => user.userId == otherUser);
 
     switch (room.users[index].blur) {
       case 0:

@@ -255,6 +255,7 @@ export class BlurtingController {
     }
     return 0;
   }
+
   @UseGuards(AuthGuard('access'))
   @Get('/:no')
   @ApiHeader({
