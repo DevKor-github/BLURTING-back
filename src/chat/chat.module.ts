@@ -14,6 +14,8 @@ import { ChatController } from './chat.controller';
 import { UserModule } from 'src/user/user.module';
 import { FcmModule } from 'src/firebase/fcm.module';
 import { ReportModule } from 'src/report/report.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { NotificationEntity } from 'src/entities';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { ReportModule } from 'src/report/report.module';
       { name: Room.name, schema: RoomSchema },
       { name: SocketUser.name, schema: SocketUserSchema },
     ]),
+    TypeOrmModule.forFeature([NotificationEntity]),
   ],
   providers: [ChatGateway, ChatService],
   controllers: [ChatController],
