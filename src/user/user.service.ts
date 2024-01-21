@@ -259,7 +259,7 @@ export class UserService {
     await this.userRepository.remove(user);
     await this.socketUserModel.updateOne(
       { userId: userId },
-      { isDeleted: true },
+      { isDeleted: true, notificationToken: null },
     );
   }
 }
