@@ -112,6 +112,50 @@ export class PointController {
   }
 
   @UseGuards(AuthGuard('access'))
+  @ApiCreatedResponse({
+    description: '포인트 차감 성공 시',
+    schema: {
+      example: { point: 10 },
+      properties: {
+        point: {
+          type: 'number',
+          description: '수정된 포인트 값',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    description: '포인트 차감 실패 시',
+    schema: {
+      example: false,
+      type: 'boolean',
+    },
+  })
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiOperation({
+    summary: '닉네임 랜덤',
+    description: '닉네임 랜덤 돌리기 포인트 차감 가능 여부 판단',
+  })
+  @Get('/nickname')
+  async getRandomNickname(@Req() req: Request, @Res() res: Response) {
+    const { id } = req.user as JwtPayload;
+    try {
+      const updatedPoint = await this.pointService.checkNicknamePoint(id);
+      if (updatedPoint) {
+        return res.json({ point: updatedPoint.point });
+      }
+      return res.send(false);
+    } catch (err) {
+      console.log(err);
+      return err;
+    }
+  }
+
+  @UseGuards(AuthGuard('access'))
   @ApiHeader({
     name: 'authorization',
     required: true,

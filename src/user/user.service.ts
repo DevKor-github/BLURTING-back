@@ -51,7 +51,7 @@ export class UserService {
     return users;
   }
 
-  async createUser() {
+  async pickRandomNickname() {
     const nicknames = Object.values(Nickname).filter((key) => {
       return isNaN(Number(key));
     });
@@ -59,6 +59,11 @@ export class UserService {
     const index = rand % nicknames.length;
     rand = Math.floor(Math.random() * 1000);
     const nickname = nicknames[index].toString() + rand.toString();
+    return nickname;
+  }
+
+  async createUser() {
+    const nickname = await this.pickRandomNickname();
     const user = this.userRepository.create({
       userNickname: nickname,
       point: 0,
@@ -155,6 +160,12 @@ export class UserService {
         userImage: images[0],
       },
     );
+  }
+
+  async updateUserSocket(userId: number, field: string, value: string) {
+    const user = await this.socketUserModel.findOne({ userId: userId });
+    user[field] = value;
+    await user.save();
   }
 
   async findUserByPhone(phone: string) {

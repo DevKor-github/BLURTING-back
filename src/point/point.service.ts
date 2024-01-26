@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatService } from 'src/chat/chat.service';
+import { UserService } from 'src/user/user.service';
 import { PointHistoryDto } from 'src/dtos/point.dto';
 import { PointHistoryEntity, UserEntity } from 'src/entities';
 import { Repository } from 'typeorm';
@@ -9,6 +10,7 @@ import { Repository } from 'typeorm';
 export class PointService {
   constructor(
     private readonly chatService: ChatService,
+    private readonly userService: UserService,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(PointHistoryEntity)
@@ -85,6 +87,18 @@ export class PointService {
     }
 
     return false;
+  }
+
+  async checkNicknamePoint(userId: number) {
+    const point = await this.updatePoint(userId, -10);
+    if (point) {
+      const nickname = await this.userService.pickRandomNickname();
+      await this.userService.updateUser(userId, 'userNickname', nickname);
+      await this.userService.updateUserSocket(userId, 'userNickname', nickname);
+      const history = `닉네임 랜덤 돌리기를 하고 10p가 사용 되었습니다`;
+      this.recordPointHistory(userId, -10, history);
+    }
+    return point;
   }
 
   async giveBlurtingPoint(userId: number) {

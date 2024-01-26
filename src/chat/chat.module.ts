@@ -22,7 +22,6 @@ import { NotificationEntity } from 'src/entities';
     UserModule,
     ReportModule,
     FcmModule,
-    ReportModule,
     MongooseModule.forFeature([
       { name: Chatting.name, schema: ChattingSchema },
       { name: Room.name, schema: RoomSchema },
