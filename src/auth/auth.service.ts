@@ -112,7 +112,7 @@ export class AuthService {
       await this.authPhoneNumberRepository.delete(phone);
     }
 
-    if (phoneNumber === '01090319869') {
+    if (phoneNumber === '01090319869' || phoneNumber === '01056210281') {
       const phoneEntity = this.authPhoneNumberRepository.create({
         user: { id: userId },
         code: '000000',
@@ -287,7 +287,7 @@ export class AuthService {
       await this.authPhoneNumberRepository.delete(phone);
     }
 
-    if (phoneNumber === '01090319869') {
+    if (phoneNumber === '01090319869' || phoneNumber === '01056210281') {
       const phoneEntity = this.authPhoneNumberRepository.create({
         user: user,
         code: '000000',
