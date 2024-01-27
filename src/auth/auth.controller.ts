@@ -88,12 +88,8 @@ export class AuthController {
       if (!result) throw new BadRequestException('invalid info');
       await this.userService.createSocketUser(id);
       return {
-        refreshToken: await this.authService.getRefreshToken({
-          id: id,
-        }),
-        accessToken: await this.authService.getAccessToken({
-          id: id,
-        }),
+        refreshToken: await this.authService.getRefreshToken(id),
+        accessToken: await this.authService.getAccessToken(id),
         userId: id,
       };
     }
@@ -198,10 +194,8 @@ export class AuthController {
     const { id } = loginDto;
 
     const user = await this.authService.validateUser(id);
-    const refreshToken = await this.authService.getRefreshToken({
-      id: user.id,
-    });
-    const accessToken = await this.authService.getAccessToken({ id: user.id });
+    const refreshToken = await this.authService.getRefreshToken(user.id);
+    const accessToken = await this.authService.getAccessToken(user.id);
     return {
       id: user.id,
       refreshToken,
@@ -214,10 +208,8 @@ export class AuthController {
   @RefreshDocs()
   async refresh(@User() user: JwtPayload): Promise<TokenResponseDto> {
     const { id } = user;
-    const refreshToken = await this.authService.getRefreshToken({
-      id,
-    });
-    const accessToken = await this.authService.getAccessToken({ id: id });
+    const refreshToken = await this.authService.getRefreshToken(id);
+    const accessToken = await this.authService.getAccessToken(id);
     return {
       refreshToken,
       accessToken,
