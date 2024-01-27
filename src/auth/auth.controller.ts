@@ -19,6 +19,7 @@ import {
   SignupPhoneRequestDto,
   SignupEmailRequestDto,
   SignupImageRequestDto,
+  SignupTokenResponseDto,
 } from './dtos';
 import { RefreshGuard } from './guard/refresh.guard';
 import { SignupUser } from 'src/decorators/signupUser.decorator';
@@ -52,7 +53,7 @@ export class AuthController {
     @SignupUser() signupPayload: SignupPayload,
     @Query('code') code: string,
     @Body() body: SignupPhoneRequestDto,
-  ) {
+  ): Promise<SignupTokenResponseDto> {
     const { id, page } = signupPayload;
     if (Page[page] != 'checkPhoneNumber') {
       throw new BadRequestException('invalid signup token');
@@ -66,7 +67,10 @@ export class AuthController {
 
   @Get('/check/email')
   @CheckMailDocs()
-  async checkMail(@Query('code') code: string, @Query('email') email: string) {
+  async checkMail(
+    @Query('code') code: string,
+    @Query('email') email: string,
+  ): Promise<string> {
     await this.authService.checkMail(code, email);
     return '<h1>가입 완료!</h1>블러팅 앱으로 돌아가주세요.';
   }
@@ -112,7 +116,7 @@ export class AuthController {
 
   @Get('/signup/start')
   @SignupStartDocs()
-  async signupStart() {
+  async signupStart(): Promise<SignupTokenResponseDto> {
     const user = await this.userService.createUser();
     const userInfo = await this.userService.createUserInfo(user);
     const signupToken = await this.authService.getSignupToken({
@@ -130,7 +134,7 @@ export class AuthController {
   async signupPhoneNumber(
     @SignupUser() signupPayload: SignupPayload,
     @Body() body: SignupPhoneRequestDto,
-  ) {
+  ): Promise<SignupTokenResponseDto> {
     const { id, page } = signupPayload;
     if (Page[page] != 'phoneNumber') {
       throw new BadRequestException('invalid signup token');
@@ -147,7 +151,7 @@ export class AuthController {
   async signupImage(
     @SignupUser() signupPayload: SignupPayload,
     @Body() body: SignupImageRequestDto,
-  ) {
+  ): Promise<SignupTokenResponseDto> {
     const { id } = signupPayload;
 
     await this.userService.updateUserImages(id, body.images);
@@ -161,7 +165,7 @@ export class AuthController {
   async signupEmail(
     @SignupUser() signupPayload: SignupPayload,
     @Body() body: SignupEmailRequestDto,
-  ) {
+  ): Promise<SignupTokenResponseDto> {
     const { id, page } = signupPayload;
     if (Page[page] != 'email') {
       throw new BadRequestException('invalid signup token');
@@ -175,7 +179,9 @@ export class AuthController {
   @Get('/signup/back')
   @UseGuards(SignupGuard)
   @SignupBackDocs()
-  async signupBack(@SignupUser() signupPayload: SignupPayload) {
+  async signupBack(
+    @SignupUser() signupPayload: SignupPayload,
+  ): Promise<SignupTokenResponseDto> {
     const { id, infoId, page } = signupPayload;
     const signupToken = await this.authService.getSignupToken({
       id: id,
@@ -220,7 +226,7 @@ export class AuthController {
 
   @Post('/already/signed')
   @AlreadyRegisteredDocs()
-  async alreadyRegistered(@Body() body: SignupPhoneRequestDto) {
+  async alreadyRegistered(@Body() body: SignupPhoneRequestDto): Promise<void> {
     await this.authService.alreadySigned(body.phoneNumber);
   }
 
