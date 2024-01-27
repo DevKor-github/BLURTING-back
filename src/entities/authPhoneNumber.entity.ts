@@ -1,9 +1,7 @@
-import { UserEntity } from 'src/entities';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -18,9 +16,9 @@ export class AuthPhoneNumberEntity {
   @Column()
   code: string;
 
+  @Column({ nullable: true })
+  phoneNumber?: string;
+
   @CreateDateColumn()
   createdAt: Date;
-
-  @ManyToOne(() => UserEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
-  user: UserEntity;
 }
