@@ -1,44 +1,43 @@
 import {
   Controller,
   Body,
-  Req,
-  Res,
   Post,
   UseGuards,
   Query,
   Get,
   BadRequestException,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
-import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { UserService } from 'src/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
 import { SignupGuard } from './guard/signup.guard';
 import { Page } from 'src/common/enums/page.enum';
 import { CreateUserDto, LoginDto } from 'src/dtos/user.dto';
+import { ApiTags } from '@nestjs/swagger';
 import {
-  ApiCreatedResponse,
-  ApiHeader,
-  ApiOperation,
-  ApiQuery,
-  ApiTags,
-  ApiBody,
-  ApiBadRequestResponse,
-  ApiConflictResponse,
-  ApiNotAcceptableResponse,
-  ApiUnauthorizedResponse,
-  ApiRequestTimeoutResponse,
-  ApiNotFoundResponse,
-} from '@nestjs/swagger';
-import {
-  SignupTokenResponseDto,
   TokenResponseDto,
-} from './dtos/tokenResponseDto';
-import { SignupPhoneRequestDto } from './dtos/signupPhoneRequest.dto';
-import { SignupEmailRequestDto } from './dtos/signupEmailRequest.dto';
-import { SignupImageRequestDto } from './dtos/signupImageRequest.dto';
-
+  SignupPhoneRequestDto,
+  SignupEmailRequestDto,
+  SignupImageRequestDto,
+  SignupTokenResponseDto,
+} from './dtos';
+import { RefreshGuard } from './guard/refresh.guard';
+import { SignupUser } from 'src/decorators/signupUser.decorator';
+import { User } from 'src/decorators/accessUser.decorator';
+import {
+  AlreadyCheckDocs,
+  AlreadyRegisteredDocs,
+  CheckCodeDocs,
+  CheckMailDocs,
+  LoginDocs,
+  RefreshDocs,
+  SignupBackDocs,
+  SignupDocs,
+  SignupEmailDocs,
+  SignupImageDocs,
+  SignupPhoneNumberDocs,
+  SignupStartDocs,
+} from 'src/decorators/swagger/auth.decorator';
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
@@ -48,319 +47,183 @@ export class AuthController {
   ) {}
 
   @UseGuards(SignupGuard)
-  @ApiQuery({
-    name: 'code',
-    description: '인증번호',
-    type: String,
-    example: '010123',
-  })
   @Post('/check/phone')
-  @ApiConflictResponse({ description: '사용 중 전화번호' })
-  @ApiBadRequestResponse({ description: 'invalid signup token' })
-  @ApiUnauthorizedResponse({ description: '인증번호 오류' })
-  @ApiRequestTimeoutResponse({ description: '인증번호 시간 초과' })
-  @ApiCreatedResponse({ description: '성공', type: SignupTokenResponseDto })
+  @CheckCodeDocs()
   async checkCode(
-    @Req() req: Request,
+    @SignupUser() signupPayload: SignupPayload,
     @Query('code') code: string,
     @Body() body: SignupPhoneRequestDto,
-  ) {
-    try {
-      const { id, page } = req.user as SignupPayload;
-      if (Page[page] != 'checkPhoneNumber') {
-        throw new BadRequestException('invalid signup token');
-      }
-
-      await this.authService.checkCode(id, code, body.phoneNumber);
-      const signupToken = await this.authService.getSignupToken(
-        req.user as SignupPayload,
-      );
-
-      return { signupToken: signupToken };
-    } catch (err) {
-      console.log(err);
-      return err;
+  ): Promise<SignupTokenResponseDto> {
+    const { id, page } = signupPayload;
+    if (Page[page] != 'checkPhoneNumber') {
+      throw new BadRequestException('invalid signup token');
     }
+
+    await this.authService.checkCode(id, code, body.phoneNumber);
+    const signupToken = await this.authService.getSignupToken(signupPayload);
+
+    return { signupToken };
   }
 
   @Get('/check/email')
-  @ApiOperation({
-    summary: '이메일 인증',
-    description: '이메일 인증',
-  })
-  @ApiQuery({
-    name: 'code',
-    description: '인증 코드',
-    type: String,
-    example: '123456',
-  })
-  @ApiQuery({
-    name: 'email',
-    description: '이메일',
-    type: String,
-    example: '123456@korea.ac.kr',
-  })
-  async checkMail(@Query('code') code: string, @Query('email') email: string) {
+  @CheckMailDocs()
+  async checkMail(
+    @Query('code') code: string,
+    @Query('email') email: string,
+  ): Promise<string> {
     await this.authService.checkMail(code, email);
     return '<h1>가입 완료!</h1>블러팅 앱으로 돌아가주세요.';
   }
 
   @UseGuards(SignupGuard)
   @Post('/signup')
-  @ApiCreatedResponse({
-    description: 'new signup token',
-    type: SignupTokenResponseDto,
-  })
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiBody({
-    description: '유저 정보 차례대로 하나씩',
-    type: CreateUserDto,
-  })
-  @ApiOperation({
-    summary: '회원가입',
-    description:
-      'signup token과 body의 정보로 회원가입 진행 및 signup token 재발행',
-  })
+  @SignupDocs()
   async signup(
-    @Req() req: Request,
+    @SignupUser() signupPayload: SignupPayload,
     @Body() info: CreateUserDto,
-    @Res() res: Response,
   ) {
-    try {
-      const { id, infoId, page } = req.user as SignupPayload;
-      if (page == 16) {
-        const result = await this.authService.checkComplete(id);
-        if (!result) throw new BadRequestException('invalid info');
-        await this.userService.createSocketUser(id);
-        return res.json({
-          refreshToken: await this.authService.getRefreshToken({
-            id: id,
-          }),
-          accessToken: await this.authService.getAccessToken({
-            id: id,
-          }),
-          userId: id,
-        });
-      }
-
-      const pageName = Object.keys(Page).find((key) => Page[key] == page);
-      if (info[pageName] == undefined || info[pageName] == null)
-        throw new BadRequestException('invalid info');
-      switch (pageName) {
-        case 'userName':
-          await this.userService.updateUser(id, 'userName', info['userName']);
-          break;
-        default:
-          await this.userService.updateUserInfo(
-            infoId,
-            pageName,
-            info[pageName],
-          );
-      }
-
-      const signupToken = await this.authService.getSignupToken(
-        req.user as SignupPayload,
-      );
-
-      return res.json({ signupToken: signupToken });
-    } catch (err) {
-      res.status(err.status).json(err);
+    const { id, infoId, page } = signupPayload;
+    if (page == 16) {
+      const result = await this.authService.checkComplete(id);
+      if (!result) throw new BadRequestException('invalid info');
+      await this.userService.createSocketUser(id);
+      return {
+        refreshToken: await this.authService.getRefreshToken(id),
+        accessToken: await this.authService.getAccessToken(id),
+        userId: id,
+      };
     }
+
+    const pageName = Object.keys(Page).find((key) => Page[key] == page);
+    if (info[pageName] == undefined || info[pageName] == null)
+      throw new BadRequestException('invalid info');
+    switch (pageName) {
+      case 'userName':
+        await this.userService.updateUser(id, 'userName', info['userName']);
+        break;
+      default:
+        await this.userService.updateUserInfo(infoId, pageName, info[pageName]);
+    }
+
+    const signupToken = await this.authService.getSignupToken(signupPayload);
+
+    return { signupToken };
   }
 
   @Get('/signup/start')
-  @ApiCreatedResponse({
-    description: 'new signup token',
-    type: SignupTokenResponseDto,
-  })
-  @ApiOperation({
-    summary: '회원가입 시작',
-    description: '첫 signup token 발행',
-  })
-  async signupStart(@Req() req: Request, @Res() res: Response) {
-    try {
-      const user = await this.userService.createUser();
-      const userInfo = await this.userService.createUserInfo(user);
-      const signupToken = await this.authService.getSignupToken({
-        id: user.id,
-        infoId: userInfo.id,
-        page: 0,
-      });
+  @SignupStartDocs()
+  async signupStart(): Promise<SignupTokenResponseDto> {
+    const user = await this.userService.createUser();
+    const userInfo = await this.userService.createUserInfo(user);
+    const signupToken = await this.authService.getSignupToken({
+      id: user.id,
+      infoId: userInfo.id,
+      page: 0,
+    });
 
-      return res.json({ signupToken: signupToken });
-    } catch (err) {
-      res.status(err.status).json(err);
-    }
+    return { signupToken };
   }
 
   @Post('/signup/phonenumber')
   @UseGuards(SignupGuard)
-  @ApiOperation({ summary: '휴대폰 인증 요청' })
-  @ApiBadRequestResponse({
-    description: 'invalid signup token 또는 전화번호 오류',
-  })
-  @ApiConflictResponse({ description: '사용 중 전화번호' })
-  @ApiNotAcceptableResponse({ description: '10초 내 재요청' })
-  @ApiCreatedResponse({
-    description: 'new signup token',
-    type: SignupTokenResponseDto,
-  })
+  @SignupPhoneNumberDocs()
   async signupPhoneNumber(
-    @Req() req: Request,
-    @Res() res: Response,
+    @SignupUser() signupPayload: SignupPayload,
     @Body() body: SignupPhoneRequestDto,
-  ) {
-    try {
-      const { id, page } = req.user as SignupPayload;
-      if (Page[page] != 'phoneNumber') {
-        throw new BadRequestException('invalid signup token');
-      }
-      await this.authService.validatePhoneNumber(body.phoneNumber, id);
-      const signupToken = await this.authService.getSignupToken(
-        req.user as SignupPayload,
-      );
-
-      return res.json({ signupToken: signupToken });
-    } catch (err) {
-      console.log(err);
-      res.status(err.status).json(err);
+  ): Promise<SignupTokenResponseDto> {
+    const { id, page } = signupPayload;
+    if (Page[page] != 'phoneNumber') {
+      throw new BadRequestException('invalid signup token');
     }
+    await this.authService.validatePhoneNumber(body.phoneNumber, id);
+    const signupToken = await this.authService.getSignupToken(signupPayload);
+
+    return { signupToken };
   }
 
   @Post('/signup/images')
   @UseGuards(SignupGuard)
-  @ApiBadRequestResponse({ description: 'invalid signup token' })
-  @ApiCreatedResponse({
-    description: 'new signup token',
-    type: SignupTokenResponseDto,
-  })
-  async signupImage(@Body() body: SignupImageRequestDto, @Req() req: Request) {
-    const { id } = req.user as SignupPayload;
+  @SignupImageDocs()
+  async signupImage(
+    @SignupUser() signupPayload: SignupPayload,
+    @Body() body: SignupImageRequestDto,
+  ): Promise<SignupTokenResponseDto> {
+    const { id } = signupPayload;
 
     await this.userService.updateUserImages(id, body.images);
-    const signupToken = await this.authService.getSignupToken(
-      req.user as SignupPayload,
-    );
+    const signupToken = await this.authService.getSignupToken(signupPayload);
     return { signupToken };
   }
 
   @Post('/signup/email')
   @UseGuards(SignupGuard)
-  @ApiBadRequestResponse({
-    description: 'invalid signup token or invalid email',
-  })
-  @ApiConflictResponse({ description: '이미 가입된 이메일' })
-  @ApiNotAcceptableResponse({ description: '10초 내 재요청' })
-  @ApiCreatedResponse({
-    description: 'new signup token',
-    type: SignupTokenResponseDto,
-  })
-  async signupEmail(@Req() req: Request, @Body() body: SignupEmailRequestDto) {
-    const { id, page } = req.user as SignupPayload;
+  @SignupEmailDocs()
+  async signupEmail(
+    @SignupUser() signupPayload: SignupPayload,
+    @Body() body: SignupEmailRequestDto,
+  ): Promise<SignupTokenResponseDto> {
+    const { id, page } = signupPayload;
     if (Page[page] != 'email') {
       throw new BadRequestException('invalid signup token');
     }
     await this.authService.sendVerificationCode(id, body.email);
-    const signupToken = await this.authService.getSignupToken(
-      req.user as SignupPayload,
-    );
+    const signupToken = await this.authService.getSignupToken(signupPayload);
 
-    return { signupToken: signupToken };
+    return { signupToken };
   }
 
   @Get('/signup/back')
   @UseGuards(SignupGuard)
-  @ApiBadRequestResponse({
-    description: 'invalid signup token',
-  })
-  @ApiCreatedResponse({
-    description: 'new signup token',
-    type: SignupTokenResponseDto,
-  })
-  @ApiOperation({
-    summary: '회원가입 뒤로가기',
-    description: '이전 signup token 발행',
-  })
-  async signupBack(@Req() req: Request, @Res() res: Response) {
-    try {
-      const { id, infoId, page } = req.user as SignupPayload;
-      const signupToken = await this.authService.getSignupToken({
-        id: id,
-        infoId: infoId,
-        page: page - 2,
-      });
+  @SignupBackDocs()
+  async signupBack(
+    @SignupUser() signupPayload: SignupPayload,
+  ): Promise<SignupTokenResponseDto> {
+    const { id, infoId, page } = signupPayload;
+    const signupToken = await this.authService.getSignupToken({
+      id,
+      infoId,
+      page: page - 2,
+    });
 
-      return res.json({ signupToken: signupToken });
-    } catch (err) {
-      res.status(err.status).json(err);
-    }
+    return { signupToken };
   }
 
   @Post('/login')
-  @ApiOperation({ deprecated: true })
-  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
+  @LoginDocs()
+  async login(@Body() loginDto: LoginDto) {
     const { id } = loginDto;
 
     const user = await this.authService.validateUser(id);
-    const refreshToken = await this.authService.getRefreshToken({
+    const refreshToken = await this.authService.getRefreshToken(user.id);
+    const accessToken = await this.authService.getAccessToken(user.id);
+    return {
       id: user.id,
-    });
-    const accessToken = await this.authService.getAccessToken({ id: user.id });
-    return res.json({
-      id: user.id,
-      refreshToken: refreshToken,
-      accessToken: accessToken,
-    });
+      refreshToken,
+      accessToken,
+    };
   }
 
-  @UseGuards(AuthGuard('refresh'))
+  @UseGuards(RefreshGuard)
   @Post('/refresh')
-  @ApiCreatedResponse({
-    description: 'new access token',
-    type: TokenResponseDto,
-  })
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiOperation({
-    summary: 'accesstoken 갱신',
-    description: 'refresh token으로 access token 갱신',
-  })
-  async refresh(@Req() req: Request): Promise<TokenResponseDto> {
-    const { id } = req.user as JwtPayload;
-    const refreshToken = await this.authService.getRefreshToken({
-      id: id,
-    });
-    const accessToken = await this.authService.getAccessToken({ id: id });
+  @RefreshDocs()
+  async refresh(@User() user: JwtPayload): Promise<TokenResponseDto> {
+    const { id } = user;
+    const refreshToken = await this.authService.getRefreshToken(id);
+    const accessToken = await this.authService.getAccessToken(id);
     return {
-      refreshToken: refreshToken,
-      accessToken: accessToken,
+      refreshToken,
+      accessToken,
     };
   }
 
   @Post('/already/signed')
-  @ApiNotFoundResponse({ description: '없는 번호' })
-  @ApiNotAcceptableResponse({ description: '10초 내 재요청' })
-  async alreadyRegistered(@Body() body: SignupPhoneRequestDto) {
+  @AlreadyRegisteredDocs()
+  async alreadyRegistered(@Body() body: SignupPhoneRequestDto): Promise<void> {
     await this.authService.alreadySigned(body.phoneNumber);
   }
 
   @Post('/alreay/signed/check')
-  @ApiBadRequestResponse({ description: 'invalid code' })
-  @ApiRequestTimeoutResponse({ description: '3분지남' })
-  @ApiCreatedResponse({ description: '성공', type: TokenResponseDto })
-  @ApiQuery({
-    name: 'code',
-    description: '인증번호',
-    type: String,
-    example: '010123',
-  })
+  @AlreadyCheckDocs()
   async alreadyCheck(@Query('code') code: string) {
     const result = await this.authService.checkCodeAlready(code);
     return result;
