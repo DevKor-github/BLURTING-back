@@ -157,9 +157,6 @@ export class AuthController {
       if (info[pageName] == undefined || info[pageName] == null)
         throw new BadRequestException('invalid info');
       switch (pageName) {
-        case 'userName':
-          await this.userService.updateUser(id, 'userName', info['userName']);
-          break;
         case 'phoneNumber':
           await this.authService.validatePhoneNumber(info['phoneNumber'], id);
           break;
