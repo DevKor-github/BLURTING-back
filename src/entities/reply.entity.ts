@@ -13,7 +13,7 @@ export class ReplyEntity {
   id: number;
 
   @ManyToOne(() => BlurtingAnswerEntity)
-  question: BlurtingAnswerEntity;
+  answer: BlurtingAnswerEntity;
 
   @ManyToOne(() => UserEntity, {
     nullable: true,
@@ -23,7 +23,7 @@ export class ReplyEntity {
   user: UserEntity;
 
   @Column()
-  reply: string;
+  content: string;
 
   @CreateDateColumn()
   createdAt: Date;
