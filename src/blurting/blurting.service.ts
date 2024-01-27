@@ -16,6 +16,7 @@ import {
   LikeEntity,
   UserEntity,
   NotificationEntity,
+  ReplyEntity,
 } from 'src/entities';
 import { UserService } from 'src/user/user.service';
 import { In, Repository } from 'typeorm';
@@ -53,6 +54,8 @@ export class BlurtingService {
     private readonly arrowRepository: Repository<BLurtingArrowEntity>,
     @InjectRepository(ReportEntity)
     private readonly reportRepository: Repository<ReportEntity>,
+    @InjectRepository(ReplyEntity)
+    private readonly replyRepository: Repository<ReplyEntity>,
   ) {}
 
   async createGroup(users: number[]) {
@@ -596,5 +599,18 @@ export class BlurtingService {
         };
       });
     return result;
+  }
+
+  async addReply(
+    userId: number,
+    content: string,
+    answerId: number,
+  ): Promise<void> {
+    const newReply = this.replyRepository.create({
+      user: { id: userId },
+      answer: { id: answerId },
+      content,
+    });
+    await this.replyRepository.save(newReply);
   }
 }

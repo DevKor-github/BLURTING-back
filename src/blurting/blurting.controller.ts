@@ -31,6 +31,7 @@ import {
 import { BlurtingProfileDto } from 'src/dtos/user.dto';
 import { ArrowInfoResponseDto } from './dtos/arrowInfoResponse.dto';
 import { OtherPeopleInfoDto } from './dtos/otherPeopleInfo.dto';
+import { ReplyRequestDto } from './dtos/replyRequest.dto';
 
 @Controller('blurting')
 @ApiTags('blurting')
@@ -295,5 +296,30 @@ export class BlurtingController {
       no,
     );
     return blurtingPage;
+  }
+  @UseGuards(AuthGuard('access'))
+  @Post('/reply/:answerId')
+  @ApiOperation({
+    summary: '블러팅 답글 달기',
+  })
+  @ApiCreatedResponse({ description: '잘 됨' })
+  @ApiUnauthorizedResponse({
+    description: '토큰 X',
+  })
+  @ApiParam({
+    name: 'answerId',
+    type: Number,
+    description: '답글 달 답변 id',
+  })
+  @ApiBody({
+    type: ReplyRequestDto,
+  })
+  async createReply(
+    @Req() req: Request,
+    @Param('answerId') answerId: number,
+    @Body() body: ReplyRequestDto,
+  ) {
+    const { id } = req.user as JwtPayload;
+    await this.blurtingService.addReply(id, body.content, answerId);
   }
 }
