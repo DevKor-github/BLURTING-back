@@ -6,13 +6,16 @@ import {
   AuthPhoneNumberEntity,
   UserImageEntity,
 } from 'src/entities';
+import {
+  JwtSignupStrategy,
+  JwtAccessStrategy,
+  JwtRefreshStrategy,
+} from './passport';
+
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { JwtSignupStrategy } from './passport/jwt-signup.strategy';
-import { JwtAccessStrategy } from './passport/jwt-access.strategy';
-import { JwtRefreshStrategy } from './passport/jwt-refresh.strategy';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { UserModule } from 'src/user/user.module';
 import { PointModule } from 'src/point/point.module';
