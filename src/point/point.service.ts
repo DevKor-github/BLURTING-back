@@ -95,7 +95,7 @@ export class PointService {
       const nickname = await this.userService.pickRandomNickname();
       await this.userService.updateUser(userId, 'userNickname', nickname);
       await this.userService.updateUserSocket(userId, 'userNickname', nickname);
-      const history = `닉네임 랜덤 돌리기를 하고 10p가 사용 되었습니다`;
+      const history = `닉네임 뽑기를 하고 10p가 사용 되었습니다.`;
       this.recordPointHistory(userId, -10, history);
     }
     return point;

@@ -10,3 +10,4 @@ export { PointHistoryEntity } from './pointHistory.entity';
 export { LikeEntity } from './like.entity';
 export { BLurtingArrowEntity } from './blurtingArrow.entity';
 export * from './notification.entity';
+export * from './reply.entity';

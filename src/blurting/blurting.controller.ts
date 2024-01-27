@@ -31,6 +31,7 @@ import {
 import { BlurtingProfileDto } from 'src/dtos/user.dto';
 import { ArrowInfoResponseDto } from './dtos/arrowInfoResponse.dto';
 import { OtherPeopleInfoDto } from './dtos/otherPeopleInfo.dto';
+import { ReplyRequestDto } from './dtos/replyRequest.dto';
 
 @Controller('blurting')
 @ApiTags('blurting')
@@ -55,7 +56,7 @@ export class BlurtingController {
     description: '마지막 Q&A 정보 반환',
     type: BlurtingPageDto,
   })
-  async getBlurting(@Req() req: Request, @Res() res: Response) {
+  async getBlurting(@Req() req: Request) {
     const { id } = req.user as JwtPayload;
     const user = await this.userService.findUserByVal('id', id);
     const blurtingPage = await this.blurtingService.getBlurting(
@@ -63,7 +64,7 @@ export class BlurtingController {
       user.group,
       0,
     );
-    return res.json(blurtingPage);
+    return blurtingPage;
   }
 
   @UseGuards(AuthGuard('access'))
@@ -180,10 +181,15 @@ export class BlurtingController {
     return await this.blurtingService.likeAnswer(id, answerId);
   }
   @UseGuards(AuthGuard('access'))
-  @Post('/arrow/:toId')
+  @Post('/arrow/:toId/:day')
   @ApiParam({
     description: '화살표 받을 사람 id',
     name: 'toId',
+    type: Number,
+  })
+  @ApiParam({
+    description: 'day',
+    name: 'day, 1,2,3으로 보내주세요',
     type: Number,
   })
   @ApiOperation({
@@ -194,9 +200,13 @@ export class BlurtingController {
   @ApiOkResponse({
     description: '화살표 보내기 성공',
   })
-  async makeArrow(@Req() req: Request, @Param('toId') toId: number) {
+  async makeArrow(
+    @Req() req: Request,
+    @Param('toId') toId: number,
+    @Param('day') day: number,
+  ) {
     const { id } = req.user as JwtPayload;
-    return await this.blurtingService.makeArrow(id, toId);
+    return await this.blurtingService.makeArrow(id, toId, day);
   }
   @UseGuards(AuthGuard('access'))
   @Get('/arrow')
@@ -286,5 +296,30 @@ export class BlurtingController {
       no,
     );
     return blurtingPage;
+  }
+  @UseGuards(AuthGuard('access'))
+  @Post('/reply/:answerId')
+  @ApiOperation({
+    summary: '블러팅 답글 달기',
+  })
+  @ApiCreatedResponse({ description: '잘 됨' })
+  @ApiUnauthorizedResponse({
+    description: '토큰 X',
+  })
+  @ApiParam({
+    name: 'answerId',
+    type: Number,
+    description: '답글 달 답변 id',
+  })
+  @ApiBody({
+    type: ReplyRequestDto,
+  })
+  async createReply(
+    @Req() req: Request,
+    @Param('answerId') answerId: number,
+    @Body() body: ReplyRequestDto,
+  ) {
+    const { id } = req.user as JwtPayload;
+    await this.blurtingService.addReply(id, body.content, answerId);
   }
 }

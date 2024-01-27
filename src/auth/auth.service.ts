@@ -9,11 +9,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AuthPhoneNumberEntity, AuthMailEntity } from 'src/entities';
 import { Repository } from 'typeorm';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { MailerService } from '@nestjs-modules/mailer';
 import { JwtService } from '@nestjs/jwt';
+import {
+  AuthPhoneNumberEntity,
+  AuthMailEntity,
+  UserEntity,
+} from 'src/entities';
 import { UserService } from 'src/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
 import { UnivMailMap } from 'src/common/const';
@@ -35,27 +39,31 @@ export class AuthService {
     private readonly pointService: PointService,
   ) {}
 
-  async getRefreshToken({ id }) {
+  async getRefreshToken(id: number): Promise<string> {
     const payload: JwtPayload = {
-      id: id,
-      signedAt: new Date().toISOString(),
+      id,
+      signedAt: new Date(
+        new Date().getTime() + 9 * 60 * 60 * 1000,
+      ).toISOString(),
     };
 
-    const refreshJwt = await this.jwtService.sign(payload, {
+    const refreshJwt = this.jwtService.sign(payload, {
       secret: process.env.REFRESH_TOKEN_SECRET_KEY,
     });
-    this.userService.updateUser(id, 'token', refreshJwt);
+    await this.userService.updateUser(id, 'token', refreshJwt);
 
     return refreshJwt;
   }
 
-  async getAccessToken({ id }) {
+  getAccessToken(id: number): string {
     const payload: JwtPayload = {
-      id: id,
-      signedAt: new Date().toISOString(),
+      id,
+      signedAt: new Date(
+        new Date().getTime() + 9 * 60 * 60 * 1000,
+      ).toISOString(),
     };
 
-    const accessJwt = await this.jwtService.sign(payload, {
+    const accessJwt = this.jwtService.sign(payload, {
       secret: process.env.ACCESS_TOKEN_SECRET_KEY,
       expiresIn: '1h',
     });
@@ -63,21 +71,24 @@ export class AuthService {
     return accessJwt;
   }
 
-  async getSignupToken(signupPayload: SignupPayload) {
+  getSignupToken(signupPayload: SignupPayload): string {
     const payload: SignupPayload = {
       id: signupPayload.id,
       infoId: signupPayload.infoId,
       page: signupPayload.page + 1,
     };
 
-    const signupJwt = await this.jwtService.sign(payload, {
+    const signupJwt = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET_KEY,
     });
 
     return signupJwt;
   }
 
-  async validatePhoneNumber(phoneNumber: string, userId: number) {
+  async validatePhoneNumber(
+    phoneNumber: string,
+    userId: number,
+  ): Promise<void> {
     const phone = await this.authPhoneNumberRepository.findOne({
       where: { phoneNumber, isValid: false },
       order: { createdAt: 'DESC' },
@@ -99,7 +110,7 @@ export class AuthService {
     this.sendCode(phoneNumber, userId);
   }
 
-  async validateEmail(userId: number, to: string) {
+  async validateEmail(userId: number, to: string): Promise<void> {
     const existingUser = await this.userService.findUserByVal('email', to);
     if (existingUser) throw new ConflictException('이미 가입된 이메일입니다.');
     const mail = await this.authMailRepository.findOne({
@@ -140,12 +151,12 @@ export class AuthService {
     await this.authMailRepository.save(entity);
   }
 
-  async checkComplete(id: number) {
+  async checkComplete(id: number): Promise<boolean> {
     const user = await this.userService.findUserByVal('id', id);
     return user.phoneNumber && user.email != null;
   }
 
-  async checkMail(code: string, email: string) {
+  async checkMail(code: string, email: string): Promise<void> {
     const mail = await this.authMailRepository.findOne({
       where: {
         code: code,
@@ -168,7 +179,7 @@ export class AuthService {
     await this.authMailRepository.delete(mail);
   }
 
-  async alreadySigned(phoneNumber: string) {
+  async alreadySigned(phoneNumber: string): Promise<void> {
     const user = await this.userService.findUserByPhone(phoneNumber);
     if (!user) throw new NotFoundException('가입되지 않은 전화번호입니다.');
 

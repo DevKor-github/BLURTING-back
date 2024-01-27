@@ -10,6 +10,7 @@ import {
   BLurtingArrowEntity,
   LikeEntity,
   NotificationEntity,
+  ReplyEntity,
 } from 'src/entities';
 import { UserModule } from 'src/user/user.module';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -33,6 +34,7 @@ import { ReportEntity } from 'src/entities/report.entity';
       LikeEntity,
       ReportEntity,
       NotificationEntity,
+      ReplyEntity,
     ]),
     CacheModule.register({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment

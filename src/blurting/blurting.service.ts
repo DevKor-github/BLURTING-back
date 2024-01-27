@@ -16,6 +16,7 @@ import {
   LikeEntity,
   UserEntity,
   NotificationEntity,
+  ReplyEntity,
 } from 'src/entities';
 import { UserService } from 'src/user/user.service';
 import { In, Repository } from 'typeorm';
@@ -53,6 +54,8 @@ export class BlurtingService {
     private readonly arrowRepository: Repository<BLurtingArrowEntity>,
     @InjectRepository(ReportEntity)
     private readonly reportRepository: Repository<ReportEntity>,
+    @InjectRepository(ReplyEntity)
+    private readonly replyRepository: Repository<ReplyEntity>,
   ) {}
 
   async createGroup(users: number[]) {
@@ -237,7 +240,7 @@ export class BlurtingService {
     const answers = await this.answerRepository.find({
       where: { question: question },
       order: { postedAt: 'ASC' },
-      relations: ['question', 'user'],
+      relations: ['question', 'user', 'reply', 'reply.user'],
     });
 
     const answersDto = await Promise.all(
@@ -480,7 +483,7 @@ export class BlurtingService {
     }
   }
 
-  async makeArrow(userId: number, toId: number) {
+  async makeArrow(userId: number, toId: number, day: number) {
     const user = await this.userService.findUserByVal('id', userId);
 
     const arrow = await this.arrowRepository.findOne({
@@ -490,9 +493,10 @@ export class BlurtingService {
       },
       order: { no: 'DESC' },
     });
-    let no = 1;
-    if (arrow) no = arrow.no + 1;
-
+    const no = day;
+    if (arrow && arrow.no >= day) {
+      throw new BadRequestException('이미 화살표 존재');
+    }
     const newArrow = this.arrowRepository.create({
       from: { id: userId },
       to: toId === -1 ? null : { id: toId },
@@ -504,12 +508,12 @@ export class BlurtingService {
 
     this.fcmService.sendPush(
       toId,
-      `${user.userNickname}님이 당신에게 화살표를 보냈습니다!`,
+      `${user.userNickname}님이 당신에게 화살을 보냈습니다!`,
       'blurting',
     );
     const newEntity = this.notificationRepository.create({
       user: { id: userId },
-      body: `${user.userNickname}님이 당신에게 화살표를 보냈습니다!`,
+      body: `${user.userNickname}님이 당신에게 화살을 보냈습니다!`,
     });
     await this.notificationRepository.insert(newEntity);
   }
@@ -595,5 +599,18 @@ export class BlurtingService {
         };
       });
     return result;
+  }
+
+  async addReply(
+    userId: number,
+    content: string,
+    answerId: number,
+  ): Promise<void> {
+    const newReply = this.replyRepository.create({
+      user: { id: userId },
+      answer: { id: answerId },
+      content,
+    });
+    await this.replyRepository.save(newReply);
   }
 }
