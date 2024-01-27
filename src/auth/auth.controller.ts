@@ -34,11 +34,10 @@ import {
 import {
   SignupTokenResponseDto,
   TokenResponseDto,
-} from './dtos/tokenResponseDto';
-import { SignupPhoneRequestDto } from './dtos/signupPhoneRequest.dto';
-import { SignupEmailRequestDto } from './dtos/signupEmailRequest.dto';
-import { SignupImageRequestDto } from './dtos/signupImageRequest.dto';
-
+  SignupPhoneRequestDto,
+  SignupEmailRequestDto,
+  SignupImageRequestDto,
+} from './dtos';
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
