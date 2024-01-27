@@ -12,22 +12,27 @@ import {
   ApiRequestTimeoutResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { SignupTokenResponseDto, TokenResponseDto } from 'src/auth/dtos';
-import { CreateUserDto } from 'src/dtos/user.dto';
+import {
+  SignupTokenResponseDto,
+  SignupPhoneRequestDto,
+  SignupUserRequestDto,
+  TokenResponseDto,
+} from 'src/auth/dtos';
 
 export function CheckCodeDocs() {
   return applyDecorators(
+    ApiConflictResponse({ description: '사용 중 전화번호' }),
+    ApiBadRequestResponse({ description: 'invalid signup token' }),
+    ApiUnauthorizedResponse({ description: '인증번호 오류' }),
+    ApiRequestTimeoutResponse({ description: '인증번호 시간 초과' }),
+    ApiCreatedResponse({ description: '성공', type: SignupTokenResponseDto }),
     ApiQuery({
       name: 'code',
       description: '인증번호',
       type: String,
       example: '010123',
     }),
-    ApiConflictResponse({ description: '사용 중 전화번호' }),
-    ApiBadRequestResponse({ description: 'invalid signup token' }),
-    ApiUnauthorizedResponse({ description: '인증번호 오류' }),
-    ApiRequestTimeoutResponse({ description: '인증번호 시간 초과' }),
-    ApiCreatedResponse({ description: '성공', type: SignupTokenResponseDto }),
+    ApiBody({ description: 'phone', type: SignupPhoneRequestDto }),
   );
 }
 
@@ -58,6 +63,11 @@ export function SignupDocs() {
       description: 'new signup token',
       type: SignupTokenResponseDto,
     }),
+    ApiBadRequestResponse({
+      description: 'invalid signup token or invalid info',
+    }),
+    ApiConflictResponse({ description: '이미 가입된 정보' }),
+    ApiNotAcceptableResponse({ description: '10초 내 재요청' }),
     ApiHeader({
       name: 'authorization',
       required: true,
@@ -65,7 +75,7 @@ export function SignupDocs() {
     }),
     ApiBody({
       description: '유저 정보 차례대로 하나씩',
-      type: CreateUserDto,
+      type: SignupUserRequestDto,
     }),
     ApiOperation({
       summary: '회원가입',
@@ -183,5 +193,6 @@ export function AlreadyCheckDocs() {
       type: String,
       example: '010123',
     }),
+    ApiBody({ description: 'phone', type: SignupPhoneRequestDto }),
   );
 }
