@@ -10,11 +10,30 @@ import {
   BlurtingAnswerEntity,
   BlurtingGroupEntity,
   BlurtingQuestionEntity,
+  ReplyEntity,
   UserEntity,
 } from 'src/entities';
 import { ApiProperty } from '@nestjs/swagger';
 import { Mbti, Sex } from 'src/common/enums';
 
+export class ReplyDto {
+  @ApiProperty({ description: '답글 작성 유저 아이디' })
+  writerUserId: number;
+  @ApiProperty({ description: '답글 작성 유저 닉네임' })
+  writerUserName: string;
+  @ApiProperty({ description: '답글 내용' })
+  content: string;
+  @ApiProperty({ description: '답글 작성 시간 ( 한국 시간 기준 )' })
+  createdAt: Date;
+  static toDto(entity: ReplyEntity): ReplyDto {
+    return {
+      writerUserId: entity.user.id,
+      writerUserName: entity.user.userNickname,
+      content: entity.content,
+      createdAt: new Date(entity.createdAt.getTime() + 1000 * 60 * 60 * 9),
+    };
+  }
+}
 export class BlurtingAnswerDto {
   @IsNumber()
   @ApiProperty({ description: 'userId' })
@@ -54,6 +73,9 @@ export class BlurtingAnswerDto {
   @ApiProperty({ description: '답변 ID' })
   id: number;
 
+  @ApiProperty({ description: '답글들', type: ReplyDto, isArray: true })
+  reply: ReplyDto[];
+
   static ToDto(
     answerEntity: BlurtingAnswerEntity,
     room: string,
@@ -72,6 +94,7 @@ export class BlurtingAnswerDto {
       room: room ?? null,
       likes,
       ilike,
+      reply: answerEntity.reply.map((e) => ReplyDto.toDto(e)),
     };
   }
 }

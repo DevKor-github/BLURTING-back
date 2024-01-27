@@ -56,7 +56,7 @@ export class BlurtingController {
     description: '마지막 Q&A 정보 반환',
     type: BlurtingPageDto,
   })
-  async getBlurting(@Req() req: Request, @Res() res: Response) {
+  async getBlurting(@Req() req: Request) {
     const { id } = req.user as JwtPayload;
     const user = await this.userService.findUserByVal('id', id);
     const blurtingPage = await this.blurtingService.getBlurting(
@@ -64,7 +64,7 @@ export class BlurtingController {
       user.group,
       0,
     );
-    return res.json(blurtingPage);
+    return blurtingPage;
   }
 
   @UseGuards(AuthGuard('access'))

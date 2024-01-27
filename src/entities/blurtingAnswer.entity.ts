@@ -1,5 +1,11 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { BlurtingQuestionEntity, UserEntity } from '../entities';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { BlurtingQuestionEntity, ReplyEntity, UserEntity } from '../entities';
 import { Sex } from 'src/common/enums';
 
 @Entity()
@@ -28,4 +34,7 @@ export class BlurtingAnswerEntity {
 
   @Column({ default: 0 })
   allLikes: number;
+
+  @OneToMany(() => ReplyEntity, (reply) => reply.answer)
+  reply: ReplyEntity[];
 }
