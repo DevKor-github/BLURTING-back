@@ -16,7 +16,7 @@ import { UserService } from 'src/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
 import { SignupGuard } from './guard/signup.guard';
 import { Page } from 'src/common/enums/page.enum';
-import { CreateUserDto, LoginDto } from 'src/dtos/user.dto';
+import { LoginDto } from 'src/dtos/user.dto';
 import {
   ApiCreatedResponse,
   ApiHeader,
@@ -35,9 +35,11 @@ import {
   SignupTokenResponseDto,
   TokenResponseDto,
 } from './dtos/tokenResponseDto';
-import { SignupPhoneRequestDto } from './dtos/signupPhoneRequest.dto';
-import { SignupEmailRequestDto } from './dtos/signupEmailRequest.dto';
-import { SignupImageRequestDto } from './dtos/signupImageRequest.dto';
+import {
+  SignupEmailRequestDto,
+  SignupPhoneRequestDto,
+  SignupUserRequestDto,
+} from './dtos/signupRequest.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -48,18 +50,19 @@ export class AuthController {
   ) {}
 
   @UseGuards(SignupGuard)
-  @ApiQuery({
-    name: 'code',
-    description: '인증번호',
-    type: String,
-    example: '010123',
-  })
   @Post('/check/phone')
   @ApiConflictResponse({ description: '사용 중 전화번호' })
   @ApiBadRequestResponse({ description: 'invalid signup token' })
   @ApiUnauthorizedResponse({ description: '인증번호 오류' })
   @ApiRequestTimeoutResponse({ description: '인증번호 시간 초과' })
   @ApiCreatedResponse({ description: '성공', type: SignupTokenResponseDto })
+  @ApiQuery({
+    name: 'code',
+    description: '인증번호',
+    type: String,
+    example: '010123',
+  })
+  @ApiBody({ description: 'phone', type: SignupPhoneRequestDto })
   async checkCode(
     @Req() req: Request,
     @Query('code') code: string,
@@ -71,11 +74,11 @@ export class AuthController {
         throw new BadRequestException('invalid signup token');
       }
 
-      await this.authService.checkCode(id, code, body.phoneNumber);
+      await this.authService.checkCode(code, body.phoneNumber);
+      await this.userService.updateUser(id, 'phoneNumber', body.phoneNumber);
       const signupToken = await this.authService.getSignupToken(
         req.user as SignupPayload,
       );
-
       return { signupToken: signupToken };
     } catch (err) {
       console.log(err);
@@ -94,14 +97,12 @@ export class AuthController {
     type: String,
     example: '123456',
   })
-  @ApiQuery({
-    name: 'email',
-    description: '이메일',
-    type: String,
-    example: '123456@korea.ac.kr',
-  })
-  async checkMail(@Query('code') code: string, @Query('email') email: string) {
-    await this.authService.checkMail(code, email);
+  @ApiBody({ description: 'email', type: SignupEmailRequestDto })
+  async checkMail(
+    @Query('code') code: string,
+    @Body() body: SignupEmailRequestDto,
+  ) {
+    await this.authService.checkMail(code, body.email);
     return '<h1>가입 완료!</h1>블러팅 앱으로 돌아가주세요.';
   }
 
@@ -111,6 +112,11 @@ export class AuthController {
     description: 'new signup token',
     type: SignupTokenResponseDto,
   })
+  @ApiBadRequestResponse({
+    description: 'invalid signup token or invalid info',
+  })
+  @ApiConflictResponse({ description: '이미 가입된 정보' })
+  @ApiNotAcceptableResponse({ description: '10초 내 재요청' })
   @ApiHeader({
     name: 'authorization',
     required: true,
@@ -118,7 +124,7 @@ export class AuthController {
   })
   @ApiBody({
     description: '유저 정보 차례대로 하나씩',
-    type: CreateUserDto,
+    type: SignupUserRequestDto,
   })
   @ApiOperation({
     summary: '회원가입',
@@ -127,7 +133,7 @@ export class AuthController {
   })
   async signup(
     @Req() req: Request,
-    @Body() info: CreateUserDto,
+    @Body() info: SignupUserRequestDto,
     @Res() res: Response,
   ) {
     try {
@@ -153,6 +159,15 @@ export class AuthController {
       switch (pageName) {
         case 'userName':
           await this.userService.updateUser(id, 'userName', info['userName']);
+          break;
+        case 'phoneNumber':
+          await this.authService.validatePhoneNumber(info['phoneNumber'], id);
+          break;
+        case 'image':
+          await this.userService.updateUserImages(id, info['images']);
+          break;
+        case 'email':
+          await this.authService.validateEmail(id, info['email']);
           break;
         default:
           await this.userService.updateUserInfo(
@@ -181,7 +196,7 @@ export class AuthController {
     summary: '회원가입 시작',
     description: '첫 signup token 발행',
   })
-  async signupStart(@Req() req: Request, @Res() res: Response) {
+  async signupStart() {
     try {
       const user = await this.userService.createUser();
       const userInfo = await this.userService.createUserInfo(user);
@@ -191,85 +206,10 @@ export class AuthController {
         page: 0,
       });
 
-      return res.json({ signupToken: signupToken });
+      return { signupToken: signupToken };
     } catch (err) {
-      res.status(err.status).json(err);
+      return err;
     }
-  }
-
-  @Post('/signup/phonenumber')
-  @UseGuards(SignupGuard)
-  @ApiOperation({ summary: '휴대폰 인증 요청' })
-  @ApiBadRequestResponse({
-    description: 'invalid signup token 또는 전화번호 오류',
-  })
-  @ApiConflictResponse({ description: '사용 중 전화번호' })
-  @ApiNotAcceptableResponse({ description: '10초 내 재요청' })
-  @ApiCreatedResponse({
-    description: 'new signup token',
-    type: SignupTokenResponseDto,
-  })
-  async signupPhoneNumber(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Body() body: SignupPhoneRequestDto,
-  ) {
-    try {
-      const { id, page } = req.user as SignupPayload;
-      if (Page[page] != 'phoneNumber') {
-        throw new BadRequestException('invalid signup token');
-      }
-      await this.authService.validatePhoneNumber(body.phoneNumber, id);
-      const signupToken = await this.authService.getSignupToken(
-        req.user as SignupPayload,
-      );
-
-      return res.json({ signupToken: signupToken });
-    } catch (err) {
-      console.log(err);
-      res.status(err.status).json(err);
-    }
-  }
-
-  @Post('/signup/images')
-  @UseGuards(SignupGuard)
-  @ApiBadRequestResponse({ description: 'invalid signup token' })
-  @ApiCreatedResponse({
-    description: 'new signup token',
-    type: SignupTokenResponseDto,
-  })
-  async signupImage(@Body() body: SignupImageRequestDto, @Req() req: Request) {
-    const { id } = req.user as SignupPayload;
-
-    await this.userService.updateUserImages(id, body.images);
-    const signupToken = await this.authService.getSignupToken(
-      req.user as SignupPayload,
-    );
-    return { signupToken };
-  }
-
-  @Post('/signup/email')
-  @UseGuards(SignupGuard)
-  @ApiBadRequestResponse({
-    description: 'invalid signup token or invalid email',
-  })
-  @ApiConflictResponse({ description: '이미 가입된 이메일' })
-  @ApiNotAcceptableResponse({ description: '10초 내 재요청' })
-  @ApiCreatedResponse({
-    description: 'new signup token',
-    type: SignupTokenResponseDto,
-  })
-  async signupEmail(@Req() req: Request, @Body() body: SignupEmailRequestDto) {
-    const { id, page } = req.user as SignupPayload;
-    if (Page[page] != 'email') {
-      throw new BadRequestException('invalid signup token');
-    }
-    await this.authService.sendVerificationCode(id, body.email);
-    const signupToken = await this.authService.getSignupToken(
-      req.user as SignupPayload,
-    );
-
-    return { signupToken: signupToken };
   }
 
   @Get('/signup/back')
@@ -285,7 +225,7 @@ export class AuthController {
     summary: '회원가입 뒤로가기',
     description: '이전 signup token 발행',
   })
-  async signupBack(@Req() req: Request, @Res() res: Response) {
+  async signupBack(@Req() req: Request) {
     try {
       const { id, infoId, page } = req.user as SignupPayload;
       const signupToken = await this.authService.getSignupToken({
@@ -294,27 +234,27 @@ export class AuthController {
         page: page - 2,
       });
 
-      return res.json({ signupToken: signupToken });
+      return { signupToken: signupToken };
     } catch (err) {
-      res.status(err.status).json(err);
+      return err;
     }
   }
 
   @Post('/login')
   @ApiOperation({ deprecated: true })
-  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
+  async login(@Body() loginDto: LoginDto) {
     const { id } = loginDto;
 
-    const user = await this.authService.validateUser(id);
+    const user = await this.userService.findUserByVal('id', id);
     const refreshToken = await this.authService.getRefreshToken({
       id: user.id,
     });
     const accessToken = await this.authService.getAccessToken({ id: user.id });
-    return res.json({
+    return {
       id: user.id,
       refreshToken: refreshToken,
       accessToken: accessToken,
-    });
+    };
   }
 
   @UseGuards(AuthGuard('refresh'))
@@ -361,8 +301,21 @@ export class AuthController {
     type: String,
     example: '010123',
   })
-  async alreadyCheck(@Query('code') code: string) {
-    const result = await this.authService.checkCodeAlready(code);
-    return result;
+  async alreadyCheck(
+    @Query('code') code: string,
+    @Body() body: SignupPhoneRequestDto,
+  ) {
+    try {
+      await this.authService.checkCode(code, body.phoneNumber);
+      const user = await this.userService.findUserByPhone(body.phoneNumber);
+      const refreshJwt = await this.authService.getRefreshToken({
+        id: user.id,
+      });
+      const accessJwt = await this.authService.getAccessToken({ id: user.id });
+      return { refreshToken: refreshJwt, accessToken: accessJwt, id: user.id };
+    } catch (err) {
+      console.log(err);
+      return err;
+    }
   }
 }
