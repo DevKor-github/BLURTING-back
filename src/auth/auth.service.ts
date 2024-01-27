@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Injectable,
-  Logger,
   BadRequestException,
   ConflictException,
   NotAcceptableException,
@@ -36,14 +35,10 @@ export class AuthService {
     private readonly pointService: PointService,
   ) {}
 
-  private readonly logger = new Logger(AuthService.name);
-
   async getRefreshToken({ id }) {
     const payload: JwtPayload = {
       id: id,
-      signedAt: new Date(
-        new Date().getTime() + 9 * 60 * 60 * 1000,
-      ).toISOString(),
+      signedAt: new Date().toISOString(),
     };
 
     const refreshJwt = await this.jwtService.sign(payload, {
@@ -57,9 +52,7 @@ export class AuthService {
   async getAccessToken({ id }) {
     const payload: JwtPayload = {
       id: id,
-      signedAt: new Date(
-        new Date().getTime() + 9 * 60 * 60 * 1000,
-      ).toISOString(),
+      signedAt: new Date().toISOString(),
     };
 
     const accessJwt = await this.jwtService.sign(payload, {
@@ -84,18 +77,9 @@ export class AuthService {
     return signupJwt;
   }
 
-  async validateUser(id: number) {
-    const user = await this.userService.findUserByVal('id', id);
-
-    if (!user || id == undefined) {
-      throw new UnauthorizedException('등록되지 않은 사용자입니다.');
-    }
-    return user;
-  }
-
   async validatePhoneNumber(phoneNumber: string, userId: number) {
     const phone = await this.authPhoneNumberRepository.findOne({
-      where: { user: { id: userId }, isValid: false },
+      where: { phoneNumber, isValid: false },
       order: { createdAt: 'DESC' },
     });
 
@@ -112,95 +96,10 @@ export class AuthService {
       await this.authPhoneNumberRepository.delete(phone);
     }
 
-    if (phoneNumber === '01090319869' || phoneNumber === '01056210281') {
-      const phoneEntity = this.authPhoneNumberRepository.create({
-        user: { id: userId },
-        code: '000000',
-        isValid: false,
-      });
-      await this.authPhoneNumberRepository.save(phoneEntity);
-      return;
-    }
-
-    const API_URL = `https://sens.apigw.ntruss.com/sms/v2/services/${process.env.SENS_SERVICE_ID}/messages`;
-    const rand = Math.floor(Math.random() * 1000000).toString();
-    const number = rand.padStart(6, '0');
-    const body = {
-      type: 'SMS',
-      from: process.env.SENS_PHONE_NUMBER,
-      content: `블러팅 휴대폰 인증번호는 [${number}]입니다.`,
-      messages: [
-        {
-          to: phoneNumber,
-          content: `블러팅 휴대폰 인증번호는 [${number}]입니다.`,
-        },
-      ],
-    };
-
-    const phoneEntity = this.authPhoneNumberRepository.create({
-      user: { id: userId },
-      code: number,
-      isValid: false,
-    });
-    await this.authPhoneNumberRepository.save(phoneEntity);
-
-    const accessKey = process.env.NAVER_API_KEY;
-    const secretKey = process.env.NAVER_API_SECRET;
-    const timestamp = Date.now().toString();
-
-    const hmac = crypto.createHmac('sha256', secretKey);
-    hmac.update('POST');
-    hmac.update(' ');
-    hmac.update(`/sms/v2/services/${process.env.SENS_SERVICE_ID}/messages`);
-    hmac.update('\n');
-    hmac.update(`${timestamp}`);
-    hmac.update('\n');
-    hmac.update(`${accessKey}`);
-    const hash = hmac.digest('base64');
-    let response;
-    try {
-      response = await axios.post(API_URL, body, {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-ncp-apigw-timestamp': timestamp,
-          'x-ncp-iam-access-key': accessKey,
-          'x-ncp-apigw-signature-v2': hash,
-        },
-      });
-    } catch (err) {
-      console.log(err);
-      throw new BadRequestException(err.response.data);
-    }
-    if (Number(response.data.statusCode) !== 202)
-      throw new BadRequestException(
-        '올바르지 않은 전화번호입니다. 다시 시도해주세요.',
-      );
+    this.sendCode(phoneNumber, userId);
   }
 
-  async checkCode(userId: number, code: string, phoneNumber: string) {
-    const phone = await this.authPhoneNumberRepository.findOne({
-      where: { user: { id: userId }, code },
-      relations: ['user'],
-    });
-    if (!phone) {
-      throw new UnauthorizedException('인증번호가 일치하지 않습니다.');
-    }
-    if (phone.createdAt.getTime() + 3 * 60 * 1000 < Date.now()) {
-      throw new RequestTimeoutException(
-        '유효 시간이 지났습니다. 인증번호를 다시 요청해주세요.',
-      );
-    }
-
-    if (phone.isValid) {
-      throw new ConflictException('이미 인증된 번호입니다.');
-    }
-
-    await this.authPhoneNumberRepository.delete(phone);
-    await this.userService.updateUser(userId, 'phoneNumber', phoneNumber);
-    return true;
-  }
-
-  async sendVerificationCode(userId: number, to: string) {
+  async validateEmail(userId: number, to: string) {
     const existingUser = await this.userService.findUserByVal('email', to);
     if (existingUser) throw new ConflictException('이미 가입된 이메일입니다.');
     const mail = await this.authMailRepository.findOne({
@@ -274,7 +173,7 @@ export class AuthService {
     if (!user) throw new NotFoundException('가입되지 않은 전화번호입니다.');
 
     const phone = await this.authPhoneNumberRepository.findOne({
-      where: { user: user, isValid: false },
+      where: { phoneNumber: user.phoneNumber, isValid: false },
       order: { createdAt: 'DESC' },
     });
 
@@ -287,9 +186,13 @@ export class AuthService {
       await this.authPhoneNumberRepository.delete(phone);
     }
 
+    this.sendCode(phoneNumber, user.id);
+  }
+
+  async sendCode(phoneNumber: string, userId: number) {
     if (phoneNumber === '01090319869' || phoneNumber === '01056210281') {
       const phoneEntity = this.authPhoneNumberRepository.create({
-        user: user,
+        phoneNumber: phoneNumber,
         code: '000000',
         isValid: false,
       });
@@ -313,7 +216,7 @@ export class AuthService {
     };
 
     const phoneEntity = this.authPhoneNumberRepository.create({
-      user: user,
+      phoneNumber: phoneNumber,
       code: number,
       isValid: false,
     });
@@ -352,9 +255,9 @@ export class AuthService {
       );
   }
 
-  async checkCodeAlready(code: string) {
+  async checkCode(code: string, phoneNumber: string) {
     const phone = await this.authPhoneNumberRepository.findOne({
-      where: { code },
+      where: { code, phoneNumber },
       relations: ['user'],
       order: { createdAt: 'DESC' },
     });
@@ -366,17 +269,11 @@ export class AuthService {
         '유효 시간이 지났습니다. 인증번호를 다시 요청해주세요.',
       );
     }
-
     if (phone.isValid) {
       throw new ConflictException('이미 인증된 번호입니다.');
     }
 
     await this.authPhoneNumberRepository.delete(phone);
-    const id = phone.user.id;
-    const refreshJwt = await this.getRefreshToken({ id });
-    const accessJwt = await this.getAccessToken({ id });
-    await this.userService.createSocketUser(id);
-
-    return { refreshToken: refreshJwt, accessToken: accessJwt, id };
+    return true;
   }
 }
