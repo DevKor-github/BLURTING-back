@@ -94,7 +94,9 @@ export class BlurtingAnswerDto {
       room: room ?? null,
       likes,
       ilike,
-      reply: answerEntity.reply.map((e) => ReplyDto.toDto(e)),
+      reply: answerEntity.reply
+        ? answerEntity.reply.map((e) => ReplyDto.toDto(e))
+        : null,
     };
   }
 }
