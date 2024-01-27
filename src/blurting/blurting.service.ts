@@ -480,7 +480,7 @@ export class BlurtingService {
     }
   }
 
-  async makeArrow(userId: number, toId: number) {
+  async makeArrow(userId: number, toId: number, day: number) {
     const user = await this.userService.findUserByVal('id', userId);
 
     const arrow = await this.arrowRepository.findOne({
@@ -490,9 +490,10 @@ export class BlurtingService {
       },
       order: { no: 'DESC' },
     });
-    let no = 1;
-    if (arrow) no = arrow.no + 1;
-
+    const no = day;
+    if (arrow && arrow.no >= day) {
+      throw new BadRequestException('이미 화살표 존재');
+    }
     const newArrow = this.arrowRepository.create({
       from: { id: userId },
       to: toId === -1 ? null : { id: toId },
@@ -504,12 +505,12 @@ export class BlurtingService {
 
     this.fcmService.sendPush(
       toId,
-      `${user.userNickname}님이 당신에게 화살표를 보냈습니다!`,
+      `${user.userNickname}님이 당신에게 화살을 보냈습니다!`,
       'blurting',
     );
     const newEntity = this.notificationRepository.create({
       user: { id: userId },
-      body: `${user.userNickname}님이 당신에게 화살표를 보냈습니다!`,
+      body: `${user.userNickname}님이 당신에게 화살을 보냈습니다!`,
     });
     await this.notificationRepository.insert(newEntity);
   }

@@ -180,10 +180,15 @@ export class BlurtingController {
     return await this.blurtingService.likeAnswer(id, answerId);
   }
   @UseGuards(AuthGuard('access'))
-  @Post('/arrow/:toId')
+  @Post('/arrow/:toId/:day')
   @ApiParam({
     description: '화살표 받을 사람 id',
     name: 'toId',
+    type: Number,
+  })
+  @ApiParam({
+    description: 'day',
+    name: 'day, 1,2,3으로 보내주세요',
     type: Number,
   })
   @ApiOperation({
@@ -194,9 +199,13 @@ export class BlurtingController {
   @ApiOkResponse({
     description: '화살표 보내기 성공',
   })
-  async makeArrow(@Req() req: Request, @Param('toId') toId: number) {
+  async makeArrow(
+    @Req() req: Request,
+    @Param('toId') toId: number,
+    @Param('day') day: number,
+  ) {
     const { id } = req.user as JwtPayload;
-    return await this.blurtingService.makeArrow(id, toId);
+    return await this.blurtingService.makeArrow(id, toId, day);
   }
   @UseGuards(AuthGuard('access'))
   @Get('/arrow')
