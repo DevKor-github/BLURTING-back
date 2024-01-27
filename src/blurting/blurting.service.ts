@@ -239,7 +239,7 @@ export class BlurtingService {
 
     const answers = await this.answerRepository.find({
       where: { question: question },
-      order: { postedAt: 'ASC' },
+      order: { postedAt: 'ASC', reply: { createdAt: 'DESC' } },
       relations: ['question', 'user', 'reply', 'reply.user'],
     });
 
