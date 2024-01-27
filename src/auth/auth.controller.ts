@@ -1,15 +1,12 @@
 import {
   Controller,
   Body,
-  Req,
-  Res,
   Post,
   UseGuards,
   Query,
   Get,
   BadRequestException,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { UserService } from 'src/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
@@ -38,6 +35,8 @@ import {
   SignupImageRequestDto,
 } from './dtos';
 import { RefreshGuard } from './guard/refresh.guard';
+import { SignupUser } from 'src/decorators/signupUser.decorator';
+import { User } from 'src/decorators/accessUser.decorator';
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
@@ -60,26 +59,19 @@ export class AuthController {
   @ApiRequestTimeoutResponse({ description: '인증번호 시간 초과' })
   @ApiCreatedResponse({ description: '성공', type: SignupTokenResponseDto })
   async checkCode(
-    @Req() req: Request,
+    @SignupUser() signupPayload: SignupPayload,
     @Query('code') code: string,
     @Body() body: SignupPhoneRequestDto,
   ) {
-    try {
-      const { id, page } = req.user as SignupPayload;
-      if (Page[page] != 'checkPhoneNumber') {
-        throw new BadRequestException('invalid signup token');
-      }
-
-      await this.authService.checkCode(id, code, body.phoneNumber);
-      const signupToken = await this.authService.getSignupToken(
-        req.user as SignupPayload,
-      );
-
-      return { signupToken: signupToken };
-    } catch (err) {
-      console.log(err);
-      return err;
+    const { id, page } = signupPayload;
+    if (Page[page] != 'checkPhoneNumber') {
+      throw new BadRequestException('invalid signup token');
     }
+
+    await this.authService.checkCode(id, code, body.phoneNumber);
+    const signupToken = await this.authService.getSignupToken(signupPayload);
+
+    return { signupToken: signupToken };
   }
 
   @Get('/check/email')
@@ -125,50 +117,39 @@ export class AuthController {
       'signup token과 body의 정보로 회원가입 진행 및 signup token 재발행',
   })
   async signup(
-    @Req() req: Request,
+    @SignupUser() signupPayload: SignupPayload,
     @Body() info: CreateUserDto,
-    @Res() res: Response,
   ) {
-    try {
-      const { id, infoId, page } = req.user as SignupPayload;
-      if (page == 16) {
-        const result = await this.authService.checkComplete(id);
-        if (!result) throw new BadRequestException('invalid info');
-        await this.userService.createSocketUser(id);
-        return res.json({
-          refreshToken: await this.authService.getRefreshToken({
-            id: id,
-          }),
-          accessToken: await this.authService.getAccessToken({
-            id: id,
-          }),
-          userId: id,
-        });
-      }
-
-      const pageName = Object.keys(Page).find((key) => Page[key] == page);
-      if (info[pageName] == undefined || info[pageName] == null)
-        throw new BadRequestException('invalid info');
-      switch (pageName) {
-        case 'userName':
-          await this.userService.updateUser(id, 'userName', info['userName']);
-          break;
-        default:
-          await this.userService.updateUserInfo(
-            infoId,
-            pageName,
-            info[pageName],
-          );
-      }
-
-      const signupToken = await this.authService.getSignupToken(
-        req.user as SignupPayload,
-      );
-
-      return res.json({ signupToken: signupToken });
-    } catch (err) {
-      res.status(err.status).json(err);
+    const { id, infoId, page } = signupPayload;
+    if (page == 16) {
+      const result = await this.authService.checkComplete(id);
+      if (!result) throw new BadRequestException('invalid info');
+      await this.userService.createSocketUser(id);
+      return {
+        refreshToken: await this.authService.getRefreshToken({
+          id: id,
+        }),
+        accessToken: await this.authService.getAccessToken({
+          id: id,
+        }),
+        userId: id,
+      };
     }
+
+    const pageName = Object.keys(Page).find((key) => Page[key] == page);
+    if (info[pageName] == undefined || info[pageName] == null)
+      throw new BadRequestException('invalid info');
+    switch (pageName) {
+      case 'userName':
+        await this.userService.updateUser(id, 'userName', info['userName']);
+        break;
+      default:
+        await this.userService.updateUserInfo(infoId, pageName, info[pageName]);
+    }
+
+    const signupToken = await this.authService.getSignupToken(signupPayload);
+
+    return { signupToken: signupToken };
   }
 
   @Get('/signup/start')
@@ -180,20 +161,16 @@ export class AuthController {
     summary: '회원가입 시작',
     description: '첫 signup token 발행',
   })
-  async signupStart(@Req() req: Request, @Res() res: Response) {
-    try {
-      const user = await this.userService.createUser();
-      const userInfo = await this.userService.createUserInfo(user);
-      const signupToken = await this.authService.getSignupToken({
-        id: user.id,
-        infoId: userInfo.id,
-        page: 0,
-      });
+  async signupStart() {
+    const user = await this.userService.createUser();
+    const userInfo = await this.userService.createUserInfo(user);
+    const signupToken = await this.authService.getSignupToken({
+      id: user.id,
+      infoId: userInfo.id,
+      page: 0,
+    });
 
-      return res.json({ signupToken: signupToken });
-    } catch (err) {
-      res.status(err.status).json(err);
-    }
+    return { signupToken: signupToken };
   }
 
   @Post('/signup/phonenumber')
@@ -209,25 +186,17 @@ export class AuthController {
     type: SignupTokenResponseDto,
   })
   async signupPhoneNumber(
-    @Req() req: Request,
-    @Res() res: Response,
+    @SignupUser() signupPayload: SignupPayload,
     @Body() body: SignupPhoneRequestDto,
   ) {
-    try {
-      const { id, page } = req.user as SignupPayload;
-      if (Page[page] != 'phoneNumber') {
-        throw new BadRequestException('invalid signup token');
-      }
-      await this.authService.validatePhoneNumber(body.phoneNumber, id);
-      const signupToken = await this.authService.getSignupToken(
-        req.user as SignupPayload,
-      );
-
-      return res.json({ signupToken: signupToken });
-    } catch (err) {
-      console.log(err);
-      res.status(err.status).json(err);
+    const { id, page } = signupPayload;
+    if (Page[page] != 'phoneNumber') {
+      throw new BadRequestException('invalid signup token');
     }
+    await this.authService.validatePhoneNumber(body.phoneNumber, id);
+    const signupToken = await this.authService.getSignupToken(signupPayload);
+
+    return { signupToken: signupToken };
   }
 
   @Post('/signup/images')
@@ -237,13 +206,14 @@ export class AuthController {
     description: 'new signup token',
     type: SignupTokenResponseDto,
   })
-  async signupImage(@Body() body: SignupImageRequestDto, @Req() req: Request) {
-    const { id } = req.user as SignupPayload;
+  async signupImage(
+    @SignupUser() signupPayload: SignupPayload,
+    @Body() body: SignupImageRequestDto,
+  ) {
+    const { id } = signupPayload;
 
     await this.userService.updateUserImages(id, body.images);
-    const signupToken = await this.authService.getSignupToken(
-      req.user as SignupPayload,
-    );
+    const signupToken = await this.authService.getSignupToken(signupPayload);
     return { signupToken };
   }
 
@@ -258,15 +228,16 @@ export class AuthController {
     description: 'new signup token',
     type: SignupTokenResponseDto,
   })
-  async signupEmail(@Req() req: Request, @Body() body: SignupEmailRequestDto) {
-    const { id, page } = req.user as SignupPayload;
+  async signupEmail(
+    @SignupUser() signupPayload: SignupPayload,
+    @Body() body: SignupEmailRequestDto,
+  ) {
+    const { id, page } = signupPayload;
     if (Page[page] != 'email') {
       throw new BadRequestException('invalid signup token');
     }
     await this.authService.sendVerificationCode(id, body.email);
-    const signupToken = await this.authService.getSignupToken(
-      req.user as SignupPayload,
-    );
+    const signupToken = await this.authService.getSignupToken(signupPayload);
 
     return { signupToken: signupToken };
   }
@@ -284,24 +255,20 @@ export class AuthController {
     summary: '회원가입 뒤로가기',
     description: '이전 signup token 발행',
   })
-  async signupBack(@Req() req: Request, @Res() res: Response) {
-    try {
-      const { id, infoId, page } = req.user as SignupPayload;
-      const signupToken = await this.authService.getSignupToken({
-        id: id,
-        infoId: infoId,
-        page: page - 2,
-      });
+  async signupBack(@SignupUser() signupPayload: SignupPayload) {
+    const { id, infoId, page } = signupPayload;
+    const signupToken = await this.authService.getSignupToken({
+      id: id,
+      infoId: infoId,
+      page: page - 2,
+    });
 
-      return res.json({ signupToken: signupToken });
-    } catch (err) {
-      res.status(err.status).json(err);
-    }
+    return { signupToken: signupToken };
   }
 
   @Post('/login')
   @ApiOperation({ deprecated: true })
-  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
+  async login(@Body() loginDto: LoginDto) {
     const { id } = loginDto;
 
     const user = await this.authService.validateUser(id);
@@ -309,11 +276,11 @@ export class AuthController {
       id: user.id,
     });
     const accessToken = await this.authService.getAccessToken({ id: user.id });
-    return res.json({
+    return {
       id: user.id,
       refreshToken: refreshToken,
       accessToken: accessToken,
-    });
+    };
   }
 
   @UseGuards(RefreshGuard)
@@ -331,8 +298,8 @@ export class AuthController {
     summary: 'accesstoken 갱신',
     description: 'refresh token으로 access token 갱신',
   })
-  async refresh(@Req() req: Request): Promise<TokenResponseDto> {
-    const { id } = req.user as JwtPayload;
+  async refresh(@User() user: JwtPayload): Promise<TokenResponseDto> {
+    const { id } = user;
     const refreshToken = await this.authService.getRefreshToken({
       id: id,
     });
