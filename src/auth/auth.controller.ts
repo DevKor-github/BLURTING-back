@@ -10,7 +10,6 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { UserService } from 'src/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
@@ -38,6 +37,7 @@ import {
   SignupEmailRequestDto,
   SignupImageRequestDto,
 } from './dtos';
+import { RefreshGuard } from './guard/refresh.guard';
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
@@ -316,7 +316,7 @@ export class AuthController {
     });
   }
 
-  @UseGuards(AuthGuard('refresh'))
+  @UseGuards(RefreshGuard)
   @Post('/refresh')
   @ApiCreatedResponse({
     description: 'new access token',
