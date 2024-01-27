@@ -62,7 +62,7 @@ export class AuthController {
     await this.authService.checkCode(id, code, body.phoneNumber);
     const signupToken = await this.authService.getSignupToken(signupPayload);
 
-    return { signupToken: signupToken };
+    return { signupToken };
   }
 
   @Get('/check/email')
@@ -111,7 +111,7 @@ export class AuthController {
 
     const signupToken = await this.authService.getSignupToken(signupPayload);
 
-    return { signupToken: signupToken };
+    return { signupToken };
   }
 
   @Get('/signup/start')
@@ -125,7 +125,7 @@ export class AuthController {
       page: 0,
     });
 
-    return { signupToken: signupToken };
+    return { signupToken };
   }
 
   @Post('/signup/phonenumber')
@@ -142,7 +142,7 @@ export class AuthController {
     await this.authService.validatePhoneNumber(body.phoneNumber, id);
     const signupToken = await this.authService.getSignupToken(signupPayload);
 
-    return { signupToken: signupToken };
+    return { signupToken };
   }
 
   @Post('/signup/images')
@@ -173,7 +173,7 @@ export class AuthController {
     await this.authService.sendVerificationCode(id, body.email);
     const signupToken = await this.authService.getSignupToken(signupPayload);
 
-    return { signupToken: signupToken };
+    return { signupToken };
   }
 
   @Get('/signup/back')
@@ -184,12 +184,12 @@ export class AuthController {
   ): Promise<SignupTokenResponseDto> {
     const { id, infoId, page } = signupPayload;
     const signupToken = await this.authService.getSignupToken({
-      id: id,
-      infoId: infoId,
+      id,
+      infoId,
       page: page - 2,
     });
 
-    return { signupToken: signupToken };
+    return { signupToken };
   }
 
   @Post('/login')
@@ -204,8 +204,8 @@ export class AuthController {
     const accessToken = await this.authService.getAccessToken({ id: user.id });
     return {
       id: user.id,
-      refreshToken: refreshToken,
-      accessToken: accessToken,
+      refreshToken,
+      accessToken,
     };
   }
 
@@ -215,12 +215,12 @@ export class AuthController {
   async refresh(@User() user: JwtPayload): Promise<TokenResponseDto> {
     const { id } = user;
     const refreshToken = await this.authService.getRefreshToken({
-      id: id,
+      id,
     });
     const accessToken = await this.authService.getAccessToken({ id: id });
     return {
-      refreshToken: refreshToken,
-      accessToken: accessToken,
+      refreshToken,
+      accessToken,
     };
   }
 
