@@ -18,6 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtPayload } from 'src/interfaces/auth';
 import { PointService } from './point.service';
+import { UserService } from 'src/user/user.service';
 import { PointHistoryDto } from 'src/dtos/point.dto';
 import { ReportService } from 'src/report/report.service';
 
@@ -26,6 +27,7 @@ export class PointController {
   constructor(
     private readonly pointService: PointService,
     private readonly reportService: ReportService,
+    private readonly userService: UserService,
   ) {}
 
   @UseGuards(AuthGuard('access'))
@@ -146,7 +148,11 @@ export class PointController {
     try {
       const updatedPoint = await this.pointService.checkNicknamePoint(id);
       if (updatedPoint) {
-        return res.json({ point: updatedPoint.point });
+        const user = await this.userService.findUserByVal('id', id);
+        return res.json({
+          point: updatedPoint.point,
+          nickname: user.userNickname,
+        });
       }
       return res.send(false);
     } catch (err) {
