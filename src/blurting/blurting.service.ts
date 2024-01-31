@@ -337,7 +337,7 @@ export class BlurtingService {
   async isMatching(user: UserEntity) {
     const sexOrient = this.userService.getUserSexOrient(user.userInfo);
     const region = user.userInfo.region.split(' ')[0];
-    const qName = `${region}_${sexOrient}`;
+    const qName = /*`${region}_*/ `${sexOrient}`;
     const groupQueue: number[] = await this.cacheManager.get(qName);
     if (!groupQueue) {
       await this.cacheManager.set(qName, []);
@@ -357,7 +357,7 @@ export class BlurtingService {
       }
       const sexOrient = this.userService.getUserSexOrient(user.userInfo);
       const region = user.userInfo.region.split(' ')[0];
-      const qName = `${region}_${sexOrient}`;
+      const qName = /*`${region}_*/ `${sexOrient}`;
 
       let groupQueue: number[] = await this.cacheManager.get(qName);
       if (!groupQueue) {
@@ -393,7 +393,7 @@ export class BlurtingService {
         }
       }
       const oppositeSexorient = this.getOppositeQueueName(sexOrient);
-      const oppositeQueueName = `${region}_${oppositeSexorient}`;
+      const oppositeQueueName = /*`${region}_*/ `${oppositeSexorient}`;
       let oppositeQueue: number[] =
         await this.cacheManager.get(oppositeQueueName);
 
@@ -427,7 +427,7 @@ export class BlurtingService {
       const user = await this.userService.findUserByVal('id', id);
       const sexOrient = this.userService.getUserSexOrient(user.userInfo);
       const region = user.userInfo.region.split(' ')[0];
-      const qName = `${region}_${sexOrient}`;
+      const qName = /*`${region}_*/ `${sexOrient}`;
 
       const groupQueue: number[] = await this.cacheManager.get(qName);
       if (groupQueue.includes(id)) {
