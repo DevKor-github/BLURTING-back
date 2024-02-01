@@ -261,7 +261,7 @@ export class BlurtingController {
 
     if (
       user.group &&
-      user.group.createdAt <
+      user.group.createdAt >
         new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
     ) {
       return 1;
