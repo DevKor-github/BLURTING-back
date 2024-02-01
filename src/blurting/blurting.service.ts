@@ -19,7 +19,7 @@ import {
   ReplyEntity,
 } from 'src/entities';
 import { UserService } from 'src/user/user.service';
-import { In, Repository } from 'typeorm';
+import { Between, In, Repository } from 'typeorm';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { Sex, SexOrient } from 'src/common/enums';
@@ -352,6 +352,13 @@ export class BlurtingService {
   async registerGroupQueue(id: number) {
     try {
       const user = await this.userService.findUserByVal('id', id);
+      if (
+        user.group &&
+        user.group.createdAt <
+          new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
+      ) {
+        return 3;
+      }
       if (user.group) {
         return 1;
       }
@@ -560,6 +567,39 @@ export class BlurtingService {
     });
     return { iSended: sendDto, iReceived: receiveDto };
   }
+
+  async getFinalArrow(userId: number) {
+    const user = await this.userService.findUserByVal('id', userId);
+    const selectedUser = await this.arrowRepository.findOne({
+      where: { from: { id: userId } },
+      order: { no: 'DESC' },
+    });
+    if (selectedUser.to == null) {
+      return null;
+    }
+
+    const arrow = await this.arrowRepository.findOne({
+      where: {
+        from: { id: selectedUser.to.id },
+        createdAt: Between(
+          user.group.createdAt,
+          new Date(user.group.createdAt.getTime() + 72 * 6 * 6 * 1000),
+        ),
+        no: 3,
+      },
+    });
+    if (arrow.to == null) {
+      return null;
+    }
+
+    return {
+      myname: user.userNickname,
+      mysex: user.userInfo.sex,
+      othername: selectedUser.to.userNickname,
+      othersex: selectedUser.to.userInfo.sex,
+    };
+  }
+
   async getGroupInfo(userId: number): Promise<OtherPeopleInfoDto[]> {
     const groupUsers = await this.userService.getGroupUsers(userId);
 
