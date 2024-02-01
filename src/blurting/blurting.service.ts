@@ -575,7 +575,10 @@ export class BlurtingService {
       order: { no: 'DESC' },
     });
     if (selectedUser.to == null) {
-      return null;
+      return {
+        myname: user.userNickname,
+        mysex: user.userInfo.sex,
+      };
     }
 
     const arrow = await this.arrowRepository.findOne({
@@ -589,7 +592,10 @@ export class BlurtingService {
       },
     });
     if (arrow.to == null) {
-      return null;
+      return {
+        myname: user.userNickname,
+        mysex: user.userInfo.sex,
+      };
     }
 
     return {
