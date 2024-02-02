@@ -609,7 +609,7 @@ export class BlurtingService {
     const newReply = this.replyRepository.create({
       user: { id: userId },
       answer: { id: answerId },
-      content,
+      content: content,
     });
     await this.replyRepository.save(newReply);
   }
