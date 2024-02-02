@@ -19,7 +19,7 @@ import {
   ReplyEntity,
 } from 'src/entities';
 import { UserService } from 'src/user/user.service';
-import { In, Repository } from 'typeorm';
+import { Between, In, Repository } from 'typeorm';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { Sex, SexOrient } from 'src/common/enums';
@@ -336,7 +336,7 @@ export class BlurtingService {
 
   async isMatching(user: UserEntity) {
     const sexOrient = this.userService.getUserSexOrient(user.userInfo);
-    const region = user.userInfo.region.split(' ')[0];
+    //const region = user.userInfo.region.split(' ')[0];
     const qName = /*`${region}_*/ `${sexOrient}`;
     const groupQueue: number[] = await this.cacheManager.get(qName);
     if (!groupQueue) {
@@ -352,11 +352,18 @@ export class BlurtingService {
   async registerGroupQueue(id: number) {
     try {
       const user = await this.userService.findUserByVal('id', id);
+      if (
+        user.group &&
+        user.group.createdAt <
+          new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
+      ) {
+        return 3;
+      }
       if (user.group) {
         return 1;
       }
       const sexOrient = this.userService.getUserSexOrient(user.userInfo);
-      const region = user.userInfo.region.split(' ')[0];
+      //const region = user.userInfo.region.split(' ')[0];
       const qName = /*`${region}_*/ `${sexOrient}`;
 
       let groupQueue: number[] = await this.cacheManager.get(qName);
@@ -426,7 +433,7 @@ export class BlurtingService {
       console.log(err);
       const user = await this.userService.findUserByVal('id', id);
       const sexOrient = this.userService.getUserSexOrient(user.userInfo);
-      const region = user.userInfo.region.split(' ')[0];
+      //const region = user.userInfo.region.split(' ')[0];
       const qName = /*`${region}_*/ `${sexOrient}`;
 
       const groupQueue: number[] = await this.cacheManager.get(qName);
@@ -560,6 +567,45 @@ export class BlurtingService {
     });
     return { iSended: sendDto, iReceived: receiveDto };
   }
+
+  async getFinalArrow(userId: number) {
+    const user = await this.userService.findUserByVal('id', userId);
+    const selectedUser = await this.arrowRepository.findOne({
+      where: { from: { id: userId } },
+      order: { no: 'DESC' },
+    });
+    if (selectedUser.to == null) {
+      return {
+        myname: user.userNickname,
+        mysex: user.userInfo.sex,
+      };
+    }
+
+    const arrow = await this.arrowRepository.findOne({
+      where: {
+        from: { id: selectedUser.to.id },
+        createdAt: Between(
+          user.group.createdAt,
+          new Date(user.group.createdAt.getTime() + 72 * 6 * 6 * 1000),
+        ),
+        no: 3,
+      },
+    });
+    if (arrow.to == null) {
+      return {
+        myname: user.userNickname,
+        mysex: user.userInfo.sex,
+      };
+    }
+
+    return {
+      myname: user.userNickname,
+      mysex: user.userInfo.sex,
+      othername: selectedUser.to.userNickname,
+      othersex: selectedUser.to.userInfo.sex,
+    };
+  }
+
   async getGroupInfo(userId: number): Promise<OtherPeopleInfoDto[]> {
     const groupUsers = await this.userService.getGroupUsers(userId);
 

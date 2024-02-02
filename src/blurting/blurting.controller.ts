@@ -121,9 +121,10 @@ export class BlurtingController {
   @UseGuards(AuthGuard('access'))
   @Post('/register')
   @ApiCreatedResponse({
-    description: '큐에 등록시 0 , 그룹이 있으면 1, 매칭 중이면 2',
+    description:
+      '큐에 등록시 0 , 그룹이 있으면 1, 매칭 중이면 2, 블러팅 끝났으면 3',
   })
-  async registerGroupQueue(@Req() req: Request): Promise<0 | 1 | 2> {
+  async registerGroupQueue(@Req() req: Request): Promise<0 | 1 | 2 | 3> {
     const { id } = req.user as JwtPayload;
 
     return await this.blurtingService.registerGroupQueue(id);
@@ -251,19 +252,55 @@ export class BlurtingController {
     description: '블러팅 탭 클릭 시 매칭 여부 반환',
   })
   @ApiCreatedResponse({
-    description: '매칭 완료 시 1, 전일 시 0, 매칭 중이면 2',
+    description: '매칭 전 0, 매칭 완료 1, 매칭 중 2, 블러팅 끝 3',
   })
   async getMatching(@Req() req: Request) {
     const { id } = req.user as JwtPayload;
     const user = await this.userService.findUserByVal('id', id);
-    if (user.group) {
+    const isMatching = await this.blurtingService.isMatching(user);
+
+    if (
+      user.group &&
+      user.group.createdAt >
+        new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
+    ) {
       return 1;
     }
-    const isMatching = await this.blurtingService.isMatching(user);
     if (isMatching == true) {
       return 2;
     }
+    if (user.group) {
+      return 3;
+    }
     return 0;
+  }
+
+  @UseGuards(AuthGuard('access'))
+  @Get('/result')
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiOperation({
+    summary: '지난 블러팅',
+    description: '블러팅 끝나고 누구랑 매칭되었는지 반환',
+  })
+  @ApiResponse({
+    description: '매칭된 유저 정보 반환',
+    schema: {
+      properties: {
+        myname: { type: 'string' },
+        mysex: { type: 'string' },
+        othername: { type: 'string' },
+        othersex: { type: 'string' },
+      },
+    },
+  })
+  async getBlurtingResult(@Req() req: Request) {
+    const { id } = req.user as JwtPayload;
+    const matchedUser = this.blurtingService.getFinalArrow(id);
+    return matchedUser;
   }
 
   @UseGuards(AuthGuard('access'))
