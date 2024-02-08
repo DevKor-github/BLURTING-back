@@ -678,12 +678,17 @@ export class BlurtingService {
     content: string,
     answerId: number,
   ): Promise<void> {
-    const newReply = this.replyRepository.create({
-      user: { id: userId },
-      answer: { id: answerId },
+    const user = await this.userService.findUserByVal('id', userId);
+    const answer = await this.answerRepository.findOne({
+      where: { id: answerId },
+    });
+    if (!user || !answer)
+      throw new NotFoundException('user or answer not found');
+    await this.replyRepository.insert({
+      user: user,
+      answer: answer,
       content: content,
     });
-    await this.replyRepository.save(newReply);
     await this.fcmService.sendPush(
       userId,
       '내가 작성한 답변에 댓글이 달렸습니다! 확인해보세요.',
