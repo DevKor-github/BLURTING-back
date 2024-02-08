@@ -95,12 +95,10 @@ export class AuthController {
     }
 
     const pageName = Object.keys(Page).find((key) => Page[key] == page);
+    console.log(Page[page]);
     if (info[pageName] == undefined || info[pageName] == null)
       throw new BadRequestException('invalid info');
     switch (pageName) {
-      case 'userName':
-        await this.userService.updateUser(id, 'userName', info['userName']);
-        break;
       default:
         await this.userService.updateUserInfo(infoId, pageName, info[pageName]);
     }
@@ -133,6 +131,7 @@ export class AuthController {
   ): Promise<SignupTokenResponseDto> {
     const { id, page } = signupPayload;
     if (Page[page] != 'phoneNumber') {
+      console.log(Page[page]);
       throw new BadRequestException('invalid signup token');
     }
     await this.authService.validatePhoneNumber(body.phoneNumber, id);
@@ -148,8 +147,8 @@ export class AuthController {
     @SignupUser() signupPayload: SignupPayload,
     @Body() body: SignupImageRequestDto,
   ): Promise<SignupTokenResponseDto> {
-    const { id } = signupPayload;
-
+    const { id, page } = signupPayload;
+    console.log(Page[page]);
     await this.userService.updateUserImages(id, body.images);
     const signupToken = this.authService.getSignupToken(signupPayload);
     return { signupToken };
@@ -164,6 +163,7 @@ export class AuthController {
   ): Promise<SignupTokenResponseDto> {
     const { id, page } = signupPayload;
     if (Page[page] != 'email') {
+      console.log(Page[page]);
       throw new BadRequestException('invalid signup token');
     }
     await this.authService.sendVerificationCode(id, body.email);

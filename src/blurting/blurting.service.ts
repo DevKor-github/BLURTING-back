@@ -352,16 +352,6 @@ export class BlurtingService {
   async registerGroupQueue(id: number) {
     try {
       const user = await this.userService.findUserByVal('id', id);
-      if (
-        user.group &&
-        user.group.createdAt <
-          new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
-      ) {
-        return 3;
-      }
-      if (user.group) {
-        return 1;
-      }
       const sexOrient = this.userService.getUserSexOrient(user.userInfo);
       //const region = user.userInfo.region.split(' ')[0];
       const qName = /*`${region}_*/ `${sexOrient}`;
@@ -373,6 +363,17 @@ export class BlurtingService {
       }
       if (groupQueue.includes(id)) {
         return 2;
+      }
+
+      if (
+        user.group &&
+        user.group.createdAt <
+          new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
+      ) {
+        return 3;
+      }
+      if (user.group) {
+        return 1;
       }
 
       if (groupQueue.length < 2) {
