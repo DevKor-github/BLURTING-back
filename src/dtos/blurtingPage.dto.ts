@@ -27,8 +27,8 @@ export class ReplyDto {
   createdAt: Date;
   static toDto(entity: ReplyEntity): ReplyDto {
     return {
-      writerUserId: entity.user.id,
-      writerUserName: entity.user.userNickname,
+      writerUserId: entity.user?.id ?? null,
+      writerUserName: entity.user?.userNickname ?? '탈퇴한 사용자',
       content: entity.content,
       createdAt: new Date(entity.createdAt.getTime() + 1000 * 60 * 60 * 9),
     };
