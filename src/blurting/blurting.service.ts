@@ -685,12 +685,12 @@ export class BlurtingService {
     });
     await this.replyRepository.save(newReply);
     await this.fcmService.sendPush(
-      userId,
+      answerId,
       '내가 작성한 답변에 댓글이 달렸습니다! 확인해보세요.',
       'blurting',
     );
     const newEntity = this.notificationRepository.create({
-      user: { id: userId },
+      user: { id: answerId },
       body: '내가 작성한 답변에 댓글이 달렸습니다!',
     });
     await this.notificationRepository.insert(newEntity);
