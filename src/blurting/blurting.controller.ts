@@ -59,6 +59,7 @@ export class BlurtingController {
   async getBlurting(@Req() req: Request) {
     const { id } = req.user as JwtPayload;
     const user = await this.userService.findUserByVal('id', id);
+    if (user.group == null) throw new NotFoundException();
     const blurtingPage = await this.blurtingService.getBlurting(
       id,
       user.group,
