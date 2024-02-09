@@ -17,17 +17,17 @@ export const HobbyMask = {
 
 export const CharacterMask = {
   Individualistic: 0b0001,
-  Responsible: 0b0010,
+  MZ: 0b0010,
   Passionate: 0b0100,
   Cute: 0b1000,
   Optimistic: 0b00010000,
   Humorous: 0b00100000,
   Calm: 0b01000000,
-  Intellectual: 0b10000000,
+  Homebody: 0b10000000,
   Delicate: 0b000100000000,
-  Blunt: 0b001000000000,
-  Extroverted: 0b010000000000,
-  Introverted: 0b100000000000,
+  Confucianism: 0b001000000000,
+  Otaku: 0b010000000000,
+  Godlife: 0b100000000000,
   Friendly: 0b1000000000000,
   Emotional: 0b10000000000000,
 };
