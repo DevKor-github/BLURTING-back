@@ -105,7 +105,12 @@ export class FcmService {
     return timezoneAcceptedData.map((notification) => {
       return {
         message: notification.body,
-        date: notification.createdAt.toISOString().split('T')[0],
+        date: notification.createdAt
+          .toISOString()
+          .split('T')[0]
+          .split(':')
+          .slice(0, 2)
+          .join(':'),
         time: notification.createdAt.toLocaleTimeString('en-GB'),
       };
     });

@@ -86,7 +86,7 @@ export class AuthController {
       await this.userService.createSocketUser(id);
       return {
         refreshToken: await this.authService.getRefreshToken(id),
-        accessToken: await this.authService.getAccessToken(id),
+        accessToken: this.authService.getAccessToken(id),
         userId: id,
       };
     }
@@ -108,7 +108,7 @@ export class AuthController {
         await this.userService.updateUserInfo(infoId, pageName, info[pageName]);
     }
 
-    const signupToken = await this.authService.getSignupToken(signupPayload);
+    const signupToken = this.authService.getSignupToken(signupPayload);
 
     return { signupToken };
   }
@@ -118,13 +118,13 @@ export class AuthController {
   async signupStart(): Promise<SignupTokenResponseDto> {
     const user = await this.userService.createUser();
     const userInfo = await this.userService.createUserInfo(user);
-    const signupToken = await this.authService.getSignupToken({
+    const signupToken = this.authService.getSignupToken({
       id: user.id,
       infoId: userInfo.id,
       page: 0,
     });
 
-    return { signupToken: signupToken };
+    return { signupToken };
   }
 
   @Get('/signup/back')
@@ -134,7 +134,7 @@ export class AuthController {
     @SignupUser() signupPayload: SignupPayload,
   ): Promise<SignupTokenResponseDto> {
     const { id, infoId, page } = signupPayload;
-    const signupToken = await this.authService.getSignupToken({
+    const signupToken = this.authService.getSignupToken({
       id,
       infoId,
       page: page - 2,
@@ -150,7 +150,7 @@ export class AuthController {
 
     const user = await this.userService.findUserByVal('id', id);
     const refreshToken = await this.authService.getRefreshToken(user.id);
-    const accessToken = await this.authService.getAccessToken(user.id);
+    const accessToken = this.authService.getAccessToken(user.id);
     return {
       id: user.id,
       refreshToken,
@@ -164,7 +164,7 @@ export class AuthController {
   async refresh(@User() user: JwtPayload): Promise<TokenResponseDto> {
     const { id } = user;
     const refreshToken = await this.authService.getRefreshToken(id);
-    const accessToken = await this.authService.getAccessToken(id);
+    const accessToken = this.authService.getAccessToken(id);
     return {
       refreshToken,
       accessToken,

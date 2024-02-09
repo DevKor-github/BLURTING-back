@@ -52,7 +52,6 @@ export class GeocodingService {
   async searchDistrictByGeo(geo: string, page: number = 1) {
     const rawdata = await this.queryVworldAPI(page, geo, undefined, true);
     const data = await this.queryVworldAPI(page, geo);
-    console.log(data);
 
     if (!rawdata.result) return [];
     const name = data.result.featureCollection.features[0].properties.full_nm;
@@ -92,9 +91,7 @@ export class GeocodingService {
 
   async getAdjGeoList(sigungu: string) {
     try {
-      console.log(process.env.VWORLD_API_KEY);
       const district = await this.searchOneDistrictByName(sigungu);
-      console.log(district);
       if (district.status === 'NOT_FOUND') return [];
 
       const geo = `POINT(${district.result.featureCollection.features[0].geometry.coordinates[0][0][0][0]} ${district.result.featureCollection.features[0].geometry.coordinates[0][0][0][1]})`;
