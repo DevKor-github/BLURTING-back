@@ -16,7 +16,7 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { Mbti, Sex } from 'src/common/enums';
 
-export class ReplyDto {
+export class BlurtingReplyDto {
   @ApiProperty({ description: '답글 작성 유저 아이디' })
   writerUserId: number;
   @ApiProperty({ description: '답글 작성 유저 닉네임' })
@@ -25,7 +25,7 @@ export class ReplyDto {
   content: string;
   @ApiProperty({ description: '답글 작성 시간 ( 한국 시간 기준 )' })
   createdAt: Date;
-  static toDto(entity: ReplyEntity): ReplyDto {
+  static toDto(entity: ReplyEntity): BlurtingReplyDto {
     return {
       writerUserId: entity.user?.id ?? null,
       writerUserName: entity.user?.userNickname ?? '탈퇴한 사용자',
@@ -73,8 +73,8 @@ export class BlurtingAnswerDto {
   @ApiProperty({ description: '답변 ID' })
   id: number;
 
-  @ApiProperty({ description: '답글들', type: ReplyDto, isArray: true })
-  reply: ReplyDto[];
+  @ApiProperty({ description: '답글들', type: BlurtingReplyDto, isArray: true })
+  reply: BlurtingReplyDto[];
 
   static ToDto(
     answerEntity: BlurtingAnswerEntity,
@@ -95,7 +95,7 @@ export class BlurtingAnswerDto {
       likes,
       ilike,
       reply: answerEntity.reply
-        ? answerEntity.reply.map((e) => ReplyDto.toDto(e))
+        ? answerEntity.reply.map((e) => BlurtingReplyDto.toDto(e))
         : null,
     };
   }
@@ -144,14 +144,4 @@ export class BlurtingPageDto {
       answers: answersDto,
     };
   }
-}
-
-export class AnswerDto {
-  @IsNumber()
-  @ApiProperty({ description: 'question 고유 아이디' })
-  questionId: number;
-
-  @IsString()
-  @ApiProperty({ description: 'answer' })
-  answer: string;
 }

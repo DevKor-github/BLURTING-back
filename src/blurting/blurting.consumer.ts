@@ -18,14 +18,10 @@ export class BlurtingConsumer {
     private fcmService: FcmService,
     @InjectQueue('blurtingQuestions') private readonly queue: Queue,
   ) {}
+
   @Process()
   async processNewBlurtingQuestion(job: Job) {
     const question: string = job.data.question;
-    // if (question === null) {
-    //   const group = job.data.group;
-    //   await this.blurtingService.deleteGroup(group);
-    //   return;
-    // }
     const group: BlurtingGroupEntity = job.data.group;
     const users: number[] = job.data.users;
     await this.blurtingService.insertQuestionToGroup(
@@ -43,6 +39,7 @@ export class BlurtingConsumer {
       }),
     );
   }
+
   @OnQueueError()
   queueErrorHandler(error: Error) {
     console.log('job error occured');

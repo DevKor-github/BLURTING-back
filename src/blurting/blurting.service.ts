@@ -7,7 +7,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
-import { BlurtingAnswerDto, BlurtingPageDto } from 'src/dtos/blurtingPage.dto';
+import {
+  BlurtingAnswerDto,
+  BlurtingPageDto,
+} from 'src/blurting/dtos/blurtingPageResponse.dto';
 import {
   BLurtingArrowEntity,
   BlurtingAnswerEntity,
@@ -88,23 +91,14 @@ export class BlurtingService {
       '애인의 남사친/여사친과의 행동 어디까지 허용 가능하시나요?',
       '연인에게서 절대 용납할 수 없는 잘못이 있다면 무엇인가요?',
       '지금 현재 연애하고 싶다고 느끼는 이유가 무엇인가요?',
-
       '연인과 공유하고 싶은 취미가 있다면 알려주세요',
-
       '운명적인 만남은 존재한다고 생각하시나요?',
-
       '썸남/썸녀가 이렇게 고백해줬으면 좋겠어!',
-
       '본인 스스로를 연애 하수/중수/고수 중 어디에 속한다고 생각하시나요?',
-
       '나만의 플러팅 스킬을 하나 알려주세요.',
-
       '자신의 성격을 mbti와 함께 알려주세요!',
-
       '사귀기 전에 가능한 스킨십 정도에 대해 알려주세요.',
-
       '친구사이에서 연인으로 발전 하는 것이 가능하다고 생각하시나요?',
-
       '나의 1주년을 준비하기 위해 여사친/남사친과 함께 한 달간 준비한 연인. 당신의 대처는?',
       '본인이 선호하는 연인의 옷 스타일을 설명해주세요!',
       '소개팅을 받을 때 상대에 대해 가장 궁금한 부분은 어떤 것인가요?',
@@ -117,11 +111,8 @@ export class BlurtingService {
       '데이트 비용은 어떻게 정산하는 것을 선호하시나요?',
       '내 맞춤법이 틀렸을 때 애인이 어떻게 반응하면 좋을 것 같나요?',
       '본인의 옷 스타일을 설명해주세요!',
-
       '연인과 함께 간 노래방에서 연인이 내 노래를 듣지 않고, 다음곡을 찾고 있다면 서운한가요?',
-
       '이성에게 설레는 나만의 설렘 포인트가 있다면 알려주세요',
-
       '연인과 재결합을 하였는데, 헤어졌을때 클럽을 간 남친/여친 용납 가능한가요?',
       '내가 아플 때 애인에게 바라는 것이 있나요?',
       '기념일은 어디까지 챙기고 싶은가요?',
@@ -159,7 +150,6 @@ export class BlurtingService {
       '좋아하는 영화 장르와 그 이유를 설명해주세요!',
       '최근 재미있게 본 드라마를 이야기해주세요!',
       '좋아하는 배우가 있다면 누구인가요?',
-
       '당신의 첫사랑에 대해서 설명해주세요',
       '내가 가진 가장 쓸모 없는 물건과 얻게 된 경로를 알려주세요!',
       '나만의 스트레스 해소법은 무엇인가요?',
@@ -183,13 +173,13 @@ export class BlurtingService {
       '넷플릭스에서 추천하는 드라마나 영화가 있나요?',
       '주량이 어느 정도인가요? 술을 좋아하시나요?',
       '좋아하는 술이 있나요?',
-
       '내 앞에서는 한 없이 순수한 연인의 문란한 과거를 알았다면 당신의 대처는?',
       '나의 버킷리스트 중 하나를 알려주세요!',
       '남기고 싶은 유언이 있다면 무엇인가요?',
       '내가 가진 것 중 가장 소중한 것을 말해주세요!',
       '지금 당신의 TMI 하나를 알려주세요!',
     ];
+
     const selected = [];
     for (let i = 0; i < 9; ++i) {
       let rand = 0;
@@ -216,14 +206,6 @@ export class BlurtingService {
       { group, question: null },
       { delay: 9 * questionDelay },
     );
-  }
-
-  async deleteGroup(group: BlurtingGroupEntity) {
-    const users = await this.userService.getUsersInGroup(group.id);
-    for (const user of users) {
-      user.group = null;
-    }
-    await this.userService.saveUsers(users);
   }
 
   async insertQuestionToGroup(

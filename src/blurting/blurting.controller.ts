@@ -15,7 +15,13 @@ import { BlurtingService } from './blurting.service';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtPayload } from 'src/interfaces/auth';
 import { UserService } from 'src/user/user.service';
-import { AnswerDto, BlurtingPageDto } from 'src/dtos/blurtingPage.dto';
+import {
+  AnswerRequestDto,
+  BlurtingPageDto,
+  OtherPeopleInfoDto,
+  ReplyRequestDto,
+  ArrowInfoResponseDto,
+} from 'src/blurting/dtos';
 import {
   ApiCreatedResponse,
   ApiHeader,
@@ -29,9 +35,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { BlurtingProfileDto } from 'src/dtos/user.dto';
-import { ArrowInfoResponseDto } from './dtos/arrowInfoResponse.dto';
-import { OtherPeopleInfoDto } from './dtos/otherPeopleInfo.dto';
-import { ReplyRequestDto } from './dtos/replyRequest.dto';
 
 @Controller('blurting')
 @ApiTags('blurting')
@@ -77,7 +80,7 @@ export class BlurtingController {
   })
   @ApiBody({
     description: '블러팅 답변 정보 json',
-    type: AnswerDto,
+    type: AnswerRequestDto,
   })
   @ApiOperation({
     summary: '블러팅 답변 업로드',
@@ -97,7 +100,7 @@ export class BlurtingController {
   })
   async postAnswer(
     @Req() req: Request,
-    @Body() answerDto: AnswerDto,
+    @Body() answerDto: AnswerRequestDto,
     @Res() res: Response,
   ) {
     const { id } = req.user as JwtPayload;

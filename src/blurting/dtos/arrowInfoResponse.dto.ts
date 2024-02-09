@@ -13,11 +13,11 @@ export class ArrowInfo {
   fromId: number;
   @ApiProperty({ description: '받은 userId' })
   toId: number;
-  @ApiProperty({ description: '몇번째 화살펴?, 1-2-3', example: 1 })
+  @ApiProperty({ description: '몇번째 화살표? 1, 2, 3', example: 1 })
   day: number;
 
-  @ApiProperty({ description: '유저네임' })
+  @ApiProperty({ description: '유저 닉네임' })
   username: string;
-  @ApiProperty({ description: '성별' })
+  @ApiProperty({ description: '유저 성별' })
   userSex: Sex;
 }

@@ -11,7 +11,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Chatting } from 'src/chat/models';
 import { Model } from 'mongoose';
-import { BlurtingAnswerDto } from 'src/dtos/blurtingPage.dto';
+import { BlurtingAnswerDto } from 'src/blurting/dtos/blurtingPageResponse.dto';
 
 @Injectable()
 export class HomeService {
