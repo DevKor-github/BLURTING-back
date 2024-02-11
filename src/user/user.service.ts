@@ -238,6 +238,9 @@ export class UserService {
   }
 
   getUserSexOrient(info: UserInfoEntity) {
+    if (info.sexOrient === SexOrient.Bisexual) {
+      return 'bisexual';
+    }
     if (info.sex === Sex.Male) {
       if (info.sexOrient === SexOrient.Homosexual) {
         return 'male_homo';
