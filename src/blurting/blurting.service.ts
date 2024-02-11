@@ -406,7 +406,7 @@ export class BlurtingService {
         await this.cacheManager.set(qName, groupQueue);
         return 0;
       }
-      if (sexOrient.endsWith('homo')) {
+      if (sexOrient.endsWith('homo') || sexOrient.endsWith('bisexual')) {
         if (groupQueue.length >= 5) {
           const groupIds = groupQueue.slice(0, 5);
 

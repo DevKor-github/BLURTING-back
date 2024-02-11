@@ -238,6 +238,9 @@ export class UserService {
   }
 
   getUserSexOrient(info: UserInfoEntity) {
+    if (info.sexOrient === SexOrient.Bisexual) {
+      return 'bisexual';
+    }
     if (info.sex === Sex.Male) {
       if (info.sexOrient === SexOrient.Homosexual) {
         return 'male_homo';
@@ -260,8 +263,8 @@ export class UserService {
     });
 
     const sexOrient = this.getUserSexOrient(user.userInfo);
-    const region = user.userInfo.region.split(' ')[0];
-    const qName = `${region}_${sexOrient}`;
+    //const region = user.userInfo.region.split(' ')[0];
+    const qName = `${sexOrient}`;
     const groupQueue: number[] = await this.cacheManager.get(qName);
     const idx = groupQueue.indexOf(user.id);
     if (idx > -1) groupQueue.splice(idx, 1);
