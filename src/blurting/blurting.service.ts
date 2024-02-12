@@ -538,8 +538,8 @@ export class BlurtingService {
     });
 
     await this.arrowRepository.save(newArrow);
-    if (toId === -1 || toId === userId) return;
-    this.fcmService.sendPush(
+    if (toId == -1 || toId == userId) return;
+    await this.fcmService.sendPush(
       toId,
       `${user.userNickname}님이 당신에게 화살을 보냈습니다!`,
       'blurting',
