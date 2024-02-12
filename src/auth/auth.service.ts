@@ -17,6 +17,7 @@ import {
   AuthPhoneNumberEntity,
   AuthMailEntity,
   UserEntity,
+  ToCheckEntity,
 } from 'src/entities';
 import { UserService } from 'src/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
@@ -37,6 +38,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
     private readonly pointService: PointService,
+    @InjectRepository(ToCheckEntity)
+    private readonly toCheckRepository: Repository<ToCheckEntity>,
   ) {}
 
   async getRefreshToken(id: number): Promise<string> {
@@ -226,7 +229,24 @@ export class AuthService {
       ([_, value]) => value == domain,
     )[0];
 
-    if (!univ) throw new BadRequestException('올바르지 않은 이메일입니다.');
+    if (!univ) {
+      if (
+        domain.endsWith('com') ||
+        [
+          'ruu.kr',
+          'copyhome.win',
+          'iralborz.bid',
+          'kumli.racing',
+          'daum.net',
+          'hanmail.net',
+        ].includes(domain)
+      )
+        throw new BadRequestException('올바르지 않은 이메일입니다.');
+      const newEntity = this.toCheckRepository.create({
+        user: { id: userId },
+      });
+      await this.toCheckRepository.save(newEntity);
+    }
 
     try {
       const endpoint = 'https://api.blurting.devkor.club/auth/check/email';
@@ -272,7 +292,11 @@ export class AuthService {
     )[0];
 
     await this.userService.updateUser(mail.user.id, 'email', email);
-    await this.userService.updateUserInfo(mail.user.id, 'university', univ);
+    await this.userService.updateUserInfo(
+      mail.user.id,
+      'university',
+      univ ? univ : null,
+    );
     await this.pointService.giveSignupPoint(mail.user.id);
     await this.authMailRepository.delete(mail);
   }
