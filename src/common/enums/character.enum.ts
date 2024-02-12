@@ -10,7 +10,7 @@ export enum Character {
   Delicate = '섬세한',
   Confucianism = '유교중시',
   Otaku = '오타쿠',
-  Godlife = '갓생',
+  Godlife = '갓생러',
   Friendly = '상냥한',
   Emotional = '감성적인',
 }
