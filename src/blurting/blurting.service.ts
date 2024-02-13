@@ -545,7 +545,7 @@ export class BlurtingService {
       'blurting',
     );
     const newEntity = this.notificationRepository.create({
-      user: { id: userId },
+      user: { id: toId },
       body: `${user.userNickname}님이 당신에게 화살을 보냈습니다!`,
     });
     await this.notificationRepository.insert(newEntity);
@@ -681,6 +681,7 @@ export class BlurtingService {
     const user = await this.userService.findUserByVal('id', userId);
     const answer = await this.answerRepository.findOne({
       where: { id: answerId },
+      relations: ['user', 'question'],
     });
     if (!user || !answer)
       throw new NotFoundException('user or answer not found');
@@ -690,14 +691,9 @@ export class BlurtingService {
       content: content,
     });
     await this.fcmService.sendPush(
-      answerId,
-      '내가 작성한 답변에 댓글이 달렸습니다! 확인해보세요.',
+      answer.user.id,
+      `${answer.question.no}번째 나의 답변에 댓글이 달렸습니다!`,
       'blurting',
     );
-    const newEntity = this.notificationRepository.create({
-      user: { id: answerId },
-      body: '내가 작성한 답변에 댓글이 달렸습니다!',
-    });
-    await this.notificationRepository.insert(newEntity);
   }
 }
