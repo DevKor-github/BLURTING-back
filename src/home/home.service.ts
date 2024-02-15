@@ -89,7 +89,11 @@ export class HomeService {
       relations: ['group'],
     });
     let seconds = -1;
-    if (user.group) {
+    if (
+      user.group &&
+      user.group.createdAt >
+        new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
+    ) {
       const timeOffset =
         new Date().getTime() +
         9 * 60 * 60 * 1000 -

@@ -392,12 +392,9 @@ export class BlurtingService {
 
       if (
         user.group &&
-        user.group.createdAt <
+        user.group.createdAt >
           new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
       ) {
-        return 3;
-      }
-      if (user.group) {
         return 1;
       }
 
@@ -599,6 +596,7 @@ export class BlurtingService {
     const selectedUser = await this.arrowRepository.findOne({
       where: { from: { id: userId } },
       order: { no: 'DESC' },
+      relations: ['to', 'to.userInfo'],
     });
     if (selectedUser.to == null) {
       return {

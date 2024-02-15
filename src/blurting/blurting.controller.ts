@@ -260,15 +260,15 @@ export class BlurtingController {
     const user = await this.userService.findUserByVal('id', id);
     const isMatching = await this.blurtingService.isMatching(user);
 
+    if (isMatching) {
+      return 2;
+    }
     if (
       user.group &&
       user.group.createdAt >
         new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
     ) {
       return 1;
-    }
-    if (isMatching == true) {
-      return 2;
     }
     if (user.group) {
       return 3;
