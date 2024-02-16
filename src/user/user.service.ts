@@ -128,17 +128,17 @@ export class UserService {
               Object.keys(Character).find((key) => Character[key] == item)
             ];
         }
-        this.userInfoRepository.update(id, { character: maskedValue });
+        this.userInfoRepository.update({ id: id }, { character: maskedValue });
         break;
       case 'hobby':
         for (const item of value) {
           maskedValue |=
             HobbyMask[Object.keys(Hobby).find((key) => Hobby[key] == item)];
         }
-        this.userInfoRepository.update(id, { hobby: maskedValue });
+        this.userInfoRepository.update({ id: id }, { hobby: maskedValue });
         break;
       default:
-        this.userInfoRepository.update(id, { [field]: value });
+        this.userInfoRepository.update({ id: id }, { [field]: value });
     }
   }
 
