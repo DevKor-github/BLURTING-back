@@ -19,7 +19,7 @@ import {
   ReplyEntity,
 } from 'src/entities';
 import { UserService } from 'src/user/user.service';
-import { Between, In, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { Sex, SexOrient } from 'src/common/enums';
@@ -392,12 +392,9 @@ export class BlurtingService {
 
       if (
         user.group &&
-        user.group.createdAt <
+        user.group.createdAt >
           new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
       ) {
-        return 3;
-      }
-      if (user.group) {
         return 1;
       }
 
@@ -545,7 +542,7 @@ export class BlurtingService {
       'blurting',
     );
     const newEntity = this.notificationRepository.create({
-      user: { id: userId },
+      user: { id: toId },
       body: `${user.userNickname}님이 당신에게 화살을 보냈습니다!`,
     });
     await this.notificationRepository.insert(newEntity);
@@ -596,39 +593,21 @@ export class BlurtingService {
 
   async getFinalArrow(userId: number) {
     const user = await this.userService.findUserByVal('id', userId);
-    const selectedUser = await this.arrowRepository.findOne({
-      where: { from: { id: userId } },
-      order: { no: 'DESC' },
-    });
-    if (selectedUser.to == null) {
-      return {
-        myname: user.userNickname,
-        mysex: user.userInfo.sex,
-      };
-    }
+    const arrowDtos = await this.getArrows(userId);
+    const finalSend = arrowDtos.iSended[arrowDtos.iSended.length - 1];
+    const finalRecieves = arrowDtos.iReceived;
 
-    const arrow = await this.arrowRepository.findOne({
-      where: {
-        from: { id: selectedUser.to.id },
-        createdAt: Between(
-          user.group.createdAt,
-          new Date(user.group.createdAt.getTime() + 72 * 6 * 6 * 1000),
-        ),
-        no: 3,
-      },
+    const matched = finalRecieves.filter((recieve) => {
+      if (recieve.day === finalSend.day && recieve.fromId === finalSend.toId) {
+        return true;
+      }
     });
-    if (arrow.to == null) {
-      return {
-        myname: user.userNickname,
-        mysex: user.userInfo.sex,
-      };
-    }
 
     return {
       myname: user.userNickname,
       mysex: user.userInfo.sex,
-      othername: selectedUser.to.userNickname,
-      othersex: selectedUser.to.userInfo.sex,
+      othername: matched.length > 0 ? finalSend.username : null,
+      othersex: matched.length > 0 ? finalSend.userSex : null,
     };
   }
 
@@ -681,6 +660,7 @@ export class BlurtingService {
     const user = await this.userService.findUserByVal('id', userId);
     const answer = await this.answerRepository.findOne({
       where: { id: answerId },
+      relations: ['user', 'question'],
     });
     if (!user || !answer)
       throw new NotFoundException('user or answer not found');
@@ -689,15 +669,12 @@ export class BlurtingService {
       answer: answer,
       content: content,
     });
-    await this.fcmService.sendPush(
-      answerId,
-      '내가 작성한 답변에 댓글이 달렸습니다! 확인해보세요.',
-      'blurting',
-    );
-    const newEntity = this.notificationRepository.create({
-      user: { id: answerId },
-      body: '내가 작성한 답변에 댓글이 달렸습니다!',
-    });
-    await this.notificationRepository.insert(newEntity);
+    if (answer.user.id !== userId) {
+      await this.fcmService.sendPush(
+        answer.user.id,
+        `${answer.question.no}번째 나의 답변에 댓글이 달렸습니다!`,
+        'blurting',
+      );
+    }
   }
 }

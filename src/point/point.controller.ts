@@ -50,7 +50,7 @@ export class PointController {
   @Get('/check')
   async checkPoint(@Req() req: Request, @Res() res: Response) {
     const { id } = req.user as JwtPayload;
-    const point = await this.pointService.checkResPoint(id, 10);
+    const point = await this.pointService.checkResPoint(id, 40);
     return res.send(point);
   }
 

@@ -75,13 +75,13 @@ export class PointService {
       (room.connectedAt != null &&
         new Date().getTime() - room.connectedAt.getTime() > 1000 * 60 * 60 * 15)
     ) {
-      const point = await this.updatePoint(users[0], -10);
+      const point = await this.updatePoint(users[0], -40);
       if (point) {
         const other = await this.userRepository.findOne({
           where: { id: users[1] },
         });
-        const history = `${other.userNickname}님께 귓속말을 걸고 10p가 사용 되었습니다.`;
-        this.recordPointHistory(users[0], -10, history);
+        const history = `${other.userNickname}님께 귓속말을 걸고 40p가 사용 되었습니다.`;
+        this.recordPointHistory(users[0], -40, history);
       }
       return point;
     }
