@@ -19,7 +19,7 @@ import {
   ReplyEntity,
 } from 'src/entities';
 import { UserService } from 'src/user/user.service';
-import { Between, In, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { Sex, SexOrient } from 'src/common/enums';
@@ -669,10 +669,12 @@ export class BlurtingService {
       answer: answer,
       content: content,
     });
-    await this.fcmService.sendPush(
-      answer.user.id,
-      `${answer.question.no}번째 나의 답변에 댓글이 달렸습니다!`,
-      'blurting',
-    );
+    if (answer.user.id !== userId) {
+      await this.fcmService.sendPush(
+        answer.user.id,
+        `${answer.question.no}번째 나의 답변에 댓글이 달렸습니다!`,
+        'blurting',
+      );
+    }
   }
 }
