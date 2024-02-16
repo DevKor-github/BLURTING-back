@@ -593,40 +593,24 @@ export class BlurtingService {
 
   async getFinalArrow(userId: number) {
     const user = await this.userService.findUserByVal('id', userId);
-    const selectedUser = await this.arrowRepository.findOne({
-      where: { from: { id: userId } },
-      order: { no: 'DESC' },
-      relations: ['to', 'to.userInfo'],
-    });
-    if (selectedUser.to == null) {
-      return {
-        myname: user.userNickname,
-        mysex: user.userInfo.sex,
-      };
-    }
+    const arrowDtos = await this.getArrows(userId);
+    const finalSend = arrowDtos.iSended[arrowDtos.iSended.length - 1];
+    const finalRecieves = arrowDtos.iReceived;
 
-    const arrow = await this.arrowRepository.findOne({
-      where: {
-        from: { id: selectedUser.to.id },
-        createdAt: Between(
-          user.group.createdAt,
-          new Date(user.group.createdAt.getTime() + 72 * 6 * 6 * 1000),
-        ),
-        no: 3,
-      },
+    finalRecieves.forEach((recieve) => {
+      if (recieve.day === finalSend.day && recieve.fromId === finalSend.toId) {
+        return {
+          myname: user.userNickname,
+          mysex: user.userInfo.sex,
+          othername: finalSend.username,
+          othersex: finalSend.userSex,
+        };
+      }
     });
-    if (arrow.to == null) {
-      return {
-        myname: user.userNickname,
-        mysex: user.userInfo.sex,
-      };
-    }
 
     return {
       myname: user.userNickname,
       mysex: user.userInfo.sex,
-      othername: selectedUser.to.userNickname,
-      othersex: selectedUser.to.userInfo.sex,
     };
   }
 
