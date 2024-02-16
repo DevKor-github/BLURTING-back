@@ -597,20 +597,17 @@ export class BlurtingService {
     const finalSend = arrowDtos.iSended[arrowDtos.iSended.length - 1];
     const finalRecieves = arrowDtos.iReceived;
 
-    finalRecieves.forEach((recieve) => {
+    const matched = finalRecieves.filter((recieve) => {
       if (recieve.day === finalSend.day && recieve.fromId === finalSend.toId) {
-        return {
-          myname: user.userNickname,
-          mysex: user.userInfo.sex,
-          othername: finalSend.username,
-          othersex: finalSend.userSex,
-        };
+        return true;
       }
     });
 
     return {
       myname: user.userNickname,
       mysex: user.userInfo.sex,
+      othername: matched.length > 0 ? finalSend.username : null,
+      othersex: matched.length > 0 ? finalSend.userSex : null,
     };
   }
 
