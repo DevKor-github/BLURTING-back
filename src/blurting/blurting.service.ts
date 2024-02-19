@@ -596,12 +596,20 @@ export class BlurtingService {
     const arrowDtos = await this.getArrows(userId);
     const finalSend = arrowDtos.iSended[arrowDtos.iSended.length - 1];
     const finalRecieves = arrowDtos.iReceived;
+    let matched;
 
-    const matched = finalRecieves.filter((recieve) => {
-      if (recieve.day === finalSend.day && recieve.fromId === finalSend.toId) {
-        return true;
-      }
-    });
+    if (finalSend.day != 3) {
+      matched = [];
+    } else {
+      matched = finalRecieves.filter((recieve) => {
+        if (
+          recieve.day === finalSend.day &&
+          recieve.fromId === finalSend.toId
+        ) {
+          return true;
+        }
+      });
+    }
 
     return {
       myname: user.userNickname,
