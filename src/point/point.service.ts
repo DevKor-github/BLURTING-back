@@ -90,13 +90,13 @@ export class PointService {
   }
 
   async checkNicknamePoint(userId: number) {
-    const point = await this.updatePoint(userId, -10);
+    const point = await this.updatePoint(userId, -40);
     if (point) {
       const nickname = await this.userService.pickRandomNickname();
       await this.userService.updateUser(userId, 'userNickname', nickname);
       await this.userService.updateUserSocket(userId, 'userNickname', nickname);
-      const history = `닉네임 뽑기를 하고 10p가 사용 되었습니다.`;
-      this.recordPointHistory(userId, -10, history);
+      const history = `닉네임 뽑기를 하고 40p가 사용 되었습니다.`;
+      this.recordPointHistory(userId, -40, history);
     }
     return point;
   }
