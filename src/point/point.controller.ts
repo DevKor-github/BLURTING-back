@@ -180,7 +180,7 @@ export class PointController {
       },
     },
   })
-  @Get('/ad/point')
+  @Get('/ad')
   async adtoPoint(@User() user: JwtPayload) {
     const { id } = user;
     const updatedPoint = await this.pointService.giveAdPoint(id);
