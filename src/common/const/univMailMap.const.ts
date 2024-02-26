@@ -63,7 +63,7 @@ export const UnivMailMap = {
   문경대학교: 'mkc.ac.kr',
   배화여자대학교: 'baewha.ac.kr',
   백석문화대학교: 'bscu.ac.kr',
-  백석예술대학교: 'bsa.ac.kr',
+  백석예술대학교: 'bau.ac.kr',
   백제예술대학교: 'paekche.ac.kr',
   벽성대학교: 'bs.ac.kr',
   부산경상대학교: 'bsks.ac.kr',
