@@ -21,6 +21,8 @@ import { PointService } from './point.service';
 import { UserService } from 'src/user/user.service';
 import { PointHistoryDto } from 'src/dtos/point.dto';
 import { ReportService } from 'src/report/report.service';
+import { User } from 'src/decorators/accessUser.decorator';
+import { AccessGuard } from 'src/auth/guard/acces.guard';
 
 @Controller('point')
 export class PointController {
@@ -159,6 +161,30 @@ export class PointController {
       console.log(err);
       return err;
     }
+  }
+
+  @UseGuards(AccessGuard)
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+  })
+  @ApiResponse({
+    description: '광고 후 포인트 지급',
+    schema: {
+      example: { point: 10 },
+      properties: {
+        point: {
+          type: 'number',
+          description: '수정된 포인트 값',
+        },
+      },
+    },
+  })
+  @Get('/ad/point')
+  async adtoPoint(@User() user: JwtPayload) {
+    const { id } = user;
+    const updatedPoint = await this.pointService.giveAdPoint(id);
+    return { point: updatedPoint };
   }
 
   @UseGuards(AuthGuard('access'))

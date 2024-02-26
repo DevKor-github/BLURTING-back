@@ -110,4 +110,14 @@ export class PointService {
     }
     return false;
   }
+
+  async giveAdPoint(userId: number) {
+    const updatedPoint = await this.updatePoint(userId, 5);
+    if (updatedPoint) {
+      const history = '광고 시청으로 5p가 지급 되었습니다.';
+      this.recordPointHistory(userId, 5, history);
+      return updatedPoint.point;
+    }
+    return false;
+  }
 }
