@@ -46,6 +46,6 @@ export class HomeController {
     description: 'latestVersion: 최신 버전 정보 반환',
   })
   async getVersion() {
-    return { latestVersion: '1.1.0' };
+    return { latestVersion: '1.2.1' };
   }
 }
