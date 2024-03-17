@@ -16,8 +16,6 @@ import { PointModule } from './point/point.module';
 import { BullModule } from '@nestjs/bull';
 import { HomeModule } from './home/home.module';
 import { ReportModule } from './report/report.module';
-import { EventController } from './event/event.controller';
-import { EventService } from './event/event.service';
 import { EventModule } from './event/event.module';
 
 @Module({
@@ -62,7 +60,7 @@ import { EventModule } from './event/event.module';
     ReportModule,
     EventModule,
   ],
-  controllers: [AppController, EventController],
-  providers: [AppService, EventService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
