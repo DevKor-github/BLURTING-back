@@ -68,5 +68,6 @@ import { ReportEntity } from 'src/entities/report.entity';
   ],
   controllers: [BlurtingController],
   providers: [BlurtingService, BlurtingConsumer],
+  exports: [BlurtingService],
 })
 export class BlurtingModule {}

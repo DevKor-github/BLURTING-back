@@ -1,19 +1,22 @@
 import { InjectQueue } from '@nestjs/bull';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import { Questions } from 'src/common/const';
 import {
+  BlurtingAnswerEntity,
   BlurtingEventEntity,
   BlurtingGroupEntity,
+  BlurtingQuestionEntity,
   UserEntity,
 } from 'src/entities';
 import { FcmService } from 'src/firebase/fcm.service';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { Sex } from 'src/common/enums';
+import { BlurtingService } from 'src/blurting/blurting.service';
 
 @Injectable()
 export class EventService {
@@ -22,10 +25,15 @@ export class EventService {
     private readonly groupRepository: Repository<BlurtingGroupEntity>,
     @InjectRepository(BlurtingEventEntity)
     private readonly eventRepository: Repository<BlurtingEventEntity>,
+    @InjectRepository(BlurtingQuestionEntity)
+    private readonly questionRepository: Repository<BlurtingQuestionEntity>,
+    @InjectRepository(BlurtingAnswerEntity)
+    private readonly answerRepository: Repository<BlurtingAnswerEntity>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @InjectQueue('blurtingQuestions') private readonly queue: Queue,
     private readonly fcmService: FcmService,
     private readonly userService: UserService,
+    private readonly blurtingService: BlurtingService,
   ) {}
 
   async createGroup(users: number[]) {
@@ -171,5 +179,53 @@ export class EventService {
       await this.cacheManager.set(qName, groupQueue);
       return 0;
     }
+  }
+
+  async postAnswer(userId: number, questionId: number, answer: string) {
+    const question = await this.questionRepository.findOne({
+      where: { id: questionId },
+      relations: ['group'],
+    });
+    if (!question || question == null) {
+      throw new BadRequestException('존재하지 않는 질문입니다.');
+    }
+
+    const user = await this.userService.findUserByVal('id', userId);
+    const answerEntity = this.answerRepository.create({
+      user: user,
+      question: { id: questionId } as BlurtingQuestionEntity,
+      postedAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
+      answer: answer,
+      userSex: user.userInfo.sex,
+    });
+
+    this.answerRepository.save(answerEntity);
+  }
+
+  async getFinalArrow(userId: number) {
+    const arrowDtos = await this.blurtingService.getArrows(userId);
+    const finalSend = arrowDtos.iSended[arrowDtos.iSended.length - 1];
+    const finalRecieves = arrowDtos.iReceived;
+
+    const matched = finalRecieves.filter((recieve) => {
+      if (recieve.fromId === finalSend.toId) {
+        return true;
+      }
+    });
+
+    if (matched.length > 0) {
+      return await this.getOtherProfile(finalSend.toId);
+    }
+
+    return null;
+  }
+
+  async getOtherProfile(userId: number) {
+    const otherUser = await this.userService.findUserByVal('id', userId);
+    const userImages = await this.userService.getUserImages(otherUser.id);
+    return {
+      ...(await this.userService.getUserProfile(otherUser.id, userImages)),
+      blur: 2,
+    };
   }
 }
