@@ -68,8 +68,8 @@ export class EventService {
   }
 
   async isMatching(user: UserEntity) {
-    const sexOrient = this.userService.getUserSexOrient(user.userInfo);
-    const qName = `event_${sexOrient}`;
+    const sex = user.userInfo.sex;
+    const qName = `event_${sex}`;
     const groupQueue: number[] = await this.cacheManager.get(qName);
     if (!groupQueue) {
       await this.cacheManager.set(qName, []);
@@ -79,6 +79,14 @@ export class EventService {
       return true;
     }
     return false;
+  }
+
+  async getEventInfo(user: UserEntity) {
+    const eventUser = this.eventRepository.findOne({
+      where: { userId: user.id },
+      relations: ['group'],
+    });
+    return eventUser;
   }
 
   async setTable(userId: number, table: string) {

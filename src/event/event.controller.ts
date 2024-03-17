@@ -32,17 +32,19 @@ export class EventController {
     const { id } = req.user as JwtPayload;
     const user = await this.userService.findUserByVal('id', id);
     const isMatching = await this.eventService.isMatching(user);
+    const eventUser = await this.eventService.getEventInfo(user);
 
     if (isMatching) {
       return 2;
     }
     if (
-      user.group &&
-      user.group.createdAt > new Date(new Date().getTime() - 1000 * 60 * 15)
+      eventUser.group &&
+      eventUser.group.createdAt >
+        new Date(new Date().getTime() - 1000 * 60 * 15)
     ) {
       return 1;
     }
-    if (user.group) {
+    if (eventUser.group) {
       return 3;
     }
     return 0;
