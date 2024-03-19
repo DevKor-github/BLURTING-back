@@ -98,14 +98,18 @@ export class EventService {
   }
 
   async setTable(userId: number, table: string) {
-    await this.eventRepository.update({ userId }, { table });
+    const user = await this.eventRepository.create({ userId, table });
+    await this.eventRepository.save(user);
   }
 
   async registerGroupQueue(id: number) {
-    try {
-      // debug
+    // debug
+    if (id > 0) {
       await this.createGroup([id]);
+      return 1;
+    }
 
+    try {
       const user = await this.userService.findUserByVal('id', id);
       const sex = user.userInfo.sex;
       const qName = `event_${sex}`;
