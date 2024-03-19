@@ -482,11 +482,12 @@ export class BlurtingService {
   async getFinalArrow(userId: number) {
     const user = await this.userService.findUserByVal('id', userId);
     const arrowDtos = await this.getArrows(userId);
+    console.log(arrowDtos);
     const finalSend = arrowDtos.iSended[arrowDtos.iSended.length - 1];
     const finalRecieves = arrowDtos.iReceived;
     let matched;
 
-    if (finalSend.day != 3) {
+    if (finalSend == undefined || finalSend == null || finalSend?.day != 3) {
       matched = [];
     } else {
       matched = finalRecieves.filter((recieve) => {
@@ -499,11 +500,14 @@ export class BlurtingService {
       });
     }
 
+    console.log(matched.length);
+    console.log(user.userInfo);
+
     return {
       myname: user.userNickname,
       mysex: user.userInfo.sex,
-      othername: matched.length > 0 ? finalSend.username : null,
-      othersex: matched.length > 0 ? finalSend.userSex : null,
+      othername: matched.length > 0 ? finalSend?.username : null,
+      othersex: matched.length > 0 ? finalSend?.userSex : null,
     };
   }
 

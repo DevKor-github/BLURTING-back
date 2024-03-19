@@ -69,10 +69,6 @@ export class EventService {
         );
       }),
     );
-    await this.queue.add(
-      { group, question: null },
-      { delay: 3 * questionDelay },
-    );
   }
 
   async isMatching(user: UserEntity) {
