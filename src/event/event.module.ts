@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { redisStore } from 'cache-manager-redis-store';
 import {
+  BLurtingArrowEntity,
   BlurtingAnswerEntity,
   BlurtingEventEntity,
   BlurtingGroupEntity,
@@ -22,6 +23,7 @@ import { BlurtingModule } from 'src/blurting/blurting.module';
       BlurtingEventEntity,
       BlurtingQuestionEntity,
       BlurtingAnswerEntity,
+      BLurtingArrowEntity,
     ]),
     CacheModule.register({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment

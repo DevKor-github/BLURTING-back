@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import { Questions } from 'src/common/const';
 import {
+  BLurtingArrowEntity,
   BlurtingAnswerEntity,
   BlurtingEventEntity,
   BlurtingGroupEntity,
@@ -17,6 +18,7 @@ import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { Sex } from 'src/common/enums';
 import { BlurtingService } from 'src/blurting/blurting.service';
+import { ArrowInfoResponseDto } from 'src/blurting/dtos/arrowInfoResponse.dto';
 
 @Injectable()
 export class EventService {
@@ -29,6 +31,8 @@ export class EventService {
     private readonly questionRepository: Repository<BlurtingQuestionEntity>,
     @InjectRepository(BlurtingAnswerEntity)
     private readonly answerRepository: Repository<BlurtingAnswerEntity>,
+    @InjectRepository(BLurtingArrowEntity)
+    private readonly arrowRepository: Repository<BLurtingArrowEntity>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @InjectQueue('blurtingQuestions') private readonly queue: Queue,
     private readonly fcmService: FcmService,
@@ -99,6 +103,9 @@ export class EventService {
 
   async registerGroupQueue(id: number) {
     try {
+      // debug
+      await this.createGroup([id]);
+
       const user = await this.userService.findUserByVal('id', id);
       const sex = user.userInfo.sex;
       const qName = `event_${sex}`;
@@ -114,7 +121,8 @@ export class EventService {
 
       if (
         user.group &&
-        user.group.createdAt > new Date(new Date().getTime() - 1000 * 60 * 15)
+        user.group.createdAt >
+          new Date(new Date().getTime() - 1000 * 60 * 15 + 1000 * 60 * 60 * 9)
       ) {
         return 1;
       }
@@ -198,8 +206,51 @@ export class EventService {
     this.answerRepository.save(answerEntity);
   }
 
+  async getArrows(userId: number): Promise<ArrowInfoResponseDto> {
+    const user = await this.userService.findUserByVal('id', userId);
+    const eventUser = await this.getEventInfo(user);
+    if (!eventUser?.group) return { iSended: [], iReceived: [] };
+
+    const sendArrows = await this.arrowRepository.find({
+      where: {
+        from: { id: userId },
+        group: eventUser.group,
+      },
+      order: { no: 'ASC' },
+      relations: ['to', 'to.userInfo'],
+    });
+    const receiveArrows = await this.arrowRepository.find({
+      where: {
+        to: { id: userId },
+        group: user.group,
+      },
+      order: { no: 'ASC' },
+      relations: ['from', 'from.userInfo'],
+    });
+    const sendDto = sendArrows.map((arrow) => {
+      return {
+        fromId: userId,
+        toId: arrow.to === null ? -1 : arrow.to.id,
+        day: arrow.no,
+        username: arrow.to === null ? null : arrow.to.userNickname,
+        userSex: arrow.to === null ? null : arrow.to.userInfo.sex,
+      };
+    });
+
+    const receiveDto = receiveArrows.map((arrow) => {
+      return {
+        fromId: arrow.from === null ? -1 : arrow.from.id,
+        toId: userId,
+        day: arrow.no,
+        username: arrow.from === null ? null : arrow.from.userNickname,
+        userSex: arrow.from === null ? null : arrow.from.userInfo.sex,
+      };
+    });
+    return { iSended: sendDto, iReceived: receiveDto };
+  }
+
   async getFinalArrow(userId: number) {
-    const arrowDtos = await this.blurtingService.getArrows(userId);
+    const arrowDtos = await this.getArrows(userId);
     const finalSend = arrowDtos.iSended[arrowDtos.iSended.length - 1];
     const finalRecieves = arrowDtos.iReceived;
 

@@ -67,7 +67,7 @@ export class EventController {
     if (
       eventUser?.group &&
       eventUser?.group?.createdAt >
-        new Date(new Date().getTime() - 1000 * 60 * 15)
+        new Date(new Date().getTime() - 1000 * 60 * 15 + 1000 * 60 * 60 * 9)
     ) {
       return 1;
     }
@@ -124,6 +124,27 @@ export class EventController {
   }
 
   @UseGuards(AuthGuard('access'))
+  @Get('/result')
+  @ApiHeader({
+    name: 'authorization',
+    required: true,
+    example: 'Bearer asdas.asdasd.asd',
+  })
+  @ApiOperation({
+    summary: '지난 블러팅',
+    description: '블러팅 끝나고 누구랑 매칭되었는지 반환',
+  })
+  @ApiResponse({
+    description: '매칭된 유저 정보 반환, 없으면 null 반환',
+    type: UserProfileDto,
+  })
+  async getBlurtingResult(@Req() req: Request) {
+    const { id } = req.user as JwtPayload;
+    const matchedUser = this.eventService.getFinalArrow(id);
+    return matchedUser;
+  }
+
+  @UseGuards(AuthGuard('access'))
   @Get('/:no')
   @ApiHeader({
     name: 'authorization',
@@ -147,7 +168,7 @@ export class EventController {
     const { id } = req.user as JwtPayload;
     const user = await this.userService.findUserByVal('id', id);
     const eventUser = await this.eventService.getEventInfo(user);
-    if (eventUser.group == null) throw new NotFoundException();
+    if (eventUser?.group == null) throw new NotFoundException();
     const blurtingPage = await this.blurtingService.getBlurting(
       id,
       eventUser.group,
@@ -180,27 +201,6 @@ export class EventController {
     const { questionId, answer } = answerDto;
     await this.blurtingService.postAnswer(id, questionId, answer);
     return res.sendStatus(201);
-  }
-
-  @UseGuards(AuthGuard('access'))
-  @Get('/result')
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiOperation({
-    summary: '지난 블러팅',
-    description: '블러팅 끝나고 누구랑 매칭되었는지 반환',
-  })
-  @ApiResponse({
-    description: '매칭된 유저 정보 반환, 없으면 null 반환',
-    type: UserProfileDto,
-  })
-  async getBlurtingResult(@Req() req: Request) {
-    const { id } = req.user as JwtPayload;
-    const matchedUser = this.blurtingService.getFinalArrow(id);
-    return matchedUser;
   }
 
   @UseGuards(AuthGuard('access'))
