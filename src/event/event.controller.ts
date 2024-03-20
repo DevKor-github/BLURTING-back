@@ -15,10 +15,12 @@ import {
   ApiBody,
   ApiCreatedResponse,
   ApiHeader,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { JwtPayload } from 'src/interfaces/auth';
 import { Request, Response } from 'express';
@@ -31,6 +33,7 @@ import {
 } from 'src/dtos/blurtingPage.dto';
 import { BlurtingService } from 'src/blurting/blurting.service';
 import { UserProfileDto } from 'src/dtos/user.dto';
+import { OtherPeopleInfoDto } from 'src/blurting/dtos/otherPeopleInfo.dto';
 
 @Controller('event')
 @ApiTags('event')
@@ -142,6 +145,22 @@ export class EventController {
     const { id } = req.user as JwtPayload;
     const matchedUser = this.eventService.getFinalArrow(id);
     return matchedUser;
+  }
+
+  @UseGuards(AuthGuard('access'))
+  @Get('/group-info')
+  @ApiOperation({
+    summary: '이벤트 그룹 정보',
+    description: '그룹 정보',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰 만료' })
+  @ApiOkResponse({
+    description: '그룹 정보',
+    type: [OtherPeopleInfoDto],
+  })
+  async getGroupInfo(@Req() req: Request): Promise<OtherPeopleInfoDto[]> {
+    const { id } = req.user as JwtPayload;
+    return await this.eventService.getGroupInfo(id);
   }
 
   @UseGuards(AuthGuard('access'))

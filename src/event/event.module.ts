@@ -9,6 +9,7 @@ import {
   BlurtingEventEntity,
   BlurtingGroupEntity,
   BlurtingQuestionEntity,
+  UserEntity,
 } from 'src/entities';
 import { FcmModule } from 'src/firebase/fcm.module';
 import { UserModule } from 'src/user/user.module';
@@ -24,6 +25,7 @@ import { BlurtingModule } from 'src/blurting/blurting.module';
       BlurtingQuestionEntity,
       BlurtingAnswerEntity,
       BLurtingArrowEntity,
+      UserEntity,
     ]),
     CacheModule.register({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment

@@ -19,6 +19,7 @@ import { Repository } from 'typeorm';
 import { Sex } from 'src/common/enums';
 import { BlurtingService } from 'src/blurting/blurting.service';
 import { ArrowInfoResponseDto } from 'src/blurting/dtos/arrowInfoResponse.dto';
+import { OtherPeopleInfoDto } from 'src/blurting/dtos/otherPeopleInfo.dto';
 
 @Injectable()
 export class EventService {
@@ -33,6 +34,8 @@ export class EventService {
     private readonly answerRepository: Repository<BlurtingAnswerEntity>,
     @InjectRepository(BLurtingArrowEntity)
     private readonly arrowRepository: Repository<BLurtingArrowEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @InjectQueue('blurtingQuestions') private readonly queue: Queue,
     private readonly fcmService: FcmService,
@@ -278,5 +281,44 @@ export class EventService {
       ...(await this.userService.getUserProfile(otherUser.id, userImages)),
       blur: 2,
     };
+  }
+
+  async getGroupInfo(userId: number): Promise<OtherPeopleInfoDto[]> {
+    const eventUser = await this.eventRepository.findOne({
+      where: { id: userId },
+      relations: ['group'],
+    });
+    if (!eventUser?.group) return [];
+
+    const users = await this.eventRepository.find({
+      where: { group: eventUser.group },
+      relations: ['user'],
+    });
+
+    const groupUsers = await Promise.all(
+      users.map((user) => {
+        return this.userService.findUserByVal('id', user.userId);
+      }),
+    );
+
+    const userSex = groupUsers.filter((user) => user.id === userId)[0].userInfo
+      .sex;
+
+    const filteredSex = [];
+
+    const sex = userSex === Sex.Female ? Sex.Male : Sex.Female;
+    filteredSex.push(sex);
+
+    const result = groupUsers
+      .filter((user) => filteredSex.includes(user.userInfo.sex))
+      .map((user) => {
+        return {
+          userId: user.id,
+          userNickname: user.userNickname,
+          userSex: user.userInfo.sex,
+          reported: false,
+        };
+      });
+    return result;
   }
 }
