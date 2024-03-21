@@ -293,4 +293,9 @@ export class EventController {
       await this.eventService.sendDiscordMessage('hi');
     }
   }
+
+  @Post('/message')
+  async postMessage(@Req() req: Request) {
+    await this.eventService.sendDiscordMessage(req.body.content);
+  }
 }
