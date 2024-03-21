@@ -21,4 +21,7 @@ export class BlurtingEventEntity {
   @ManyToOne(() => BlurtingGroupEntity)
   @JoinColumn()
   group: BlurtingGroupEntity;
+
+  @Column({ default: false })
+  wantToJoin: boolean;
 }

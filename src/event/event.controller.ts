@@ -8,6 +8,7 @@ import {
   NotFoundException,
   Param,
   Res,
+  HttpException,
 } from '@nestjs/common';
 import { EventService } from './event.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -35,6 +36,7 @@ import { BlurtingService } from 'src/blurting/blurting.service';
 import { UserProfileDto } from 'src/dtos/user.dto';
 import { OtherPeopleInfoDto } from 'src/blurting/dtos/otherPeopleInfo.dto';
 import { ArrowInfoResponseDto } from 'src/blurting/dtos/arrowInfoResponse.dto';
+import { AccessGuard } from 'src/auth/guard/acces.guard';
 
 @Controller('event')
 @ApiTags('event')
@@ -144,6 +146,16 @@ export class EventController {
   })
   async getBlurtingResult(@Req() req: Request) {
     const { id } = req.user as JwtPayload;
+    const user = await this.userService.findUserByVal('id', id);
+    const eventUser = await this.eventService.getEventInfo(user);
+
+    if (
+      eventUser.group.createdAt >
+      new Date(new Date().getTime() + 1000 * 60 * 60 * 9 - 1000 * 60 * 20)
+    ) {
+      return new HttpException('화살 보내기가 끝나지 않았습니다', 400);
+    }
+
     const matchedUser = this.eventService.getFinalArrow(id);
     return matchedUser;
   }
@@ -207,6 +219,16 @@ export class EventController {
   async getGroupInfo(@Req() req: Request): Promise<OtherPeopleInfoDto[]> {
     const { id } = req.user as JwtPayload;
     return await this.eventService.getGroupInfo(id);
+  }
+
+  @UseGuards(AccessGuard)
+  @Get('/end')
+  @ApiOperation({
+    summary: '이벤트 끝 (state 3-> 0)',
+  })
+  async endEvent(@Req() req: Request) {
+    const { id } = req.user as JwtPayload;
+    return await this.eventService.endEvent(id);
   }
 
   @UseGuards(AuthGuard('access'))
@@ -288,9 +310,25 @@ export class EventController {
     const { id } = req.user as JwtPayload;
     const user = await this.userService.findUserByVal('id', id);
     const eventUser = await this.eventService.getEventInfo(user);
+    const matchedUser = await this.eventService.getFinalMatchedUser(id);
+    const matchedEventUser = await this.eventService.getEventInfo(matchedUser);
 
-    if (answer === 'yes') {
-      await this.eventService.sendDiscordMessage('hi');
+    if (answer === 'no') {
+      return await this.eventService.wantToJoin(id, false);
+    } else {
+      this.eventService.wantToJoin(id, true);
+
+      if (matchedEventUser.wantToJoin) {
+        await this.eventService.sendDiscordMessage(
+          user.userNickname +
+            ' / 테이블 번호 : ' +
+            eventUser.table +
+            '    &&&   ' +
+            matchedUser.userNickname +
+            ' / 테이블 번호 : ' +
+            matchedEventUser.table,
+        );
+      }
     }
   }
 }

@@ -41,7 +41,6 @@ export class EventService {
     @InjectQueue('blurtingQuestions') private readonly queue: Queue,
     private readonly fcmService: FcmService,
     private readonly userService: UserService,
-    private readonly blurtingService: BlurtingService,
   ) {}
 
   async sendDiscordMessage(message: string) {
@@ -116,6 +115,10 @@ export class EventService {
   async setTable(userId: number, table: string) {
     const user = await this.eventRepository.create({ userId, table });
     await this.eventRepository.save(user);
+  }
+
+  async wantToJoin(userId: number, join: boolean) {
+    await this.eventRepository.update({ userId }, { wantToJoin: join });
   }
 
   async registerGroupQueue(id: number) {
@@ -242,7 +245,7 @@ export class EventService {
     const receiveArrows = await this.arrowRepository.find({
       where: {
         to: { id: userId },
-        group: user.group,
+        group: eventUser.group,
       },
       order: { no: 'ASC' },
       relations: ['from', 'from.userInfo'],
@@ -282,6 +285,24 @@ export class EventService {
 
     if (matched.length > 0) {
       return await this.getOtherProfile(finalSend.toId);
+    }
+
+    return null;
+  }
+
+  async getFinalMatchedUser(userId: number) {
+    const arrowDtos = await this.getArrows(userId);
+    const finalSend = arrowDtos.iSended[arrowDtos.iSended.length - 1];
+    const finalRecieves = arrowDtos.iReceived;
+
+    const matched = finalRecieves.filter((recieve) => {
+      if (recieve.fromId === finalSend.toId) {
+        return true;
+      }
+    });
+
+    if (matched.length > 0) {
+      return await this.userService.findUserByVal('id', finalSend.toId);
     }
 
     return null;
@@ -364,5 +385,9 @@ export class EventService {
       `${user.userNickname}님이 당신에게 화살을 보냈습니다!`,
       'blurting',
     );
+  }
+
+  async endEvent(userId: number) {
+    await this.eventRepository.delete({ userId });
   }
 }
