@@ -12,6 +12,7 @@ import {
   NotificationEntity,
   ReplyEntity,
   ToCheckEntity,
+  BlurtingPreQuestionEntity,
 } from 'src/entities';
 import { UserModule } from 'src/user/user.module';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -37,6 +38,7 @@ import { ReportEntity } from 'src/entities/report.entity';
       NotificationEntity,
       ReplyEntity,
       ToCheckEntity,
+      BlurtingPreQuestionEntity,
     ]),
     CacheModule.register({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -51,6 +53,19 @@ import { ReportEntity } from 'src/entities/report.entity';
     }),
     BullModule.registerQueue({
       name: 'blurtingQuestions',
+      settings: {
+        stalledInterval: 1000,
+        maxStalledCount: 3,
+        retryProcessDelay: 5000,
+      },
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: 3,
+        removeOnComplete: true,
+      },
+    }),
+    BullModule.registerQueue({
+      name: 'renewaledBlurting',
       settings: {
         stalledInterval: 1000,
         maxStalledCount: 3,

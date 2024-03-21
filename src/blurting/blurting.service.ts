@@ -17,6 +17,7 @@ import {
   UserEntity,
   NotificationEntity,
   ReplyEntity,
+  BlurtingPreQuestionEntity,
 } from 'src/entities';
 import { UserService } from 'src/user/user.service';
 import { In, Repository } from 'typeorm';
@@ -30,7 +31,7 @@ import { PointService } from 'src/point/point.service';
 import { OtherPeopleInfoDto } from './dtos/otherPeopleInfo.dto';
 import { ReportEntity } from 'src/entities/report.entity';
 import { ArrowInfoResponseDto } from './dtos/arrowInfoResponse.dto';
-import { Questions } from 'src/common/const';
+import { QUESTION1, QUESTION2, QUESTION3 } from 'src/common/const';
 
 @Injectable()
 export class BlurtingService {
@@ -48,6 +49,7 @@ export class BlurtingService {
     private readonly notificationRepository: Repository<NotificationEntity>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @InjectQueue('blurtingQuestions') private readonly queue: Queue,
+    @InjectQueue('renewaledBlurting') private readonly rQ: Queue,
     private readonly fcmService: FcmService,
     @InjectRepository(LikeEntity)
     private readonly likeRepository: Repository<LikeEntity>,
@@ -57,7 +59,112 @@ export class BlurtingService {
     private readonly reportRepository: Repository<ReportEntity>,
     @InjectRepository(ReplyEntity)
     private readonly replyRepository: Repository<ReplyEntity>,
+    @InjectRepository(BlurtingPreQuestionEntity)
+    private readonly blurtingPreQuestionRepository: Repository<BlurtingPreQuestionEntity>,
   ) {}
+
+  async processPreQuestions(
+    group: BlurtingGroupEntity,
+    no: number,
+    users: number[],
+  ) {
+    const questionToProcess = await this.blurtingPreQuestionRepository.findOne({
+      where: {
+        group: group,
+        no: no,
+      },
+    });
+    if (!questionToProcess || no > 9) return;
+
+    if (questionToProcess.isUploaded) return;
+    const hour =
+      new Date().getHours() + 9 >= 24
+        ? new Date().getHours() + 9 - 24
+        : new Date().getHours() + 9;
+    if (hour >= 1 && hour <= 8) {
+      const DNDEndsAt = new Date().setHours(23);
+      const delay = DNDEndsAt - new Date().getTime();
+      await this.rQ.add({ group, no: no, users }, { delay: delay });
+      return;
+    }
+    await this.insertQuestionToGroup(questionToProcess.question, group, no);
+    await Promise.all(
+      users.map(async (userid) => {
+        await this.fcmService.sendPush(
+          userid,
+          `${no}번째 질문이 등록되었습니다!`,
+          'blurting',
+        );
+      }),
+    );
+    questionToProcess.isUploaded = true;
+    await this.blurtingPreQuestionRepository.save(questionToProcess);
+    if (no === 9) return;
+
+    if (no % 3 === 0) {
+      const nextPartStartsAt = new Date(
+        group.createdAt.getTime() + (no / 3) * (3 * 60 * 60 * 1000),
+      );
+      const delay = new Date().getTime() - nextPartStartsAt.getTime();
+      await this.rQ.add({ group, no: no + 1, users }, { delay: delay });
+    } else {
+      await this.rQ.add(
+        { group, no: no + 1, users },
+        { delay: 60 * 60 * 1000 },
+      );
+    }
+  }
+
+  async addPreQuestions(group: BlurtingGroupEntity) {
+    const selected1: BlurtingPreQuestionEntity[] = [];
+    for (let i = 0; i < 3; ++i) {
+      let rand = 0;
+      do {
+        rand = Math.floor(Math.random() * QUESTION1.length);
+      } while (selected1.find((e) => e.question == QUESTION1[rand]));
+      const q = this.blurtingPreQuestionRepository.create({
+        group: group,
+        no: i + 1,
+        question: QUESTION1[rand],
+        isUploaded: false,
+      });
+      selected1.push(q);
+    }
+
+    const selected2: BlurtingPreQuestionEntity[] = [];
+    for (let i = 0; i < 3; ++i) {
+      let rand = 0;
+      do {
+        rand = Math.floor(Math.random() * QUESTION2.length);
+      } while (selected2.find((e) => e.question == QUESTION2[rand]));
+      const q = this.blurtingPreQuestionRepository.create({
+        group: group,
+        no: i + 4,
+        question: QUESTION2[rand],
+        isUploaded: false,
+      });
+      selected2.push(q);
+    }
+
+    const selected3: BlurtingPreQuestionEntity[] = [];
+    for (let i = 0; i < 3; ++i) {
+      let rand = 0;
+      do {
+        rand = Math.floor(Math.random() * QUESTION3.length);
+      } while (selected3.find((e) => e.question == QUESTION3[rand]));
+      const q = this.blurtingPreQuestionRepository.create({
+        group: group,
+        no: i + 7,
+        question: QUESTION3[rand],
+        isUploaded: false,
+      });
+      selected3.push(q);
+    }
+
+    await this.blurtingPreQuestionRepository.save(selected1);
+    await this.blurtingPreQuestionRepository.save(selected2);
+    await this.blurtingPreQuestionRepository.save(selected3);
+  }
 
   async createGroup(users: number[]) {
     const group = await this.groupRepository.save({
@@ -78,32 +185,10 @@ export class BlurtingService {
         await this.notificationRepository.insert(newEntity);
       }),
     );
-    const selected = [];
-    for (let i = 0; i < 9; ++i) {
-      let rand = 0;
-      do {
-        rand = Math.floor(Math.random() * Questions.length);
-      } while (selected.includes(Questions[rand]));
 
-      selected.push(Questions[rand]);
-    }
-    console.log('question selected for group:', group.id, group.createdAt);
-    console.log(selected);
+    await this.addPreQuestions(group);
 
-    const hourInMs = 1000 * 60 * 60;
-    const questionDelay = hourInMs * 8;
-    await Promise.all(
-      selected.map(async (question, i) => {
-        await this.queue.add(
-          { question, group, no: i + 1, users },
-          { delay: i * questionDelay },
-        );
-      }),
-    );
-    await this.queue.add(
-      { group, question: null },
-      { delay: 9 * questionDelay },
-    );
+    await this.processPreQuestions(group, 1, users);
   }
 
   async deleteGroup(group: BlurtingGroupEntity) {
@@ -209,6 +294,15 @@ export class BlurtingService {
     return blurtingPage;
   }
 
+  async checkAllAnswered(questionId: number) {
+    const answers = await this.answerRepository.find({
+      where: {
+        question: { id: questionId },
+      },
+    });
+    return answers.length === 6;
+  }
+
   async postAnswer(userId: number, questionId: number, answer: string) {
     const question = await this.questionRepository.findOne({
       where: { id: questionId },
@@ -227,7 +321,18 @@ export class BlurtingService {
       userSex: user.userInfo.sex,
     });
 
-    this.answerRepository.save(answerEntity);
+    await this.answerRepository.save(answerEntity);
+    if (this.checkAllAnswered(questionId) && question.no / 3 !== 0) {
+      const users = await this.userService.getGroupUsers(userId);
+      await this.rQ.add(
+        {
+          group: question.group,
+          no: question.no + 1,
+          users: users.map((u) => u.id),
+        },
+        { delay: 10 * 60 * 1000 },
+      );
+    }
     if (answer.length >= 100) {
       const point = await this.pointService.giveBlurtingPoint(userId);
       return point;
@@ -403,6 +508,16 @@ export class BlurtingService {
 
   async makeArrow(userId: number, toId: number, day: number) {
     const user = await this.userService.findUserByVal('id', userId);
+    const question = await this.questionRepository.find({
+      where: {
+        group: user.group,
+      },
+      order: {
+        no: 'DESC',
+      },
+    });
+    if (question.length / 3 < day)
+      throw new BadRequestException(day + ' part가 끝나지 않았습니다.');
 
     const arrow = await this.arrowRepository.findOne({
       where: {
