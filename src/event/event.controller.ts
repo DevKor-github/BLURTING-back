@@ -222,6 +222,22 @@ export class EventController {
   }
 
   @UseGuards(AccessGuard)
+  @Get('/meeting/check')
+  @ApiOperation({
+    summary: '미팅 선택 가능한지 확인',
+  })
+  async checkMeeting(@Req() req: Request) {
+    const { id } = req.user as JwtPayload;
+    const user = await this.userService.findUserByVal('id', id);
+    const eventUser = await this.eventService.getEventInfo(user);
+    if (eventUser?.wantToJoin == null) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @UseGuards(AccessGuard)
   @Get('/end')
   @ApiOperation({
     summary: '이벤트 끝 (state 3-> 0)',
@@ -311,6 +327,8 @@ export class EventController {
     const user = await this.userService.findUserByVal('id', id);
     const eventUser = await this.eventService.getEventInfo(user);
     const matchedUser = await this.eventService.getFinalMatchedUser(id);
+    if (!matchedUser) throw new NotFoundException();
+
     const matchedEventUser = await this.eventService.getEventInfo(matchedUser);
 
     if (answer === 'no') {

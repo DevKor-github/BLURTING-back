@@ -22,6 +22,6 @@ export class BlurtingEventEntity {
   @JoinColumn()
   group: BlurtingGroupEntity;
 
-  @Column({ default: false })
-  wantToJoin: boolean;
+  @Column({ nullable: true, default: null })
+  wantToJoin?: boolean;
 }
