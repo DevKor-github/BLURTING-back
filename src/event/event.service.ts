@@ -20,6 +20,7 @@ import { Sex } from 'src/common/enums';
 import { BlurtingService } from 'src/blurting/blurting.service';
 import { ArrowInfoResponseDto } from 'src/blurting/dtos/arrowInfoResponse.dto';
 import { OtherPeopleInfoDto } from 'src/blurting/dtos/otherPeopleInfo.dto';
+import axios from 'axios';
 
 @Injectable()
 export class EventService {
@@ -42,6 +43,18 @@ export class EventService {
     private readonly userService: UserService,
     private readonly blurtingService: BlurtingService,
   ) {}
+
+  async sendDiscordMessage(message: string) {
+    await axios.post(
+      'https://discord.com/api/channels/1220047582705750068/messages',
+      { content: message },
+      {
+        headers: {
+          Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
+        },
+      },
+    );
+  }
 
   async createGroup(users: number[]) {
     const group = await this.groupRepository.save({

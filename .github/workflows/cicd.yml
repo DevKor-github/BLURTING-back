@@ -72,7 +72,7 @@ jobs:
           echo "FCM_AUTH_CERT_URL=${{ secrets.FCM_AUTH_CERT_URL }}" >> .env
           echo "FCM_CLIENT_CERT_URL=${{ secrets.FCM_CLIENT_CERT_URL }}" >> .env
           echo "FCM_UNIVERSE_DOMAIN=${{ secrets.FCM_UNIVERSE_DOMAIN }}" >> .env
-
+          echo "DISCORD_TOKEN=${{secrets.DISCORD_TOKEN}}" >> .env
       - name: Run Docker
         run: |
           docker stop ${{env.DOCKER_CONTAINER}} && docker rm ${{env.DOCKER_CONTAINER}} && docker rmi ${{env.DOCKER_IMAGE}}:latest

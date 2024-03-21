@@ -290,7 +290,7 @@ export class EventController {
     const eventUser = await this.eventService.getEventInfo(user);
 
     if (answer === 'yes') {
-      // 디코로 보내기
+      await this.eventService.sendDiscordMessage('hi');
     }
   }
 }
