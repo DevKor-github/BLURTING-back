@@ -321,4 +321,35 @@ export class EventService {
       });
     return result;
   }
+
+  async makeArrow(userId: number, toId: number, day: number) {
+    const user = await this.userService.findUserByVal('id', userId);
+    const eventUser = await this.getEventInfo(user);
+
+    const arrow = await this.arrowRepository.findOne({
+      where: {
+        from: { id: userId },
+        group: eventUser.group,
+      },
+      order: { no: 'DESC' },
+    });
+    const no = day;
+    if (arrow && arrow.no >= day) {
+      throw new BadRequestException('이미 화살표 존재');
+    }
+    const newArrow = this.arrowRepository.create({
+      from: { id: userId },
+      to: toId === -1 ? null : { id: toId },
+      group: eventUser.group,
+      no: no,
+    });
+
+    await this.arrowRepository.save(newArrow);
+    if (toId == -1 || toId == userId) return;
+    await this.fcmService.sendPush(
+      toId,
+      `${user.userNickname}님이 당신에게 화살을 보냈습니다!`,
+      'blurting',
+    );
+  }
 }

@@ -34,6 +34,7 @@ import {
 import { BlurtingService } from 'src/blurting/blurting.service';
 import { UserProfileDto } from 'src/dtos/user.dto';
 import { OtherPeopleInfoDto } from 'src/blurting/dtos/otherPeopleInfo.dto';
+import { ArrowInfoResponseDto } from 'src/blurting/dtos/arrowInfoResponse.dto';
 
 @Controller('event')
 @ApiTags('event')
@@ -145,6 +146,51 @@ export class EventController {
     const { id } = req.user as JwtPayload;
     const matchedUser = this.eventService.getFinalArrow(id);
     return matchedUser;
+  }
+
+  @UseGuards(AuthGuard('access'))
+  @Post('/arrow/:toId/:day')
+  @ApiParam({
+    description: '화살표 받을 사람 id',
+    name: 'toId',
+    type: Number,
+  })
+  @ApiParam({
+    description: 'day',
+    name: 'day 0으로 보내주세요',
+    type: Number,
+  })
+  @ApiOperation({
+    summary: '화살표 보내기',
+    description: '화살표 보내기',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰 만료' })
+  @ApiOkResponse({
+    description: '화살표 보내기 성공',
+  })
+  async makeArrow(
+    @Req() req: Request,
+    @Param('toId') toId: number,
+    @Param('day') day: number,
+  ) {
+    const { id } = req.user as JwtPayload;
+    return await this.eventService.makeArrow(id, toId, day);
+  }
+
+  @UseGuards(AuthGuard('access'))
+  @Get('/arrow')
+  @ApiOperation({
+    summary: '내 화살표 보기',
+    description: '내 화살표 보기',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰 만료' })
+  @ApiOkResponse({
+    description: '내 화살표 보기 성공',
+    type: ArrowInfoResponseDto,
+  })
+  async getArrows(@Req() req: Request): Promise<ArrowInfoResponseDto> {
+    const { id } = req.user as JwtPayload;
+    return await this.eventService.getArrows(id);
   }
 
   @UseGuards(AuthGuard('access'))
