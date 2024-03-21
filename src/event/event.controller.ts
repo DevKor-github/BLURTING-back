@@ -331,4 +331,9 @@ export class EventController {
       }
     }
   }
+
+  @Post('/message')
+  async postMessage(@Req() req: Request) {
+    await this.eventService.sendDiscordMessage(req.body.content);
+  }
 }
