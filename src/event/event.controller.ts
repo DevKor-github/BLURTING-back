@@ -150,8 +150,9 @@ export class EventController {
     const eventUser = await this.eventService.getEventInfo(user);
 
     if (
+      // debug
       eventUser.group.createdAt >
-      new Date(new Date().getTime() + 1000 * 60 * 60 * 9 - 1000 * 60 * 20)
+      new Date(new Date().getTime() + 1000 * 60 * 60 * 9 - 1000 * 60 * 30)
     ) {
       return new HttpException('화살 보내기가 끝나지 않았습니다', 400);
     }

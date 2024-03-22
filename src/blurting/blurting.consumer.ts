@@ -21,13 +21,21 @@ export class BlurtingConsumer {
   @Process()
   async processNewBlurtingQuestion(job: Job) {
     const question: string = job.data.question;
-    // if (question === null) {
-    //   const group = job.data.group;
-    //   await this.blurtingService.deleteGroup(group);
-    //   return;
-    // }
     const group: BlurtingGroupEntity = job.data.group;
     const users: number[] = job.data.users;
+
+    if (question === null) {
+      await Promise.all(
+        users.map(async (userid) => {
+          await this.fcmService.sendPush(
+            userid,
+            `블러팅이 종료되었습니다. 원하는 상대에게 화살을 보내세요!`,
+            'blurting',
+          );
+        }),
+      );
+      return;
+    }
     await this.blurtingService.insertQuestionToGroup(
       question,
       group,

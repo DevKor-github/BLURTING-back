@@ -88,6 +88,15 @@ export class EventService {
         );
       }),
     );
+    await this.queue.add(
+      {
+        question: null,
+        group,
+        no: 0,
+        users,
+      },
+      { delay: 3 * questionDelay },
+    );
   }
 
   async isMatching(user: UserEntity) {
