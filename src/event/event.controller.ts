@@ -71,9 +71,10 @@ export class EventController {
       return 2;
     }
     if (
+      // debug
       eventUser?.group &&
       eventUser?.group?.createdAt >
-        new Date(new Date().getTime() - 1000 * 60 * 15 + 1000 * 60 * 60 * 9)
+        new Date(new Date().getTime() - 1000 * 60 * 3 + 1000 * 60 * 60 * 9)
     ) {
       return 1;
     }
