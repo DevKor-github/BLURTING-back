@@ -153,7 +153,8 @@ export class EventService {
         return 1;
       }
 
-      if (groupQueue.length < 2) {
+      // debug 2 -> 1
+      if (groupQueue.length < 1) {
         groupQueue.push(id);
         await this.cacheManager.set(qName, groupQueue);
         return 0;
@@ -175,15 +176,19 @@ export class EventService {
         await this.cacheManager.set(oppositeQueueName, oppositeQueue);
       }
 
-      if (oppositeQueue.length >= 3) {
-        const firstGroupIds = groupQueue.slice(0, 2);
+      // debug 3 -> 1
+      if (oppositeQueue.length >= 1) {
+        // debug 2 -> 1
+        const firstGroupIds = groupQueue.slice(0, 1);
         firstGroupIds.push(id);
-        await this.cacheManager.set(qName, groupQueue.slice(2));
+        await this.cacheManager.set(qName, groupQueue.slice(1));
 
-        const secondGroupIds = oppositeQueue.slice(0, 3);
-        await this.cacheManager.set(oppositeQueueName, oppositeQueue.slice(3));
+        // debug 3 -> 1
+        const secondGroupIds = oppositeQueue.slice(0, 1);
+        await this.cacheManager.set(oppositeQueueName, oppositeQueue.slice(1));
         const groupIds = firstGroupIds.concat(secondGroupIds);
-        if (groupIds.length !== 6) {
+        // debug 6 -> 2
+        if (groupIds.length !== 2) {
           throw new Error(
             '왜인지 모르겠지만 groupIds가 이상함.' + groupIds.toString(),
           );
