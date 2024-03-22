@@ -79,7 +79,8 @@ export class EventService {
       selected.push(Questions[rand]);
     }
 
-    const questionDelay = 1000 * 60 * 5;
+    //debug
+    const questionDelay = 1000 * 60 * 1;
     await Promise.all(
       selected.map(async (question, i) => {
         await this.queue.add(
