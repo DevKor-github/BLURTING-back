@@ -17,7 +17,6 @@ import { FcmService } from 'src/firebase/fcm.service';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { Sex } from 'src/common/enums';
-import { BlurtingService } from 'src/blurting/blurting.service';
 import { ArrowInfoResponseDto } from 'src/blurting/dtos/arrowInfoResponse.dto';
 import { OtherPeopleInfoDto } from 'src/blurting/dtos/otherPeopleInfo.dto';
 import axios from 'axios';
@@ -132,12 +131,6 @@ export class EventService {
   }
 
   async registerGroupQueue(id: number) {
-    // debug
-    if (id > 0) {
-      await this.createGroup([id]);
-      return 1;
-    }
-
     try {
       const user = await this.userService.findUserByVal('id', id);
       const sex = user.userInfo.sex;

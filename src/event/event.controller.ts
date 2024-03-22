@@ -71,10 +71,9 @@ export class EventController {
       return 2;
     }
     if (
-      // debug
       eventUser?.group &&
       eventUser?.group?.createdAt >
-        new Date(new Date().getTime() - 1000 * 60 * 3 + 1000 * 60 * 60 * 9)
+        new Date(new Date().getTime() - 1000 * 60 * 15 + 1000 * 60 * 60 * 9)
     ) {
       return 1;
     }
@@ -151,9 +150,8 @@ export class EventController {
     const eventUser = await this.eventService.getEventInfo(user);
 
     if (
-      // debug
       eventUser.group.createdAt >
-      new Date(new Date().getTime() + 1000 * 60 * 60 * 9 - 1000 * 60 * 5)
+      new Date(new Date().getTime() + 1000 * 60 * 60 * 9 - 1000 * 60 * 20)
     ) {
       throw new HttpException('화살 보내기가 끝나지 않았습니다', 400);
     }
