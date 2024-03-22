@@ -322,14 +322,14 @@ export class EventService {
 
   async getGroupInfo(userId: number): Promise<OtherPeopleInfoDto[]> {
     const eventUser = await this.eventRepository.findOne({
-      where: { id: userId },
+      where: { userId },
       relations: ['group'],
     });
+    console.log(eventUser);
     if (!eventUser?.group) return [];
 
     const users = await this.eventRepository.find({
       where: { group: eventUser.group },
-      relations: ['user'],
     });
 
     const groupUsers = await Promise.all(
