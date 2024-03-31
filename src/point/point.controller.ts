@@ -22,7 +22,7 @@ import { UserService } from 'src/user/user.service';
 import { PointHistoryDto } from 'src/dtos/point.dto';
 import { ReportService } from 'src/report/report.service';
 import { User } from 'src/decorators/accessUser.decorator';
-import { AccessGuard } from 'src/auth/guard/acces.guard';
+import { AccessGuard } from 'src/auth/guard/access.guard';
 
 @Controller('point')
 export class PointController {

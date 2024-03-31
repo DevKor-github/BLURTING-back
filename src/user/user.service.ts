@@ -204,8 +204,6 @@ export class UserService {
     return user;
   }
 
-
-
   async findUser(field: string, value: string | number) {
     const user = await this.userRepository.findOne({
       where: { [field]: value },

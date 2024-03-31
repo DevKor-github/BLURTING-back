@@ -18,7 +18,7 @@ import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { Sex } from 'src/common/enums';
 import { ArrowInfoResponseDto } from 'src/blurting/dtos/arrowInfoResponse.dto';
-import { OtherPeopleInfoDto } from 'src/blurting/dtos/otherPeopleInfo.dto';
+import { OtherPeopleInfoDto } from 'src/blurting/dtos/blurtingMember.dto';
 import axios from 'axios';
 
 @Injectable()
@@ -324,7 +324,6 @@ export class EventService {
       where: { userId },
       relations: ['group'],
     });
-    console.log(eventUser);
     if (!eventUser?.group) return [];
 
     const users = await this.eventRepository.find({

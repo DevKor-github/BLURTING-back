@@ -28,15 +28,15 @@ import { Request, Response } from 'express';
 import { EventRegisterDto } from './dtos/event.dto';
 import { UserService } from 'src/user/user.service';
 import {
-  AnswerDto,
+  AnswerRequestDto,
   BlurtingAnswerDto,
   BlurtingPageDto,
-} from 'src/dtos/blurtingPage.dto';
+} from 'src/blurting/dtos';
 import { BlurtingService } from 'src/blurting/blurting.service';
 import { UserProfileDto } from 'src/dtos/user.dto';
-import { OtherPeopleInfoDto } from 'src/blurting/dtos/otherPeopleInfo.dto';
+import { OtherPeopleInfoDto } from 'src/blurting/dtos/blurtingMember.dto';
 import { ArrowInfoResponseDto } from 'src/blurting/dtos/arrowInfoResponse.dto';
-import { AccessGuard } from 'src/auth/guard/acces.guard';
+import { AccessGuard } from 'src/auth/guard/access.guard';
 
 @Controller('event')
 @ApiTags('event')
@@ -289,7 +289,7 @@ export class EventController {
   })
   @ApiBody({
     description: '블러팅 답변 정보 json',
-    type: AnswerDto,
+    type: AnswerRequestDto,
   })
   @ApiOperation({
     summary: '블러팅 답변 업로드',
@@ -297,7 +297,7 @@ export class EventController {
   })
   async postAnswer(
     @Req() req: Request,
-    @Body() answerDto: AnswerDto,
+    @Body() answerDto: AnswerRequestDto,
     @Res() res: Response,
   ) {
     const { id } = req.user as JwtPayload;
