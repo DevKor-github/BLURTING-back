@@ -185,6 +185,7 @@ export class BlurtingController {
     const { id } = req.user as JwtPayload;
     return await this.blurtingService.likeAnswer(id, answerId);
   }
+
   @UseGuards(AuthGuard('access'))
   @Post('/arrow/:toId/:day')
   @ApiParam({
@@ -213,6 +214,7 @@ export class BlurtingController {
     const { id } = req.user as JwtPayload;
     return await this.blurtingService.makeArrow(id, toId, day);
   }
+
   @UseGuards(AuthGuard('access'))
   @Get('/arrow')
   @ApiOperation({
@@ -228,6 +230,7 @@ export class BlurtingController {
     const { id } = req.user as JwtPayload;
     return await this.blurtingService.getArrows(id);
   }
+
   @UseGuards(AuthGuard('access'))
   @Get('/group-info')
   @ApiOperation({
@@ -263,15 +266,15 @@ export class BlurtingController {
     const user = await this.userService.findUserByVal('id', id);
     const isMatching = await this.blurtingService.isMatching(user);
 
+    if (isMatching) {
+      return 2;
+    }
     if (
       user.group &&
       user.group.createdAt >
         new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
     ) {
       return 1;
-    }
-    if (isMatching == true) {
-      return 2;
     }
     if (user.group) {
       return 3;
@@ -338,6 +341,7 @@ export class BlurtingController {
     );
     return blurtingPage;
   }
+
   @UseGuards(AuthGuard('access'))
   @Post('/reply/:answerId')
   @ApiOperation({

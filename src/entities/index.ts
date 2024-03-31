@@ -11,3 +11,6 @@ export { LikeEntity } from './like.entity';
 export { BLurtingArrowEntity } from './blurtingArrow.entity';
 export * from './notification.entity';
 export * from './reply.entity';
+export * from './toCheck.entity';
+export * from './blurtingEvent.entity';
+export * from './blurtingPreQuestion.entity';

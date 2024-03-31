@@ -75,13 +75,13 @@ export class PointService {
       (room.connectedAt != null &&
         new Date().getTime() - room.connectedAt.getTime() > 1000 * 60 * 60 * 15)
     ) {
-      const point = await this.updatePoint(users[0], -10);
+      const point = await this.updatePoint(users[0], -40);
       if (point) {
         const other = await this.userRepository.findOne({
           where: { id: users[1] },
         });
-        const history = `${other.userNickname}님께 귓속말을 걸고 10p가 사용 되었습니다.`;
-        this.recordPointHistory(users[0], -10, history);
+        const history = `${other.userNickname}님께 귓속말을 걸고 40p가 사용 되었습니다.`;
+        this.recordPointHistory(users[0], -40, history);
       }
       return point;
     }
@@ -90,13 +90,13 @@ export class PointService {
   }
 
   async checkNicknamePoint(userId: number) {
-    const point = await this.updatePoint(userId, -10);
+    const point = await this.updatePoint(userId, -40);
     if (point) {
       const nickname = await this.userService.pickRandomNickname();
       await this.userService.updateUser(userId, 'userNickname', nickname);
       await this.userService.updateUserSocket(userId, 'userNickname', nickname);
-      const history = `닉네임 뽑기를 하고 10p가 사용 되었습니다.`;
-      this.recordPointHistory(userId, -10, history);
+      const history = `닉네임 뽑기를 하고 40p가 사용 되었습니다.`;
+      this.recordPointHistory(userId, -40, history);
     }
     return point;
   }
@@ -106,6 +106,16 @@ export class PointService {
     if (updatedPoint) {
       const history = '100자 이상 답변하여 10p가 지급 되었습니다.';
       this.recordPointHistory(userId, 10, history);
+      return updatedPoint.point;
+    }
+    return false;
+  }
+
+  async giveAdPoint(userId: number) {
+    const updatedPoint = await this.updatePoint(userId, 5);
+    if (updatedPoint) {
+      const history = '광고 시청으로 5p가 지급 되었습니다.';
+      this.recordPointHistory(userId, 5, history);
       return updatedPoint.point;
     }
     return false;

@@ -39,4 +39,13 @@ export class HomeController {
     const { answerId } = req.body as likeHomeAnswerDto;
     return await this.homeService.like(id, answerId);
   }
+
+  @Get('/version')
+  @ApiOperation({
+    summary: '버전 정보',
+    description: 'latestVersion: 최신 버전 정보 반환',
+  })
+  async getVersion() {
+    return { latestVersion: '1.3.0' };
+  }
 }

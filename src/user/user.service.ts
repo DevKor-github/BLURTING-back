@@ -128,17 +128,17 @@ export class UserService {
               Object.keys(Character).find((key) => Character[key] == item)
             ];
         }
-        this.userInfoRepository.update(id, { character: maskedValue });
+        this.userInfoRepository.update({ id: id }, { character: maskedValue });
         break;
       case 'hobby':
         for (const item of value) {
           maskedValue |=
             HobbyMask[Object.keys(Hobby).find((key) => Hobby[key] == item)];
         }
-        this.userInfoRepository.update(id, { hobby: maskedValue });
+        this.userInfoRepository.update({ id: id }, { hobby: maskedValue });
         break;
       default:
-        this.userInfoRepository.update(id, { [field]: value });
+        this.userInfoRepository.update({ id: id }, { [field]: value });
     }
   }
 
@@ -204,6 +204,8 @@ export class UserService {
     return user;
   }
 
+
+
   async findUser(field: string, value: string | number) {
     const user = await this.userRepository.findOne({
       where: { [field]: value },
@@ -238,6 +240,9 @@ export class UserService {
   }
 
   getUserSexOrient(info: UserInfoEntity) {
+    if (info.sexOrient === SexOrient.Bisexual) {
+      return 'bisexual';
+    }
     if (info.sex === Sex.Male) {
       if (info.sexOrient === SexOrient.Homosexual) {
         return 'male_homo';
@@ -260,8 +265,8 @@ export class UserService {
     });
 
     const sexOrient = this.getUserSexOrient(user.userInfo);
-    const region = user.userInfo.region.split(' ')[0];
-    const qName = `${region}_${sexOrient}`;
+    //const region = user.userInfo.region.split(' ')[0];
+    const qName = `${sexOrient}`;
     const groupQueue: number[] = await this.cacheManager.get(qName);
     const idx = groupQueue.indexOf(user.id);
     if (idx > -1) groupQueue.splice(idx, 1);

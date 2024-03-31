@@ -5,6 +5,7 @@ import {
   AuthMailEntity,
   AuthPhoneNumberEntity,
   UserImageEntity,
+  ToCheckEntity,
 } from 'src/entities';
 import {
   JwtSignupStrategy,
@@ -28,6 +29,7 @@ import { PointModule } from 'src/point/point.module';
       AuthMailEntity,
       AuthPhoneNumberEntity,
       UserImageEntity,
+      ToCheckEntity,
     ]),
     JwtModule.register({}),
     MailerModule,
