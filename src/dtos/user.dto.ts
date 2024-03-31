@@ -1,7 +1,7 @@
 import { IsString, IsNumber, ValidateIf } from 'class-validator';
 import { Character, Hobby } from 'src/common/enums';
 import { CharacterMask, HobbyMask } from 'src/common/const';
-import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { UserInfoEntity } from 'src/entities';
 import { SignupUserRequestDto } from 'src/auth/dtos/signupRequest.dto';
 
@@ -65,22 +65,3 @@ export class UpdateProfileDto extends OmitType(UserProfileDto, [
   'sex',
   'sexOrient',
 ] as const) {}
-
-export class BlurtingProfileDto extends PickType(UserProfileDto, [
-  'sex',
-  'nickname',
-  'mbti',
-] as const) {
-  @ValidateIf((o) => o.room !== null)
-  @IsString()
-  room: string;
-
-  static ToDto(userInfo: UserProfileDto, room: string): BlurtingProfileDto {
-    return {
-      sex: userInfo.sex,
-      nickname: userInfo.nickname,
-      mbti: userInfo.mbti,
-      room: room ?? null,
-    };
-  }
-}
