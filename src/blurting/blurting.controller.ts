@@ -3,38 +3,41 @@ import {
   UseGuards,
   Get,
   Post,
-  Req,
   Res,
   Body,
   Param,
   Put,
   NotFoundException,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { BlurtingService } from './blurting.service';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtPayload } from 'src/interfaces/auth';
 import { UserService } from 'src/user/user.service';
 import {
   AnswerRequestDto,
-  BlurtingPageDto,
   OtherPeopleInfoDto,
   ReplyRequestDto,
   ArrowInfoResponseDto,
+  BlurtingPageDto,
+  BlurtingProfileDto,
+  ArrowResultResponseDto,
 } from 'src/blurting/dtos';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
 import {
-  ApiCreatedResponse,
-  ApiHeader,
-  ApiBody,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-  ApiUnauthorizedResponse,
-  ApiOkResponse,
-  ApiNotFoundResponse,
-  ApiTags,
-} from '@nestjs/swagger';
-import { BlurtingProfileDto } from 'src/dtos/user.dto';
+  AnswerDocs,
+  BlurtingDocs,
+  GetArrowsDocs,
+  GroupMemberDocs,
+  LikeDocs,
+  MakeArrowDocs,
+  BlurtingStateDocs,
+  OtherProfileDocs,
+  ReplyDocs,
+  ResultDocs,
+} from 'src/decorators/swagger/blurting.decorator';
+import { User } from 'src/decorators/accessUser.decorator';
+import { State } from 'src/common/enums/blurtingstate.enum';
 
 @Controller('blurting')
 @ApiTags('blurting')
@@ -46,21 +49,9 @@ export class BlurtingController {
 
   @UseGuards(AuthGuard('access'))
   @Get('/latest')
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiOperation({
-    summary: '블러팅 최신 질문 탭',
-    description: '마지막 질문 관련 정보 및 답변 반환',
-  })
-  @ApiResponse({
-    description: '마지막 Q&A 정보 반환',
-    type: BlurtingPageDto,
-  })
-  async getBlurting(@Req() req: Request) {
-    const { id } = req.user as JwtPayload;
+  @BlurtingDocs()
+  async getBlurting(@User() userPayload: JwtPayload): Promise<BlurtingPageDto> {
+    const { id } = userPayload;
     const user = await this.userService.findUserByVal('id', id);
     if (user.group == null) throw new NotFoundException();
     const blurtingPage = await this.blurtingService.getBlurting(
@@ -73,265 +64,115 @@ export class BlurtingController {
 
   @UseGuards(AuthGuard('access'))
   @Post('/answer')
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiBody({
-    description: '블러팅 답변 정보 json',
-    type: AnswerRequestDto,
-  })
-  @ApiOperation({
-    summary: '블러팅 답변 업로드',
-    description: '질문에 대한 답변 등록',
-  })
-  @ApiCreatedResponse({
-    description: '답변 업로드 성공 시',
-    schema: {
-      example: { point: 10 },
-      properties: {
-        point: {
-          type: 'number',
-          description: '수정된 포인트 값',
-        },
-      },
-    },
-  })
+  @AnswerDocs()
   async postAnswer(
-    @Req() req: Request,
+    @User() userPayload: JwtPayload,
     @Body() answerDto: AnswerRequestDto,
     @Res() res: Response,
   ) {
-    const { id } = req.user as JwtPayload;
+    const { id } = userPayload;
     const { questionId, answer } = answerDto;
-    try {
-      const point = await this.blurtingService.postAnswer(
-        id,
-        questionId,
-        answer,
-      );
-      if (point) {
-        return res.status(201).json({ point: point });
-      } else {
-        return res.sendStatus(201);
-      }
-    } catch (error) {
-      console.log(error);
-      return res.status(error.status).json(error);
+    const point = await this.blurtingService.postAnswer(id, questionId, answer);
+    if (point) {
+      return res.status(201).json({ point: point });
+    } else {
+      return res.sendStatus(201);
     }
   }
 
   @UseGuards(AuthGuard('access'))
   @Post('/register')
-  @ApiCreatedResponse({
-    description:
-      '큐에 등록시 0 , 그룹이 있으면 1, 매칭 중이면 2, 블러팅 끝났으면 3',
-  })
-  async registerGroupQueue(@Req() req: Request): Promise<0 | 1 | 2 | 3> {
-    const { id } = req.user as JwtPayload;
-
-    return await this.blurtingService.registerGroupQueue(id);
+  @BlurtingStateDocs()
+  async registerGroupQueue(@User() userPayload: JwtPayload): Promise<State> {
+    const { id } = userPayload;
+    return this.blurtingService.registerGroupQueue(id);
   }
 
   @UseGuards(AuthGuard('access'))
   @Get('/profile/:other')
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiParam({
-    name: 'other',
-    description: '다른 사람 id',
-    type: Number,
-  })
-  @ApiOperation({
-    summary: '블러팅에서 프로필 가져오기',
-    description: '블러팅에서 다른 사람 프로필 보기',
-  })
-  @ApiResponse({
-    description: '다른 사람 정보 반환(room 있으면 string, 없으면 null)',
-    type: BlurtingProfileDto,
-  })
+  @OtherProfileDocs()
   async getBlurtingProfile(
-    @Req() req: Request,
+    @User() userPayload: JwtPayload,
     @Param('other') other: number,
-    @Res() res: Response,
-  ) {
-    const { id } = req.user as JwtPayload;
-    const profile = await this.blurtingService.getProfile(id, other);
-    return res.json(profile);
+  ): Promise<BlurtingProfileDto> {
+    const { id } = userPayload;
+    return this.blurtingService.getProfile(id, other);
   }
 
   @UseGuards(AuthGuard('access'))
   @Put('/like/:answerId')
-  @ApiParam({
-    description: '좋아요 누를 답변 id',
-    name: 'answerId',
-    type: Number,
-  })
-  @ApiOperation({
-    summary: '블러팅 답변 좋아요 / 해제',
-    description: '이미 좋아요 눌러져 있으면 해제/아니면 누르기',
-  })
-  @ApiUnauthorizedResponse({ description: '토큰 만료' })
-  @ApiOkResponse({
-    description: '좋아요 됐으면 TRUE, 해제 됐으면 FALSE',
-    type: Boolean,
-  })
-  @ApiNotFoundResponse({ description: 'answerId 오류' })
-  async likeAnswer(@Req() req: Request, @Param('answerId') answerId: number) {
-    const { id } = req.user as JwtPayload;
-    return await this.blurtingService.likeAnswer(id, answerId);
+  @LikeDocs()
+  async likeAnswer(
+    @User() userPayload: JwtPayload,
+    @Param('answerId') answerId: number,
+  ): Promise<boolean> {
+    const { id } = userPayload;
+    return this.blurtingService.likeAnswer(id, answerId);
   }
 
   @UseGuards(AuthGuard('access'))
   @Post('/arrow/:toId/:day')
-  @ApiParam({
-    description: '화살표 받을 사람 id',
-    name: 'toId',
-    type: Number,
-  })
-  @ApiParam({
-    description: 'day',
-    name: 'day, 1,2,3으로 보내주세요',
-    type: Number,
-  })
-  @ApiOperation({
-    summary: '화살표 보내기',
-    description: '화살표 보내기',
-  })
-  @ApiUnauthorizedResponse({ description: '토큰 만료' })
-  @ApiOkResponse({
-    description: '화살표 보내기 성공',
-  })
+  @MakeArrowDocs()
   async makeArrow(
-    @Req() req: Request,
+    @User() userPayload: JwtPayload,
     @Param('toId') toId: number,
     @Param('day') day: number,
-  ) {
-    const { id } = req.user as JwtPayload;
-    return await this.blurtingService.makeArrow(id, toId, day);
+  ): Promise<void> {
+    const { id } = userPayload;
+    return this.blurtingService.makeArrow(id, toId, day);
   }
 
   @UseGuards(AuthGuard('access'))
   @Get('/arrow')
-  @ApiOperation({
-    summary: '내 화살표 보기',
-    description: '내 화살표 보기',
-  })
-  @ApiUnauthorizedResponse({ description: '토큰 만료' })
-  @ApiOkResponse({
-    description: '내 화살표 보기 성공',
-    type: ArrowInfoResponseDto,
-  })
-  async getArrows(@Req() req: Request): Promise<ArrowInfoResponseDto> {
-    const { id } = req.user as JwtPayload;
-    return await this.blurtingService.getArrows(id);
+  @GetArrowsDocs()
+  async getArrows(
+    @User() userPayload: JwtPayload,
+  ): Promise<ArrowInfoResponseDto> {
+    const { id } = userPayload;
+    return this.blurtingService.getArrows(id);
   }
 
   @UseGuards(AuthGuard('access'))
   @Get('/group-info')
-  @ApiOperation({
-    summary: '그룹 정보',
-    description: '그룹 정보',
-  })
-  @ApiUnauthorizedResponse({ description: '토큰 만료' })
-  @ApiOkResponse({
-    description: '그룹 정보',
-    type: [OtherPeopleInfoDto],
-  })
-  async getGroupInfo(@Req() req: Request): Promise<OtherPeopleInfoDto[]> {
-    const { id } = req.user as JwtPayload;
-    return await this.blurtingService.getGroupInfo(id);
+  @GroupMemberDocs()
+  async getGroupInfo(
+    @User() userPayload: JwtPayload,
+  ): Promise<OtherPeopleInfoDto[]> {
+    const { id } = userPayload;
+    return this.blurtingService.getGroupInfo(id);
   }
 
   @UseGuards(AuthGuard('access'))
   @Get()
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiOperation({
-    summary: '매칭 여부 확인',
-    description: '블러팅 탭 클릭 시 매칭 여부 반환',
-  })
-  @ApiCreatedResponse({
-    description: '매칭 전 0, 매칭 완료 1, 매칭 중 2, 블러팅 끝 3',
-  })
-  async getMatching(@Req() req: Request) {
-    const { id } = req.user as JwtPayload;
-    const user = await this.userService.findUserByVal('id', id);
-    const isMatching = await this.blurtingService.isMatching(user);
-
-    if (isMatching) {
-      return 2;
-    }
-    if (
-      user.group &&
-      user.group.createdAt >
-        new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
-    ) {
-      return 1;
-    }
-    if (user.group) {
-      return 3;
-    }
-    return 0;
+  @BlurtingStateDocs()
+  async getBlurtingState(@User() userPayload: JwtPayload): Promise<State> {
+    const { id } = userPayload;
+    return this.blurtingService.getBlurtingState(id);
   }
 
   @UseGuards(AuthGuard('access'))
   @Get('/result')
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiOperation({
-    summary: '지난 블러팅',
-    description: '블러팅 끝나고 누구랑 매칭되었는지 반환',
-  })
-  @ApiResponse({
-    description: '매칭된 유저 정보 반환',
-    schema: {
-      properties: {
-        myname: { type: 'string' },
-        mysex: { type: 'string' },
-        othername: { type: 'string' },
-        othersex: { type: 'string' },
-      },
-    },
-  })
-  async getBlurtingResult(@Req() req: Request) {
-    const { id } = req.user as JwtPayload;
-    const matchedUser = this.blurtingService.getFinalArrow(id);
-    return matchedUser;
+  @ResultDocs()
+  async getBlurtingResult(
+    @User() userPayload: JwtPayload,
+  ): Promise<ArrowResultResponseDto> {
+    const { id } = userPayload;
+    return this.blurtingService.getFinalArrow(id);
   }
 
   @UseGuards(AuthGuard('access'))
   @Get('/:no')
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
+  @BlurtingDocs()
   @ApiParam({
     name: 'no',
     description: 'n번째 질문',
     type: Number,
   })
-  @ApiOperation({
-    summary: '블러팅 질문 탭',
-    description: '선택 질문 관련 정보 및 답변 반환',
-  })
-  @ApiResponse({
-    description: '선택 Q&A 정보 반환',
-    type: BlurtingPageDto,
-  })
-  async getBlurtingNo(@Req() req: Request, @Param('no') no: number) {
-    const { id } = req.user as JwtPayload;
+  async getBlurtingNo(
+    @User() userPayload: JwtPayload,
+    @Param('no') no: number,
+  ): Promise<BlurtingPageDto> {
+    const { id } = userPayload;
     const user = await this.userService.findUserByVal('id', id);
     if (user.group == null) throw new NotFoundException();
     const blurtingPage = await this.blurtingService.getBlurting(
@@ -344,27 +185,13 @@ export class BlurtingController {
 
   @UseGuards(AuthGuard('access'))
   @Post('/reply/:answerId')
-  @ApiOperation({
-    summary: '블러팅 답글 달기',
-  })
-  @ApiCreatedResponse({ description: '잘 됨' })
-  @ApiUnauthorizedResponse({
-    description: '토큰 X',
-  })
-  @ApiParam({
-    name: 'answerId',
-    type: Number,
-    description: '답글 달 답변 id',
-  })
-  @ApiBody({
-    type: ReplyRequestDto,
-  })
+  @ReplyDocs()
   async createReply(
-    @Req() req: Request,
+    @User() userPayload: JwtPayload,
     @Param('answerId') answerId: number,
     @Body() body: ReplyRequestDto,
-  ) {
-    const { id } = req.user as JwtPayload;
+  ): Promise<void> {
+    const { id } = userPayload;
     await this.blurtingService.addReply(id, body.content, answerId);
   }
 }

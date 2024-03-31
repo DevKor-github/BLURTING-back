@@ -8,6 +8,17 @@ export class ArrowInfoResponseDto {
   iReceived: ArrowInfo[];
 }
 
+export class ArrowResultResponseDto {
+  @ApiProperty({ description: '본인 닉네임' })
+  myname: string;
+  @ApiProperty({ description: '본인 성별' })
+  mysex: Sex;
+  @ApiProperty({ description: '상대 닉네임' })
+  othername?: string;
+  @ApiProperty({ description: '상대 성별' })
+  othersex?: Sex;
+}
+
 export class ArrowInfo {
   @ApiProperty({ description: '보낸 userId' })
   fromId: number;
