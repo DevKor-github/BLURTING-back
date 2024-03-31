@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import { Questions } from 'src/common/const';
 import {
-  BLurtingArrowEntity,
+  BlurtingArrowEntity,
   BlurtingAnswerEntity,
   BlurtingEventEntity,
   BlurtingGroupEntity,
@@ -32,8 +32,8 @@ export class EventService {
     private readonly questionRepository: Repository<BlurtingQuestionEntity>,
     @InjectRepository(BlurtingAnswerEntity)
     private readonly answerRepository: Repository<BlurtingAnswerEntity>,
-    @InjectRepository(BLurtingArrowEntity)
-    private readonly arrowRepository: Repository<BLurtingArrowEntity>,
+    @InjectRepository(BlurtingArrowEntity)
+    private readonly arrowRepository: Repository<BlurtingArrowEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,

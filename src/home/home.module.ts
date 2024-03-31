@@ -3,7 +3,7 @@ import { HomeController } from './home.controller';
 import { HomeService } from './home.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
-  BLurtingArrowEntity,
+  BlurtingArrowEntity,
   BlurtingAnswerEntity,
   LikeEntity,
   UserEntity,
@@ -17,7 +17,7 @@ import { Chatting, ChattingSchema } from 'src/chat/models';
   imports: [
     TypeOrmModule.forFeature([
       LikeEntity,
-      BLurtingArrowEntity,
+      BlurtingArrowEntity,
       UserEntity,
       BlurtingAnswerEntity,
     ]),

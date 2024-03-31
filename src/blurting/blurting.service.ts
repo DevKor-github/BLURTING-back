@@ -8,16 +8,11 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
 import {
-  BlurtingAnswerDto,
-  BlurtingPageDto,
-} from 'src/blurting/dtos/blurtingPageResponse.dto';
-import {
-  BLurtingArrowEntity,
+  BlurtingArrowEntity,
   BlurtingAnswerEntity,
   BlurtingGroupEntity,
   BlurtingQuestionEntity,
   LikeEntity,
-  UserEntity,
   NotificationEntity,
   ReplyEntity,
   BlurtingPreQuestionEntity,
@@ -29,12 +24,18 @@ import { InjectQueue } from '@nestjs/bull';
 import { Sex, SexOrient } from 'src/common/enums';
 import { FcmService } from 'src/firebase/fcm.service';
 import { ChatService } from 'src/chat/chat.service';
-import { BlurtingProfileDto } from 'src/dtos/user.dto';
 import { PointService } from 'src/point/point.service';
-import { OtherPeopleInfoDto } from './dtos/otherPeopleInfo.dto';
+import {
+  OtherPeopleInfoDto,
+  BlurtingProfileDto,
+  ArrowInfoResponseDto,
+  BlurtingAnswerDto,
+  BlurtingPageDto,
+  ArrowResultResponseDto,
+} from './dtos';
 import { ReportEntity } from 'src/entities/report.entity';
-import { ArrowInfoResponseDto } from './dtos/arrowInfoResponse.dto';
 import { QUESTION1, QUESTION2, QUESTION3 } from 'src/common/const';
+import { State } from 'src/common/enums/blurtingstate.enum';
 
 @Injectable()
 export class BlurtingService {
@@ -51,13 +52,12 @@ export class BlurtingService {
     @InjectRepository(NotificationEntity)
     private readonly notificationRepository: Repository<NotificationEntity>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    @InjectQueue('blurtingQuestions') private readonly queue: Queue,
     @InjectQueue('renewaledBlurting') private readonly rQ: Queue,
     private readonly fcmService: FcmService,
     @InjectRepository(LikeEntity)
     private readonly likeRepository: Repository<LikeEntity>,
-    @InjectRepository(BLurtingArrowEntity)
-    private readonly arrowRepository: Repository<BLurtingArrowEntity>,
+    @InjectRepository(BlurtingArrowEntity)
+    private readonly arrowRepository: Repository<BlurtingArrowEntity>,
     @InjectRepository(ReportEntity)
     private readonly reportRepository: Repository<ReportEntity>,
     @InjectRepository(ReplyEntity)
@@ -190,7 +190,6 @@ export class BlurtingService {
     );
 
     await this.addPreQuestions(group);
-
     await this.processPreQuestions(group, 1, users);
   }
 
@@ -205,6 +204,113 @@ export class BlurtingService {
       no,
     });
     await this.questionRepository.save(newQuestion);
+  }
+
+  async getBlurtingState(id: number): Promise<State> {
+    const user = await this.userService.findUserByVal('id', id);
+    const sexOrient = this.userService.getUserSexOrient(user.userInfo);
+    //const region = user.userInfo.region.split(' ')[0];
+    const qName = /*`${region}_*/ `${sexOrient}`;
+    const groupQueue: number[] = await this.cacheManager.get(qName);
+    if (!groupQueue) {
+      await this.cacheManager.set(qName, []);
+    }
+
+    if (groupQueue.includes(user.id)) {
+      return State.Matching;
+    }
+    if (
+      user.group &&
+      user.group.createdAt >
+        new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
+    ) {
+      return State.Blurting;
+    }
+    if (user.group) {
+      return State.End;
+    }
+    return State.Start;
+  }
+
+  async registerGroupQueue(id: number): Promise<State> {
+    const state = await this.getBlurtingState(id);
+    if (state == State.Matching || state == State.Blurting) {
+      return state;
+    }
+
+    try {
+      const user = await this.userService.findUserByVal('id', id);
+      const sexOrient = this.userService.getUserSexOrient(user.userInfo);
+      //const region = user.userInfo.region.split(' ')[0];
+      const qName = /*`${region}_*/ `${sexOrient}`;
+      const groupQueue: number[] = await this.cacheManager.get(qName);
+
+      if (groupQueue.length < 2) {
+        groupQueue.push(id);
+        await this.cacheManager.set(qName, groupQueue);
+        return State.Start;
+      }
+
+      if (sexOrient.endsWith('homo') || sexOrient.endsWith('bisexual')) {
+        if (groupQueue.length >= 5) {
+          const groupIds = groupQueue.slice(0, 5);
+
+          groupIds.push(id);
+          await this.createGroup(groupIds);
+          await this.cacheManager.set(qName, groupQueue.slice(5));
+          return State.Blurting;
+        } else {
+          groupQueue.push(id);
+          await this.cacheManager.set(qName, groupQueue);
+          return State.Start;
+        }
+      }
+
+      const oppositeSexorient = this.getOppositeQueueName(sexOrient);
+      const oppositeQueueName = /*`${region}_*/ `${oppositeSexorient}`;
+      let oppositeQueue: number[] =
+        await this.cacheManager.get(oppositeQueueName);
+
+      if (!oppositeQueue) {
+        oppositeQueue = [];
+        await this.cacheManager.set(oppositeQueueName, oppositeQueue);
+      }
+
+      if (oppositeQueue.length >= 3) {
+        const firstGroupIds = groupQueue.slice(0, 2);
+        firstGroupIds.push(id);
+        await this.cacheManager.set(qName, groupQueue.slice(2));
+
+        const secondGroupIds = oppositeQueue.slice(0, 3);
+        await this.cacheManager.set(oppositeQueueName, oppositeQueue.slice(3));
+        const groupIds = firstGroupIds.concat(secondGroupIds);
+        await this.createGroup(groupIds);
+        return State.Blurting;
+      } else {
+        groupQueue.push(id);
+        await this.cacheManager.set(qName, groupQueue);
+        return State.Start;
+      }
+    } catch (err) {
+      console.log(err);
+      const user = await this.userService.findUserByVal('id', id);
+      const sexOrient = this.userService.getUserSexOrient(user.userInfo);
+      //const region = user.userInfo.region.split(' ')[0];
+      const qName = /*`${region}_*/ `${sexOrient}`;
+
+      const groupQueue: number[] = await this.cacheManager.get(qName);
+      if (groupQueue.includes(id)) {
+        return State.Matching;
+      }
+      groupQueue.push(id);
+      await this.cacheManager.set(qName, groupQueue);
+      return State.Start;
+    }
+  }
+
+  getOppositeQueueName(queue: string): string {
+    if (queue === 'male') return 'female';
+    else if (queue === 'female') return 'male';
   }
 
   async getBlurting(
@@ -231,56 +337,37 @@ export class BlurtingService {
     }
 
     const answers = await this.answerRepository.find({
-      where: { question: question },
+      where: { question },
       order: { postedAt: 'ASC', reply: { createdAt: 'DESC' } },
       relations: ['question', 'user', 'reply', 'reply.user'],
     });
 
     const answersDto = await Promise.all(
       answers.map(async (answerEntity) => {
-        const likes = await this.likeRepository.find({
+        const iLike = await this.likeRepository.find({
           where: {
-            answer: {
-              id: answerEntity.id,
-              question: {
-                group: {
-                  id: group.id,
-                },
-              },
-            },
+            answerId: answerEntity.id,
+            userId: id,
           },
         });
-        let iLike = false;
-        if (likes.filter((item) => item.userId === id).length > 0) iLike = true;
 
-        if (answerEntity.user == null) {
-          return BlurtingAnswerDto.ToDto(
-            answerEntity,
-            null,
-            null,
-            iLike,
-            likes.length,
-          );
-        }
+        const room = answerEntity.user
+          ? await this.chatService.findCreatedRoom([id, answerEntity.user.id])
+          : null;
+        const user = answerEntity.user
+          ? await this.userService.findUserByVal('id', answerEntity.user.id)
+          : null;
 
-        const room = await this.chatService.findCreatedRoom([
-          id,
-          answerEntity.user.id,
-        ]);
-        const user = await this.userService.findUserByVal(
-          'id',
-          answerEntity.user.id,
-        );
-        const roomId = room ? room.id : null;
         return BlurtingAnswerDto.ToDto(
           answerEntity,
-          roomId,
+          room?.id,
           user,
-          iLike,
-          likes.length,
+          iLike.length > 0 ? true : false,
+          answerEntity.allLikes,
         );
       }),
     );
+
     const blurtingPage: BlurtingPageDto = BlurtingPageDto.ToDto(
       group,
       question,
@@ -298,7 +385,11 @@ export class BlurtingService {
     return answers.length === 6;
   }
 
-  async postAnswer(userId: number, questionId: number, answer: string) {
+  async postAnswer(
+    userId: number,
+    questionId: number,
+    answer: string,
+  ): Promise<number | boolean> {
     const question = await this.questionRepository.findOne({
       where: { id: questionId },
       relations: ['group'],
@@ -347,161 +438,104 @@ export class BlurtingService {
     return false;
   }
 
-  async isMatching(user: UserEntity) {
-    const sexOrient = this.userService.getUserSexOrient(user.userInfo);
-    //const region = user.userInfo.region.split(' ')[0];
-    const qName = /*`${region}_*/ `${sexOrient}`;
-    const groupQueue: number[] = await this.cacheManager.get(qName);
-    if (!groupQueue) {
-      await this.cacheManager.set(qName, []);
-      return false;
-    }
-    if (groupQueue.includes(user.id)) {
-      return true;
-    }
-    return false;
-  }
-
-  async registerGroupQueue(id: number) {
-    try {
-      const user = await this.userService.findUserByVal('id', id);
-      const sexOrient = this.userService.getUserSexOrient(user.userInfo);
-      //const region = user.userInfo.region.split(' ')[0];
-      const qName = /*`${region}_*/ `${sexOrient}`;
-
-      let groupQueue: number[] = await this.cacheManager.get(qName);
-      if (!groupQueue) {
-        await this.cacheManager.set(qName, []);
-        groupQueue = await this.cacheManager.get(qName);
-      }
-      if (groupQueue.includes(id)) {
-        return 2;
-      }
-
-      if (
-        user.group &&
-        user.group.createdAt >
-          new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
-      ) {
-        return 1;
-      }
-
-      if (groupQueue.length < 2) {
-        groupQueue.push(id);
-        await this.cacheManager.set(qName, groupQueue);
-        return 0;
-      }
-      if (sexOrient.endsWith('homo') || sexOrient.endsWith('bisexual')) {
-        if (groupQueue.length >= 5) {
-          const groupIds = groupQueue.slice(0, 5);
-
-          groupIds.push(id);
-          if (groupIds.length !== 6) {
-            throw new Error(
-              '왜인지 모르겠지만 groupIds가 이상함.' + groupIds.toString(),
-            );
-          }
-          await this.createGroup(groupIds);
-          await this.cacheManager.set(qName, groupQueue.slice(5));
-          return 1;
-        } else {
-          groupQueue.push(id);
-          await this.cacheManager.set(qName, groupQueue);
-          return 0;
-        }
-      }
-      const oppositeSexorient = this.getOppositeQueueName(sexOrient);
-      const oppositeQueueName = /*`${region}_*/ `${oppositeSexorient}`;
-      let oppositeQueue: number[] =
-        await this.cacheManager.get(oppositeQueueName);
-
-      if (!oppositeQueue) {
-        oppositeQueue = [];
-        await this.cacheManager.set(oppositeQueueName, oppositeQueue);
-      }
-
-      if (oppositeQueue.length >= 3) {
-        const firstGroupIds = groupQueue.slice(0, 2);
-        firstGroupIds.push(id);
-        await this.cacheManager.set(qName, groupQueue.slice(2));
-
-        const secondGroupIds = oppositeQueue.slice(0, 3);
-        await this.cacheManager.set(oppositeQueueName, oppositeQueue.slice(3));
-        const groupIds = firstGroupIds.concat(secondGroupIds);
-        if (groupIds.length !== 6) {
-          throw new Error(
-            '왜인지 모르겠지만 groupIds가 이상함.' + groupIds.toString(),
-          );
-        }
-        await this.createGroup(groupIds);
-        return 1;
-      } else {
-        groupQueue.push(id);
-        await this.cacheManager.set(qName, groupQueue);
-        return 0;
-      }
-    } catch (err) {
-      console.log(err);
-      const user = await this.userService.findUserByVal('id', id);
-      const sexOrient = this.userService.getUserSexOrient(user.userInfo);
-      //const region = user.userInfo.region.split(' ')[0];
-      const qName = /*`${region}_*/ `${sexOrient}`;
-
-      const groupQueue: number[] = await this.cacheManager.get(qName);
-      if (groupQueue.includes(id)) {
-        return 2;
-      }
-      groupQueue.push(id);
-      await this.cacheManager.set(qName, groupQueue);
-      return 0;
-    }
-  }
-
-  getOppositeQueueName(queue: string) {
-    if (queue === 'male') return 'female';
-    else if (queue === 'female') return 'male';
-  }
-
-  async getProfile(id: number, other: number) {
+  async getProfile(id: number, other: number): Promise<BlurtingProfileDto> {
     const userInfo = await this.userService.getUserProfile(other, []);
     const room = await this.chatService.findCreatedRoom([id, other]);
-    const roomId = room ? room.id : null;
-    return BlurtingProfileDto.ToDto(userInfo, roomId);
+    return BlurtingProfileDto.ToDto(userInfo, room?.id);
   }
 
-  async likeAnswer(userId: number, answerId: number) {
+  async likeAnswer(userId: number, answerId: number): Promise<boolean> {
     const answer = await this.answerRepository.findOne({
       where: { id: answerId },
       relations: ['user', 'user.group', 'question', 'question.group'],
     });
     if (!answer) throw new NotFoundException('answer not found');
+
     const like = await this.likeRepository.findOne({
-      where: {
-        answerId,
-        userId,
-      },
+      where: { answerId, userId },
     });
     if (!like) {
-      const newLike = this.likeRepository.create({
-        answerId,
-        userId,
-      });
       answer.allLikes++;
-      await this.likeRepository.save(newLike);
-      await this.answerRepository.save(answer);
+      await Promise.all([
+        this.likeRepository.save(
+          this.likeRepository.create({ answerId, userId }),
+        ),
+        this.answerRepository.save(answer),
+      ]);
       return true;
     } else {
-      await this.likeRepository.delete({
-        answerId,
-        userId,
-      });
       answer.allLikes--;
-      await this.answerRepository.save(answer);
+      await Promise.all([
+        this.likeRepository.delete({ answerId, userId }),
+        this.answerRepository.save(answer),
+      ]);
       return false;
     }
   }
 
-  async makeArrow(userId: number, toId: number, day: number) {
+  async getGroupInfo(userId: number): Promise<OtherPeopleInfoDto[]> {
+    const groupUsers = await this.userService.getGroupUsers(userId);
+    const reports = await this.reportRepository.find({
+      where: { reportedUser: In(groupUsers.map((user) => user.id)) },
+      relations: ['reportedUser'],
+    });
+    const { sex: userSex, sexOrient: userSexOrient } = groupUsers.find(
+      (user) => user.id === userId,
+    ).userInfo;
+    const filteredSex: Sex[] = [];
+
+    if (userSexOrient === SexOrient.Bisexual) {
+      filteredSex.push(Sex.Female, Sex.Male);
+    } else if (userSexOrient === SexOrient.Heterosexual) {
+      const sex = userSex === Sex.Female ? Sex.Male : Sex.Female;
+      filteredSex.push(sex);
+    } else {
+      filteredSex.push(userSex);
+    }
+
+    const result = groupUsers
+      .filter((user) => filteredSex.includes(user.userInfo.sex))
+      .map((user) => {
+        return {
+          userId: user.id,
+          userNickname: user.userNickname,
+          userSex: user.userInfo.sex,
+          reported: reports.some(
+            (report) => report.reportedUser.id === user.id,
+          ),
+        };
+      });
+    return result;
+  }
+
+  async addReply(
+    userId: number,
+    content: string,
+    answerId: number,
+  ): Promise<void> {
+    const user = await this.userService.findUserByVal('id', userId);
+    const answer = await this.answerRepository.findOne({
+      where: { id: answerId },
+      relations: ['user', 'question'],
+    });
+    if (!user || !answer)
+      throw new NotFoundException('user or answer not found');
+
+    await this.replyRepository.insert({
+      user: user,
+      answer: answer,
+      content: content,
+    });
+    if (answer.user.id !== userId) {
+      await this.fcmService.sendPush(
+        answer.user.id,
+        `${answer.question.no}번째 나의 답변에 댓글이 달렸습니다!`,
+        'blurting',
+      );
+    }
+  }
+
+  async makeArrow(userId: number, toId: number, day: number): Promise<void> {
     const user = await this.userService.findUserByVal('id', userId);
     const question = await this.questionRepository.find({
       where: {
@@ -569,30 +603,29 @@ export class BlurtingService {
     });
     const sendDto = sendArrows.map((arrow) => {
       return {
-        fromId: userId,
-        toId: arrow.to === null ? -1 : arrow.to.id,
+        fromId: arrow.from?.id ?? -1,
+        toId: userId,
         day: arrow.no,
-        username: arrow.to === null ? null : arrow.to.userNickname,
-        userSex: arrow.to === null ? null : arrow.to.userInfo.sex,
+        username: arrow.from?.userNickname,
+        userSex: arrow.from?.userInfo.sex,
       };
     });
 
     const receiveDto = receiveArrows.map((arrow) => {
       return {
-        fromId: arrow.from === null ? -1 : arrow.from.id,
+        fromId: arrow.from?.id ?? -1,
         toId: userId,
         day: arrow.no,
-        username: arrow.from === null ? null : arrow.from.userNickname,
-        userSex: arrow.from === null ? null : arrow.from.userInfo.sex,
+        username: arrow.from?.userNickname,
+        userSex: arrow.from?.userInfo.sex,
       };
     });
     return { iSended: sendDto, iReceived: receiveDto };
   }
 
-  async getFinalArrow(userId: number) {
+  async getFinalArrow(userId: number): Promise<ArrowResultResponseDto> {
     const user = await this.userService.findUserByVal('id', userId);
     const arrowDtos = await this.getArrows(userId);
-    console.log(arrowDtos);
     const finalSend = arrowDtos.iSended[arrowDtos.iSended.length - 1];
     const finalRecieves = arrowDtos.iReceived;
     let matched;
@@ -610,81 +643,11 @@ export class BlurtingService {
       });
     }
 
-    console.log(matched.length);
-    console.log(user.userInfo);
-
     return {
       myname: user.userNickname,
       mysex: user.userInfo.sex,
       othername: matched.length > 0 ? finalSend?.username : null,
       othersex: matched.length > 0 ? finalSend?.userSex : null,
     };
-  }
-
-  async getGroupInfo(userId: number): Promise<OtherPeopleInfoDto[]> {
-    const groupUsers = await this.userService.getGroupUsers(userId);
-
-    const reports = await this.reportRepository.find({
-      where: { reportedUser: In(groupUsers.map((user) => user.id)) },
-      relations: ['reportedUser'],
-    });
-    const userSex = groupUsers.filter((user) => user.id === userId)[0].userInfo
-      .sex;
-
-    const userSexOrient = groupUsers.filter((user) => user.id === userId)[0]
-      .userInfo.sexOrient;
-
-    const filteredSex = [];
-
-    if (userSexOrient === SexOrient.Bisexual) {
-      filteredSex.push(Sex.Female, Sex.Male);
-    } else if (userSexOrient === SexOrient.Heterosexual) {
-      const sex = userSex === Sex.Female ? Sex.Male : Sex.Female;
-      filteredSex.push(sex);
-    } else {
-      filteredSex.push(userSex);
-    }
-
-    const result = groupUsers
-      .filter((user) => filteredSex.includes(user.userInfo.sex))
-      .map((user) => {
-        return {
-          userId: user.id,
-          userNickname: user.userNickname,
-          userSex: user.userInfo.sex,
-          reported:
-            reports.filter((report) => report.reportedUser.id === user.id)
-              .length > 0
-              ? true
-              : false,
-        };
-      });
-    return result;
-  }
-
-  async addReply(
-    userId: number,
-    content: string,
-    answerId: number,
-  ): Promise<void> {
-    const user = await this.userService.findUserByVal('id', userId);
-    const answer = await this.answerRepository.findOne({
-      where: { id: answerId },
-      relations: ['user', 'question'],
-    });
-    if (!user || !answer)
-      throw new NotFoundException('user or answer not found');
-    await this.replyRepository.insert({
-      user: user,
-      answer: answer,
-      content: content,
-    });
-    if (answer.user.id !== userId) {
-      await this.fcmService.sendPush(
-        answer.user.id,
-        `${answer.question.no}번째 나의 답변에 댓글이 달렸습니다!`,
-        'blurting',
-      );
-    }
   }
 }

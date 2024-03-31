@@ -3,7 +3,7 @@ import { HomeInfoResponseDto } from './dtos/homInfoResponse.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThan, Repository } from 'typeorm';
 import {
-  BLurtingArrowEntity,
+  BlurtingArrowEntity,
   BlurtingAnswerEntity,
   LikeEntity,
   UserEntity,
@@ -18,8 +18,8 @@ export class HomeService {
   constructor(
     @InjectRepository(LikeEntity)
     private readonly likeRepository: Repository<LikeEntity>,
-    @InjectRepository(BLurtingArrowEntity)
-    private readonly arrowRepository: Repository<BLurtingArrowEntity>,
+    @InjectRepository(BlurtingArrowEntity)
+    private readonly arrowRepository: Repository<BlurtingArrowEntity>,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(BlurtingAnswerEntity)

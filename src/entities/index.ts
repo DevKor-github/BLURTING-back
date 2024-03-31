@@ -8,7 +8,7 @@ export { BlurtingQuestionEntity } from './blurtingQuestion.entity';
 export { BlurtingAnswerEntity } from './blurtingAnswer.entity';
 export { PointHistoryEntity } from './pointHistory.entity';
 export { LikeEntity } from './like.entity';
-export { BLurtingArrowEntity } from './blurtingArrow.entity';
+export { BlurtingArrowEntity } from './blurtingArrow.entity';
 export * from './notification.entity';
 export * from './reply.entity';
 export * from './toCheck.entity';
