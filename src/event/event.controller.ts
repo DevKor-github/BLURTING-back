@@ -34,8 +34,8 @@ import {
 } from 'src/blurting/dtos';
 import { BlurtingService } from 'src/blurting/blurting.service';
 import { UserProfileDto } from 'src/dtos/user.dto';
-import { OtherPeopleInfoDto } from 'src/blurting/dtos/blurtingMember.dto';
-import { ArrowInfoResponseDto } from 'src/blurting/dtos/arrowInfoResponse.dto';
+import { OtherPeopleInfoDto } from 'src/blurting/dtos/member.dto';
+import { ArrowInfoResponseDto } from 'src/blurting/dtos/arrow.dto';
 import { AccessGuard } from 'src/auth/guard/access.guard';
 
 @Controller('event')

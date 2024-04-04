@@ -17,8 +17,8 @@ import { FcmService } from 'src/firebase/fcm.service';
 import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { Sex } from 'src/common/enums';
-import { ArrowInfoResponseDto } from 'src/blurting/dtos/arrowInfoResponse.dto';
-import { OtherPeopleInfoDto } from 'src/blurting/dtos/blurtingMember.dto';
+import { ArrowInfoResponseDto } from 'src/blurting/dtos/arrow.dto';
+import { OtherPeopleInfoDto } from 'src/blurting/dtos/member.dto';
 import axios from 'axios';
 
 @Injectable()

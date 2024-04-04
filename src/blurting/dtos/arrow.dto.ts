@@ -32,3 +32,10 @@ export class ArrowInfo {
   @ApiProperty({ description: '유저 성별' })
   userSex: Sex;
 }
+
+export class ArrowDto {
+  fromId: number;
+  toId: number;
+  groupId: number;
+  no: number;
+}
