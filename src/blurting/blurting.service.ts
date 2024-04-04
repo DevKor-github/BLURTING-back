@@ -5,20 +5,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
 import {
-  BlurtingArrowEntity,
-  BlurtingAnswerEntity,
   BlurtingGroupEntity,
   BlurtingQuestionEntity,
-  LikeEntity,
-  NotificationEntity,
-  ReplyEntity,
   BlurtingPreQuestionEntity,
 } from 'src/entities';
 import { UserService } from 'src/user/user.service';
-import { In, Repository } from 'typeorm';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
 import { Sex, SexOrient } from 'src/common/enums';
@@ -33,9 +26,19 @@ import {
   BlurtingPageDto,
   ArrowResultResponseDto,
 } from './dtos';
-import { ReportEntity } from 'src/entities/report.entity';
 import { QUESTION1, QUESTION2, QUESTION3 } from 'src/common/const';
 import { State } from 'src/common/enums/blurtingstate.enum';
+import {
+  BlurtingAnswerRepository,
+  BlurtingArrowRepository,
+  BlurtingGroupRepository,
+  BlurtingLikeRepository,
+  BlurtingPreQuestionRepository,
+  BlurtingQuestionRepository,
+  BlurtingReplyRepository,
+  NotificationRepository,
+  ReportRepository,
+} from 'src/repositories';
 
 @Injectable()
 export class BlurtingService {
@@ -43,27 +46,18 @@ export class BlurtingService {
     private readonly userService: UserService,
     private readonly chatService: ChatService,
     private readonly pointService: PointService,
-    @InjectRepository(BlurtingGroupEntity)
-    private readonly groupRepository: Repository<BlurtingGroupEntity>,
-    @InjectRepository(BlurtingQuestionEntity)
-    private readonly questionRepository: Repository<BlurtingQuestionEntity>,
-    @InjectRepository(BlurtingAnswerEntity)
-    private readonly answerRepository: Repository<BlurtingAnswerEntity>,
-    @InjectRepository(NotificationEntity)
-    private readonly notificationRepository: Repository<NotificationEntity>,
+    private readonly groupRepository: BlurtingGroupRepository,
+    private readonly questionRepository: BlurtingQuestionRepository,
+    private readonly answerRepository: BlurtingAnswerRepository,
+    private readonly notificationRepository: NotificationRepository,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @InjectQueue('renewaledBlurting') private readonly rQ: Queue,
     private readonly fcmService: FcmService,
-    @InjectRepository(LikeEntity)
-    private readonly likeRepository: Repository<LikeEntity>,
-    @InjectRepository(BlurtingArrowEntity)
-    private readonly arrowRepository: Repository<BlurtingArrowEntity>,
-    @InjectRepository(ReportEntity)
-    private readonly reportRepository: Repository<ReportEntity>,
-    @InjectRepository(ReplyEntity)
-    private readonly replyRepository: Repository<ReplyEntity>,
-    @InjectRepository(BlurtingPreQuestionEntity)
-    private readonly blurtingPreQuestionRepository: Repository<BlurtingPreQuestionEntity>,
+    private readonly likeRepository: BlurtingLikeRepository,
+    private readonly arrowRepository: BlurtingArrowRepository,
+    private readonly reportRepository: ReportRepository,
+    private readonly replyRepository: BlurtingReplyRepository,
+    private readonly blurtingPreQuestionRepository: BlurtingPreQuestionRepository,
   ) {}
 
   async processPreQuestions(
@@ -71,12 +65,10 @@ export class BlurtingService {
     no: number,
     users: number[],
   ) {
-    const questionToProcess = await this.blurtingPreQuestionRepository.findOne({
-      where: {
-        group: group,
-        no: no,
-      },
-    });
+    const questionToProcess = await this.blurtingPreQuestionRepository.findOne(
+      group.id,
+      no,
+    );
     if (!questionToProcess || no > 9) return;
 
     if (questionToProcess.isUploaded) return;
@@ -100,8 +92,9 @@ export class BlurtingService {
         );
       }),
     );
-    questionToProcess.isUploaded = true;
-    await this.blurtingPreQuestionRepository.save(questionToProcess);
+    await this.blurtingPreQuestionRepository.updateToUpload(
+      questionToProcess.id,
+    );
     if (no === 9) return;
 
     if (no % 3 === 0) {
@@ -125,13 +118,12 @@ export class BlurtingService {
       do {
         rand = Math.floor(Math.random() * QUESTION1.length);
       } while (selected1.find((e) => e.question == QUESTION1[rand]));
-      const q = this.blurtingPreQuestionRepository.create({
-        group: group,
+      await this.blurtingPreQuestionRepository.insert({
+        groupId: group.id,
         no: i + 1,
         question: QUESTION1[rand],
-        isUploaded: false,
       });
-      selected1.push(q);
+      // selected1.push(q);
     }
 
     const selected2: BlurtingPreQuestionEntity[] = [];
@@ -140,13 +132,12 @@ export class BlurtingService {
       do {
         rand = Math.floor(Math.random() * QUESTION2.length);
       } while (selected2.find((e) => e.question == QUESTION2[rand]));
-      const q = this.blurtingPreQuestionRepository.create({
-        group: group,
+      await this.blurtingPreQuestionRepository.insert({
+        groupId: group.id,
         no: i + 4,
         question: QUESTION2[rand],
-        isUploaded: false,
       });
-      selected2.push(q);
+      // selected2.push(q);
     }
 
     const selected3: BlurtingPreQuestionEntity[] = [];
@@ -155,24 +146,21 @@ export class BlurtingService {
       do {
         rand = Math.floor(Math.random() * QUESTION3.length);
       } while (selected3.find((e) => e.question == QUESTION3[rand]));
-      const q = this.blurtingPreQuestionRepository.create({
-        group: group,
+      await this.blurtingPreQuestionRepository.insert({
+        groupId: group.id,
         no: i + 7,
         question: QUESTION3[rand],
-        isUploaded: false,
       });
-      selected3.push(q);
+      // selected3.push(q);
     }
 
-    await this.blurtingPreQuestionRepository.save(selected1);
-    await this.blurtingPreQuestionRepository.save(selected2);
-    await this.blurtingPreQuestionRepository.save(selected3);
+    // await this.blurtingPreQuestionRepository.save(selected1);
+    // await this.blurtingPreQuestionRepository.save(selected2);
+    // await this.blurtingPreQuestionRepository.save(selected3);
   }
 
   async createGroup(users: number[]) {
-    const group = await this.groupRepository.save({
-      createdAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
-    });
+    const group = await this.groupRepository.insert();
     await Promise.all(
       users.map(async (id) => {
         await this.userService.updateUser(id, 'group', group);
@@ -181,11 +169,10 @@ export class BlurtingService {
           '그룹 매칭이 완료되었습니다!',
           'blurting',
         );
-        const newEntity = this.notificationRepository.create({
-          user: { id: id },
-          body: '그룹 매칭이 완료되었습니다!',
-        });
-        await this.notificationRepository.insert(newEntity);
+        await this.notificationRepository.insert(
+          id,
+          '그룹 매칭이 완료되었습니다!',
+        );
       }),
     );
 
@@ -198,12 +185,11 @@ export class BlurtingService {
     group: BlurtingGroupEntity,
     no: number,
   ) {
-    const newQuestion = this.questionRepository.create({
-      group,
+    await this.questionRepository.insert({
+      groupId: group.id,
       question,
       no,
     });
-    await this.questionRepository.save(newQuestion);
   }
 
   async getBlurtingState(id: number): Promise<State> {
@@ -320,36 +306,20 @@ export class BlurtingService {
   ): Promise<BlurtingPageDto> {
     let question: BlurtingQuestionEntity;
     if (no == 0) {
-      question = await this.questionRepository.findOne({
-        where: { group: group },
-        order: { no: 'DESC' },
-        relations: ['group'],
-      });
+      question = await this.questionRepository.findLatestByGroup(group.id);
     } else {
-      question = await this.questionRepository.findOne({
-        where: { group: group, no: no },
-        relations: ['group'],
-      });
+      question = await this.questionRepository.findOneByGroup(group.id, no);
     }
 
     if (!question) {
       throw new BadRequestException('invalid question no');
     }
 
-    const answers = await this.answerRepository.find({
-      where: { question },
-      order: { postedAt: 'ASC', reply: { createdAt: 'DESC' } },
-      relations: ['question', 'user', 'reply', 'reply.user'],
-    });
+    const answers = await this.answerRepository.findByQuestion(question.id);
 
     const answersDto = await Promise.all(
       answers.map(async (answerEntity) => {
-        const iLike = await this.likeRepository.find({
-          where: {
-            answerId: answerEntity.id,
-            userId: id,
-          },
-        });
+        const iLike = await this.likeRepository.findOne(answerEntity.id, id);
 
         const room = answerEntity.user
           ? await this.chatService.findCreatedRoom([id, answerEntity.user.id])
@@ -362,7 +332,7 @@ export class BlurtingService {
           answerEntity,
           room?.id,
           user,
-          iLike.length > 0 ? true : false,
+          iLike ? true : false,
           answerEntity.allLikes,
         );
       }),
@@ -377,11 +347,7 @@ export class BlurtingService {
   }
 
   async checkAllAnswered(questionId: number) {
-    const answers = await this.answerRepository.find({
-      where: {
-        question: { id: questionId },
-      },
-    });
+    const answers = await this.answerRepository.findByQuestion(questionId);
     return answers.length === 6;
   }
 
@@ -390,24 +356,18 @@ export class BlurtingService {
     questionId: number,
     answer: string,
   ): Promise<number | boolean> {
-    const question = await this.questionRepository.findOne({
-      where: { id: questionId },
-      relations: ['group'],
-    });
+    const question = await this.questionRepository.findById(questionId);
     if (!question || question == null) {
       throw new BadRequestException('존재하지 않는 질문입니다.');
     }
 
     const user = await this.userService.findUserByVal('id', userId);
-    const answerEntity = this.answerRepository.create({
-      user: user,
-      question: { id: questionId } as BlurtingQuestionEntity,
-      postedAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
-      answer: answer,
+    await this.answerRepository.insert({
+      userId,
+      questionId,
+      answer,
       userSex: user.userInfo.sex,
     });
-
-    await this.answerRepository.save(answerEntity);
     if (this.checkAllAnswered(questionId) && question.no / 3 !== 0) {
       const users = await this.userService.getGroupUsers(userId);
       await this.rQ.add(
@@ -445,29 +405,20 @@ export class BlurtingService {
   }
 
   async likeAnswer(userId: number, answerId: number): Promise<boolean> {
-    const answer = await this.answerRepository.findOne({
-      where: { id: answerId },
-      relations: ['user', 'user.group', 'question', 'question.group'],
-    });
+    const answer = await this.answerRepository.findById(answerId);
     if (!answer) throw new NotFoundException('answer not found');
 
-    const like = await this.likeRepository.findOne({
-      where: { answerId, userId },
-    });
+    const like = await this.likeRepository.findOne(answerId, userId);
     if (!like) {
-      answer.allLikes++;
       await Promise.all([
-        this.likeRepository.save(
-          this.likeRepository.create({ answerId, userId }),
-        ),
-        this.answerRepository.save(answer),
+        this.likeRepository.insert(answerId, userId),
+        this.answerRepository.updateLikes(answerId, true),
       ]);
       return true;
     } else {
-      answer.allLikes--;
       await Promise.all([
-        this.likeRepository.delete({ answerId, userId }),
-        this.answerRepository.save(answer),
+        this.likeRepository.delete(answerId, userId),
+        this.answerRepository.updateLikes(answerId, false),
       ]);
       return false;
     }
@@ -475,10 +426,7 @@ export class BlurtingService {
 
   async getGroupInfo(userId: number): Promise<OtherPeopleInfoDto[]> {
     const groupUsers = await this.userService.getGroupUsers(userId);
-    const reports = await this.reportRepository.find({
-      where: { reportedUser: In(groupUsers.map((user) => user.id)) },
-      relations: ['reportedUser'],
-    });
+    const reports = await this.reportRepository.findAllReported(userId);
     const { sex: userSex, sexOrient: userSexOrient } = groupUsers.find(
       (user) => user.id === userId,
     ).userInfo;
@@ -514,18 +462,11 @@ export class BlurtingService {
     answerId: number,
   ): Promise<void> {
     const user = await this.userService.findUserByVal('id', userId);
-    const answer = await this.answerRepository.findOne({
-      where: { id: answerId },
-      relations: ['user', 'question'],
-    });
+    const answer = await this.answerRepository.findById(answerId);
     if (!user || !answer)
       throw new NotFoundException('user or answer not found');
 
-    await this.replyRepository.insert({
-      user: user,
-      answer: answer,
-      content: content,
-    });
+    await this.replyRepository.insert({ userId, answerId, content });
     if (answer.user.id !== userId) {
       await this.fcmService.sendPush(
         answer.user.id,
@@ -537,70 +478,49 @@ export class BlurtingService {
 
   async makeArrow(userId: number, toId: number, day: number): Promise<void> {
     const user = await this.userService.findUserByVal('id', userId);
-    const question = await this.questionRepository.find({
-      where: {
-        group: user.group,
-      },
-      order: {
-        no: 'DESC',
-      },
-    });
+    const question = await this.questionRepository.findByGroup(user.group.id);
     if (question.length / 3 < day)
       throw new BadRequestException(day + ' part가 끝나지 않았습니다.');
 
-    const arrow = await this.arrowRepository.findOne({
-      where: {
-        from: { id: userId },
-        group: user.group,
-      },
-      order: { no: 'DESC' },
-    });
+    const arrow = await this.arrowRepository.findOneFromId(
+      userId,
+      user.group.id,
+    );
     const no = day;
     if (arrow && arrow.no >= day) {
       throw new BadRequestException('이미 화살표 존재');
     }
-    const newArrow = this.arrowRepository.create({
-      from: { id: userId },
-      to: toId === -1 ? null : { id: toId },
-      group: user.group,
-      no: no,
+    await this.arrowRepository.insert({
+      fromId: userId,
+      toId,
+      groupId: user.group.id,
+      no,
     });
-
-    await this.arrowRepository.save(newArrow);
     if (toId == -1 || toId == userId) return;
     await this.fcmService.sendPush(
       toId,
       `${user.userNickname}님이 당신에게 화살을 보냈습니다!`,
       'blurting',
     );
-    const newEntity = this.notificationRepository.create({
-      user: { id: toId },
-      body: `${user.userNickname}님이 당신에게 화살을 보냈습니다!`,
-    });
-    await this.notificationRepository.insert(newEntity);
+    await this.notificationRepository.insert(
+      toId,
+      `${user.userNickname}님이 당신에게 화살을 보냈습니다!`,
+    );
   }
 
   async getArrows(userId: number): Promise<ArrowInfoResponseDto> {
     const user = await this.userService.findUserByVal('id', userId);
     if (!user.group) return { iSended: [], iReceived: [] };
 
-    const sendArrows = await this.arrowRepository.find({
-      where: {
-        from: { id: userId },
-        group: user.group,
-      },
-      order: { no: 'ASC' },
-      relations: ['to', 'to.userInfo'],
-    });
+    const sendArrows = await this.arrowRepository.findFromId(
+      userId,
+      user.group.id,
+    );
 
-    const receiveArrows = await this.arrowRepository.find({
-      where: {
-        to: { id: userId },
-        group: user.group,
-      },
-      order: { no: 'ASC' },
-      relations: ['from', 'from.userInfo'],
-    });
+    const receiveArrows = await this.arrowRepository.findToId(
+      userId,
+      user.group.id,
+    );
     const sendDto = sendArrows.map((arrow) => {
       return {
         fromId: arrow.from?.id ?? -1,

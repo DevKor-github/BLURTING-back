@@ -3,7 +3,6 @@ import { BlurtingController } from './blurting.controller';
 import { BlurtingService } from './blurting.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
-  UserEntity,
   BlurtingGroupEntity,
   BlurtingQuestionEntity,
   BlurtingAnswerEntity,
@@ -11,8 +10,8 @@ import {
   LikeEntity,
   NotificationEntity,
   ReplyEntity,
-  ToCheckEntity,
   BlurtingPreQuestionEntity,
+  ReportEntity,
 } from 'src/entities';
 import { UserModule } from 'src/user/user.module';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -22,13 +21,22 @@ import { BlurtingConsumer } from './blurting.consumer';
 import { FcmModule } from 'src/firebase/fcm.module';
 import { ChatModule } from 'src/chat/chat.module';
 import { PointModule } from 'src/point/point.module';
-import { ReportEntity } from 'src/entities/report.entity';
+import {
+  BlurtingAnswerRepository,
+  BlurtingArrowRepository,
+  BlurtingGroupRepository,
+  BlurtingLikeRepository,
+  BlurtingPreQuestionRepository,
+  BlurtingQuestionRepository,
+  BlurtingReplyRepository,
+  NotificationRepository,
+  ReportRepository,
+} from 'src/repositories';
 
 @Module({
   imports: [
     UserModule,
     TypeOrmModule.forFeature([
-      UserEntity,
       BlurtingGroupEntity,
       BlurtingQuestionEntity,
       BlurtingAnswerEntity,
@@ -37,7 +45,6 @@ import { ReportEntity } from 'src/entities/report.entity';
       ReportEntity,
       NotificationEntity,
       ReplyEntity,
-      ToCheckEntity,
       BlurtingPreQuestionEntity,
     ]),
     CacheModule.register({
@@ -82,7 +89,19 @@ import { ReportEntity } from 'src/entities/report.entity';
     PointModule,
   ],
   controllers: [BlurtingController],
-  providers: [BlurtingService, BlurtingConsumer],
+  providers: [
+    BlurtingService,
+    BlurtingConsumer,
+    BlurtingAnswerRepository,
+    BlurtingArrowRepository,
+    BlurtingGroupRepository,
+    BlurtingPreQuestionRepository,
+    BlurtingQuestionRepository,
+    BlurtingReplyRepository,
+    BlurtingLikeRepository,
+    NotificationRepository,
+    ReportRepository,
+  ],
   exports: [BlurtingService],
 })
 export class BlurtingModule {}
