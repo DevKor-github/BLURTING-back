@@ -191,6 +191,6 @@ export class ChatGateway
       reportDto.reportingId,
       client.data.userId,
     ]);
-    await this.server.to(room.id).emit('report', room.id);
+    this.server.to(room.id).emit('report', room.id);
   }
 }
