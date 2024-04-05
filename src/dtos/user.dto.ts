@@ -185,6 +185,23 @@ export class UserProfileDto extends OmitType(CreateUserDto, [
   }
 }
 
+export class UserProfileDtoWithBlur extends UserProfileDto {
+  @ApiProperty({
+    description: '블러 스텝',
+    example: 3,
+  })
+  blur: number;
+
+  static extendUserProfileDto(
+    userProfileDto: UserProfileDto,
+    blur: number,
+  ): UserProfileDtoWithBlur {
+    return {
+      blur,
+      ...userProfileDto,
+    };
+  }
+}
 export class UpdateProfileDto extends OmitType(UserProfileDto, [
   'nickname',
   'sex',

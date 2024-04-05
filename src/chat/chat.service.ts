@@ -16,6 +16,9 @@ import {
 import { UserService } from 'src/user/user.service';
 import { FcmService } from 'src/firebase/fcm.service';
 import { NotificationEntity } from 'src/entities';
+import { getDateTimeOfNow } from 'src/common/util/time';
+import { UserProfileDtoWithBlur } from 'src/dtos/user.dto';
+import { BLUR_CHANGE_LIMIT, MESSAGES } from 'src/common/const';
 
 @Injectable()
 export class ChatService {
@@ -31,7 +34,7 @@ export class ChatService {
     private readonly fcmService: FcmService,
   ) {}
 
-  async validateSocket(client: Socket) {
+  async validateSocket(client: Socket): Promise<boolean> {
     const authHeader = client.handshake.headers['authorization'];
     const authAuth = client.handshake.auth['authorization'];
     let token;
@@ -56,8 +59,7 @@ export class ChatService {
     return true;
   }
 
-  // TODO : create socketUser when user signup
-  async updateSocketUser(userId: number, socketId: string) {
+  async updateSocketUser(userId: number, socketId: string): Promise<void> {
     const socketUser = await this.socketUserModel.findOne({ userId: userId });
 
     if (socketUser == null) {
@@ -73,7 +75,7 @@ export class ChatService {
         userNickname: user.userNickname,
         userSex: user.userInfo.sex ?? 'F',
         userImage: userImages.length ? userImages[0] : null,
-        connection: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
+        connection: getDateTimeOfNow(),
       });
     } else {
       // update socketId for user
@@ -81,26 +83,26 @@ export class ChatService {
         { userId: userId },
         {
           socketId: socketId,
-          connection: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
+          connection: getDateTimeOfNow(),
         },
       );
     }
   }
 
-  async findUserSocket(userId: number) {
+  async findUserSocket(userId: number): Promise<SocketUser> {
     const socketUser = await this.socketUserModel.findOne({ userId: userId });
     return socketUser;
   }
 
-  async createChatRoom(users: number[]) {
+  async createChatRoom(userIds: number[]) {
     const userObj: ChatUserDto[] = [];
     const roomId =
-      Math.floor(Math.random() * 100000).toString() + users[0] + users[1];
+      Math.floor(Math.random() * 100000).toString() + userIds[0] + userIds[1];
 
-    for (const id of users) {
+    for (const id of userIds) {
       userObj.push({
         userId: id,
-        hasRead: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
+        hasRead: getDateTimeOfNow(),
         blur: 0,
         isDeleted: false,
       });
@@ -111,17 +113,17 @@ export class ChatService {
       users: userObj,
       blur: 0,
       connected: true,
-      connectedAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
+      connectedAt: getDateTimeOfNow(),
     });
     await room.save();
 
     return roomId;
   }
 
-  async reConnectChat(roomId: string) {
+  async reConnectChat(roomId: string): Promise<void> {
     await this.roomModel.findOneAndUpdate(
       { where: { id: roomId } },
-      { connectedAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000) },
+      { connectedAt: getDateTimeOfNow() },
     );
   }
 
@@ -138,7 +140,7 @@ export class ChatService {
       .exec();
   }
 
-  async leaveChatRoom(userId: number, roomId: string) {
+  async leaveChatRoom(userId: number, roomId: string): Promise<void> {
     await this.roomModel.findOneAndUpdate(
       { id: roomId, 'users.userId': userId },
       {
@@ -150,7 +152,7 @@ export class ChatService {
     );
   }
 
-  async disconnectChatRoom(users: number[]) {
+  async disconnectChatRoom(users: number[]): Promise<void> {
     await this.roomModel.findOneAndUpdate(
       {
         users: {
@@ -166,7 +168,7 @@ export class ChatService {
     );
   }
 
-  addChat(chatData: ChatDto) {
+  addChat(chatData: ChatDto): void {
     this.chattingModel.create(chatData);
   }
 
@@ -181,21 +183,20 @@ export class ChatService {
         },
       })
       .select('id users connected -_id');
+    const roomInfoArr = [];
+    for (const room of rooms) {
+      const roomInfo = await this.getChatRoom(room, userId);
+      roomInfoArr.push(roomInfo);
+    }
 
-    const roomInfo = await Promise.all(
-      rooms.map(async (room) => {
-        return await this.getChatRoom(room, userId);
-      }),
-    );
-
-    return roomInfo.sort((a, b) => {
+    return roomInfoArr.sort((a, b) => {
       if (a.latest_time == null) return -1;
       if (b.latest_time == null) return 1;
       return b.latest_time.getTime() - a.latest_time.getTime();
     });
   }
 
-  async getChatRoom(room: Room, userId: number) {
+  async getChatRoom(room: Room, userId: number): Promise<RoomInfoDto> {
     const user = room.users.find((user) => user.userId == userId);
     const otherUser = room.users.find((user) => user.userId != userId);
     const otherUserInfo = await this.socketUserModel.findOne({
@@ -214,7 +215,7 @@ export class ChatService {
     );
   }
 
-  async getChats(roomId: string, userId: number) {
+  async getChats(roomId: string, userId: number): Promise<RoomChatDto> {
     const room = await this.roomModel.findOne({
       id: roomId,
       'users.userId': userId,
@@ -247,7 +248,7 @@ export class ChatService {
     );
   }
 
-  async findOtherUser(roomId: string, userId: number) {
+  async findOtherUser(roomId: string, userId: number): Promise<ChatUserDto> {
     const room = await this.roomModel.findOne({
       id: roomId,
       'users.userId': userId,
@@ -260,121 +261,77 @@ export class ChatService {
     return otherUser;
   }
 
-  async getOtherProfile(roomId: string, userId: number) {
+  async getOtherProfile(
+    roomId: string,
+    userId: number,
+  ): Promise<UserProfileDtoWithBlur> {
     const otherUser = await this.findOtherUser(roomId, userId);
     const userImages = await this.userService.getUserImages(otherUser.userId);
-    return {
-      ...(await this.userService.getUserProfile(otherUser.userId, userImages)),
-      blur: await this.updateBlurStep(roomId, otherUser.userId),
-    };
+    const userProfile = await this.userService.getUserProfile(
+      otherUser.userId,
+      userImages,
+    );
+    const blur = await this.updateBlurStep(roomId, otherUser.userId);
+
+    return UserProfileDtoWithBlur.extendUserProfileDto(userProfile, blur);
   }
 
-  async updateReadTime(roomId: string, userId: number) {
+  async updateReadTime(roomId: string, userId: number): Promise<void> {
     await this.roomModel.findOneAndUpdate(
       { id: roomId, 'users.userId': userId },
       {
         $set: {
-          'users.$.hasRead': new Date(
-            new Date().getTime() + 9 * 60 * 60 * 1000,
-          ),
+          'users.$.hasRead': getDateTimeOfNow(),
         },
       },
     );
   }
 
-  async updateAllReadTime(roomId: string) {
+  async updateAllReadTime(roomId: string): Promise<void> {
     await this.roomModel.findOneAndUpdate(
       { id: roomId },
       {
         $set: {
-          'users.$[].hasRead': new Date(
-            new Date().getTime() + 9 * 60 * 60 * 1000,
-          ),
+          'users.$[].hasRead': getDateTimeOfNow(),
         },
       },
     );
   }
 
-  async checkBlurChange(room: Room, index: number) {
+  async checkBlurChange(room: Room, index: number): Promise<number> {
     const chatCount = await this.chattingModel.count({ roomId: room.id });
-    let blurChange = true;
 
-    switch (room.users[index].blur) {
-      case 0:
-        break;
-      case 1:
-        if (chatCount <= 50) {
-          blurChange = false;
-        }
-        break;
-      case 2:
-        if (chatCount <= 100) {
-          blurChange = false;
-        }
-        break;
-      case 3:
-        if (chatCount <= 200) {
-          blurChange = false;
-        }
-        break;
-      default:
-        blurChange = false;
-        break;
-    }
-
-    if (blurChange) {
+    const currentBlurLv = room.users[index].blur;
+    if (chatCount > BLUR_CHANGE_LIMIT[currentBlurLv]) {
       return room.users[index].blur + 1;
     }
+    return room.users[index].blur;
   }
 
-  async updateBlurStep(roomId: string, otherUser: number) {
-    const chatCount = await this.chattingModel.count({ roomId: roomId });
+  async updateBlurStep(roomId: string, otherUser: number): Promise<number> {
     const room = await this.roomModel.findOne({ id: roomId });
     const index = room.users.findIndex((user) => user.userId == otherUser);
+    room.users[index].blur = await this.checkBlurChange(room, index);
 
-    switch (room.users[index].blur) {
-      case 0:
-        room.users[index].blur += 1;
-        break;
-      case 1:
-        if (chatCount > 50) {
-          room.users[index].blur += 1;
-        }
-        break;
-      case 2:
-        if (chatCount > 100) {
-          room.users[index].blur += 1;
-        }
-        break;
-      case 3:
-        if (chatCount > 200) {
-          room.users[index].blur += 1;
-        }
-        break;
-    }
     await room.save();
 
     return room.users[index].blur;
   }
 
-  async pushCreateRoom(userId: number) {
-    this.fcmService.sendPush(userId, '지금 귓속말을 시작해보세요!', 'whisper');
+  async pushCreateRoom(userId: number): Promise<void> {
+    this.fcmService.sendPush(userId, MESSAGES.START_WHISPER, 'whisper');
     const newEntity = this.notificationRepository.create({
       user: { id: userId },
-      body: '새로운 귓속말이 시작되었습니다!',
+      body: MESSAGES.START_WHISPER_NOTIFICATION,
     });
     await this.notificationRepository.insert(newEntity);
   }
 
-  async pushNewChat(roomId: string, userId: number) {
+  async pushNewChat(roomId: string, userId: number): Promise<void> {
     const room = await this.roomModel.findOne({
       id: roomId,
     });
     const otherUser = room.users.find((user) => user.userId != userId);
-    this.fcmService.sendPush(
-      otherUser.userId,
-      '새로운 귓속말이 도착했습니다!',
-      'whisper',
-    );
+    this.fcmService.sendPush(otherUser.userId, MESSAGES.NEW_MESSAGE, 'whisper');
   }
 }

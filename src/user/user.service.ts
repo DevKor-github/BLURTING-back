@@ -204,8 +204,6 @@ export class UserService {
     return user;
   }
 
-
-
   async findUser(field: string, value: string | number) {
     const user = await this.userRepository.findOne({
       where: { [field]: value },
@@ -236,7 +234,7 @@ export class UserService {
       where: { user: { id: userId } },
       relations: ['user'],
     });
-    return await UserProfileDto.ToDto(userInfo, image);
+    return UserProfileDto.ToDto(userInfo, image);
   }
 
   getUserSexOrient(info: UserInfoEntity) {
