@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { NotificationEntity } from 'src/entities';
 import { Repository } from 'typeorm';
 import { NotificationListDto } from './dtos/notificationList.dto';
+import { applyTimeZone } from 'src/common/util/time';
 
 @Injectable()
 export class FcmService {
@@ -16,7 +17,7 @@ export class FcmService {
     @InjectRepository(NotificationEntity)
     private readonly notificationRepository: Repository<NotificationEntity>,
   ) {
-    const firebase_key = {
+    const firebaseKey = {
       type: process.env.FCM_TYPE,
       projectId: process.env.FCM_PROJECT_ID,
       privateKeyId: process.env.FCM_PRIVATE_KEY_ID,
@@ -30,18 +31,21 @@ export class FcmService {
     };
 
     firebase.initializeApp({
-      credential: firebase.credential.cert(firebase_key),
+      credential: firebase.credential.cert(firebaseKey),
     });
   }
 
-  async enableNotification(userId: number, notificationToken: string) {
-    return await this.socketUserModel.updateOne(
+  async enableNotification(
+    userId: number,
+    notificationToken: string,
+  ): Promise<void> {
+    await this.socketUserModel.updateOne(
       { userId: userId },
       { notificationToken: notificationToken },
     );
   }
 
-  async disableNotification(userId: number) {
+  async disableNotification(userId: number): Promise<void> {
     await this.socketUserModel.updateOne(
       { userId: userId },
       { notificationToken: null },
@@ -50,41 +54,34 @@ export class FcmService {
 
   async checkNotification(userId: number): Promise<boolean> {
     const user = await this.socketUserModel.findOne({ userId: userId });
-    if (user.notificationToken != null) {
-      return true;
-    } else {
-      return false;
-    }
+    return user.notificationToken != null;
   }
 
   async sendPush(userId: number, body: string, type: string) {
-    try {
-      const socketUser = await this.socketUserModel.findOne({ userId: userId });
-      if (socketUser.notificationToken) {
-        await firebase
-          .messaging()
-          .send({
+    const socketUser = await this.socketUserModel.findOne({ userId: userId });
+    if (socketUser.notificationToken) {
+      try {
+        await firebase.messaging().send({
+          notification: {
+            body: body,
+          },
+          data: { type: type },
+          android: {
             notification: {
-              body: body,
+              channelId: 'blurting_project',
+              priority: 'high',
             },
-            data: { type: type },
-            android: {
-              notification: {
-                channelId: 'blurting_project',
-                priority: 'high',
-              },
-            },
-            token: socketUser.notificationToken,
-          })
-          .catch((error: any) => {
-            console.log(error);
-            if (error.code == 404 || error.code == 400) {
-              this.disableNotification(userId);
-            }
-          });
+          },
+          token: socketUser.notificationToken,
+        });
+      } catch (error) {
+        if (
+          error.code === 'messaging/invalid-registration-token' ||
+          error.code === 'messaging/registration-token-not-registered'
+        ) {
+          this.disableNotification(userId);
+        }
       }
-    } catch (error) {
-      return error;
     }
   }
 
@@ -93,26 +90,6 @@ export class FcmService {
       where: { user: { id: userId } },
       order: { createdAt: 'DESC' },
     });
-    const timezoneAcceptedData = result.map((notification) => {
-      return {
-        createdAt: new Date(
-          notification.createdAt.getTime() + 9 * 60 * 60 * 1000,
-        ),
-        body: notification.body,
-      };
-    });
-
-    return timezoneAcceptedData.map((notification) => {
-      return {
-        message: notification.body,
-        date: notification.createdAt
-          .toISOString()
-          .split('T')[0]
-          .split(':')
-          .slice(0, 2)
-          .join(':'),
-        time: notification.createdAt.toLocaleTimeString('en-GB'),
-      };
-    });
+    return result.map((notification) => new NotificationListDto(notification));
   }
 }
