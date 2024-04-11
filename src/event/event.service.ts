@@ -20,7 +20,7 @@ import { Sex } from 'src/common/enums';
 import { ArrowInfoResponseDto } from 'src/blurting/dtos/arrowInfoResponse.dto';
 import { OtherPeopleInfoDto } from 'src/blurting/dtos/otherPeopleInfo.dto';
 import axios from 'axios';
-import { UserProfileDto } from 'src/dtos/user.dto';
+import { UserProfileDtoWithBlur } from 'src/dtos/user.dto';
 
 @Injectable()
 export class EventService {
@@ -311,7 +311,7 @@ export class EventService {
     return null;
   }
 
-  async getOtherProfile(userId: number): Promise<UserProfileDto> {
+  async getOtherProfile(userId: number): Promise<UserProfileDtoWithBlur> {
     const otherUser = await this.userService.findUserByVal('id', userId);
     const userImages = await this.userService.getUserImages(otherUser.id);
     return {
