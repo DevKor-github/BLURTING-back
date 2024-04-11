@@ -7,7 +7,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { NotificationEntity } from 'src/entities';
 import { Repository } from 'typeorm';
 import { NotificationListDto } from './dtos/notificationList.dto';
-import { applyTimeZone } from 'src/common/util/time';
 
 @Injectable()
 export class FcmService {
