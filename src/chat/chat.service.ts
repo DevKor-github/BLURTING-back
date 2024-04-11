@@ -95,22 +95,17 @@ export class ChatService {
   }
 
   async createChatRoom(userIds: number[]) {
-    const userObj: ChatUserDto[] = [];
-    const roomId =
-      Math.floor(Math.random() * 100000).toString() + userIds[0] + userIds[1];
-
-    for (const id of userIds) {
-      userObj.push({
-        userId: id,
-        hasRead: getDateTimeOfNow(),
-        blur: 0,
-        isDeleted: false,
-      });
-    }
+    const roomId = Date.now();
+    const users: ChatUserDto[] = userIds.map((userId) => ({
+      userId,
+      hasRead: getDateTimeOfNow(),
+      blur: 0,
+      isDeleted: false,
+    }));
 
     const room = await this.roomModel.create({
       id: roomId,
-      users: userObj,
+      users: users,
       blur: 0,
       connected: true,
       connectedAt: getDateTimeOfNow(),
@@ -183,11 +178,10 @@ export class ChatService {
         },
       })
       .select('id users connected -_id');
-    const roomInfoArr = [];
-    for (const room of rooms) {
-      const roomInfo = await this.getChatRoom(room, userId);
-      roomInfoArr.push(roomInfo);
-    }
+
+    const roomInfoArr = await Promise.all(
+      rooms.map((room) => this.getChatRoom(room, userId)),
+    );
 
     return roomInfoArr.sort((a, b) => {
       if (a.latest_time == null) return -1;
@@ -305,7 +299,7 @@ export class ChatService {
     if (chatCount > BLUR_CHANGE_LIMIT[currentBlurLv]) {
       return room.users[index].blur + 1;
     }
-    return room.users[index].blur;
+    return null;
   }
 
   async updateBlurStep(roomId: string, otherUser: number): Promise<number> {
