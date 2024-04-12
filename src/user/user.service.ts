@@ -234,7 +234,7 @@ export class UserService {
       where: { user: { id: userId } },
       relations: ['user'],
     });
-    return await UserProfileDto.ToDto(userInfo, image);
+    return UserProfileDto.ToDto(userInfo, image);
   }
 
   getUserSexOrient(info: UserInfoEntity) {
