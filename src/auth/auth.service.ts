@@ -227,7 +227,7 @@ export class AuthService {
   async sendCode(phoneNumber: string, userId: number) {
     if (phoneNumber === '01090319869' || phoneNumber === '01056210281') {
       const phoneEntity = this.authPhoneNumberRepository.create({
-        phoneNumber: phoneNumber,
+        phoneNumber,
         code: '000000',
         isValid: false,
       });

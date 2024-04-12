@@ -31,7 +31,7 @@ export class BlurtingProfileDto extends PickType(UserProfileDto, [
       sex: userInfo.sex,
       nickname: userInfo.nickname,
       mbti: userInfo.mbti,
-      room: room ?? null,
+      room: room,
     };
   }
 }

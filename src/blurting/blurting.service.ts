@@ -64,7 +64,7 @@ export class BlurtingService {
     group: BlurtingGroupEntity,
     no: number,
     users: number[],
-  ) {
+  ): Promise<void> {
     const questionToProcess = await this.blurtingPreQuestionRepository.findOne(
       group.id,
       no,
@@ -111,7 +111,7 @@ export class BlurtingService {
     }
   }
 
-  async addPreQuestions(group: BlurtingGroupEntity) {
+  async addPreQuestions(group: BlurtingGroupEntity): Promise<void> {
     const selected1: BlurtingPreQuestionEntity[] = [];
     for (let i = 0; i < 3; ++i) {
       let rand = 0;
@@ -159,7 +159,7 @@ export class BlurtingService {
     // await this.blurtingPreQuestionRepository.save(selected3);
   }
 
-  async createGroup(users: number[]) {
+  async createGroup(users: number[]): Promise<void> {
     const group = await this.groupRepository.insert();
     await Promise.all(
       users.map(async (id) => {
@@ -252,30 +252,35 @@ export class BlurtingService {
         }
       }
 
-      const oppositeSexorient = this.getOppositeQueueName(sexOrient);
-      const oppositeQueueName = /*`${region}_*/ `${oppositeSexorient}`;
-      let oppositeQueue: number[] =
-        await this.cacheManager.get(oppositeQueueName);
+      if (sexOrient == 'female' || sexOrient == 'male') {
+        const oppositeSexorient = this.getOppositeQueueName(sexOrient);
+        const oppositeQueueName = /*`${region}_*/ `${oppositeSexorient}`;
+        let oppositeQueue: number[] =
+          await this.cacheManager.get(oppositeQueueName);
 
-      if (!oppositeQueue) {
-        oppositeQueue = [];
-        await this.cacheManager.set(oppositeQueueName, oppositeQueue);
-      }
+        if (!oppositeQueue) {
+          oppositeQueue = [];
+          await this.cacheManager.set(oppositeQueueName, oppositeQueue);
+        }
 
-      if (oppositeQueue.length >= 3) {
-        const firstGroupIds = groupQueue.slice(0, 2);
-        firstGroupIds.push(id);
-        await this.cacheManager.set(qName, groupQueue.slice(2));
+        if (oppositeQueue.length >= 3) {
+          const firstGroupIds = groupQueue.slice(0, 2);
+          firstGroupIds.push(id);
+          await this.cacheManager.set(qName, groupQueue.slice(2));
 
-        const secondGroupIds = oppositeQueue.slice(0, 3);
-        await this.cacheManager.set(oppositeQueueName, oppositeQueue.slice(3));
-        const groupIds = firstGroupIds.concat(secondGroupIds);
-        await this.createGroup(groupIds);
-        return State.Blurting;
-      } else {
-        groupQueue.push(id);
-        await this.cacheManager.set(qName, groupQueue);
-        return State.Start;
+          const secondGroupIds = oppositeQueue.slice(0, 3);
+          await this.cacheManager.set(
+            oppositeQueueName,
+            oppositeQueue.slice(3),
+          );
+          const groupIds = firstGroupIds.concat(secondGroupIds);
+          await this.createGroup(groupIds);
+          return State.Blurting;
+        } else {
+          groupQueue.push(id);
+          await this.cacheManager.set(qName, groupQueue);
+          return State.Start;
+        }
       }
     } catch (err) {
       console.log(err);
@@ -294,9 +299,8 @@ export class BlurtingService {
     }
   }
 
-  getOppositeQueueName(queue: string): string {
-    if (queue === 'male') return 'female';
-    else if (queue === 'female') return 'male';
+  getOppositeQueueName(queue: 'male' | 'female'): string {
+    return queue === 'male' ? 'female' : 'male';
   }
 
   async getBlurting(
@@ -357,7 +361,7 @@ export class BlurtingService {
     answer: string,
   ): Promise<number | boolean> {
     const question = await this.questionRepository.findById(questionId);
-    if (!question || question == null) {
+    if (!question) {
       throw new BadRequestException('존재하지 않는 질문입니다.');
     }
 
@@ -368,7 +372,7 @@ export class BlurtingService {
       answer,
       userSex: user.userInfo.sex,
     });
-    if (this.checkAllAnswered(questionId) && question.no / 3 !== 0) {
+    if (this.checkAllAnswered(questionId) && question.no % 3 !== 0) {
       const users = await this.userService.getGroupUsers(userId);
       await this.rQ.add(
         {
@@ -380,8 +384,7 @@ export class BlurtingService {
       );
     }
     if (answer.length >= 100) {
-      const point = await this.pointService.giveBlurtingPoint(userId);
-      return point;
+      return await this.pointService.giveBlurtingPoint(userId);
     }
 
     const users = await this.userService.getGroupUsers(userId);
@@ -443,16 +446,12 @@ export class BlurtingService {
 
     const result = groupUsers
       .filter((user) => filteredSex.includes(user.userInfo.sex))
-      .map((user) => {
-        return {
-          userId: user.id,
-          userNickname: user.userNickname,
-          userSex: user.userInfo.sex,
-          reported: reports.some(
-            (report) => report.reportedUser.id === user.id,
-          ),
-        };
-      });
+      .map((user) => ({
+        userId: user.id,
+        userNickname: user.userNickname,
+        userSex: user.userInfo.sex,
+        reported: reports.some((report) => report.reportedUser.id === user.id),
+      }));
     return result;
   }
 
