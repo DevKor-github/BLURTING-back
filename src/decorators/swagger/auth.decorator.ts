@@ -11,6 +11,7 @@ import {
   ApiQuery,
   ApiRequestTimeoutResponse,
   ApiUnauthorizedResponse,
+  ApiOkResponse,
 } from '@nestjs/swagger';
 import {
   SignupTokenResponseDto,
@@ -195,4 +196,45 @@ export function AlreadyCheckDocs() {
     }),
     ApiBody({ description: 'phone', type: SignupPhoneRequestDto }),
   );
+}
+
+type GeoEndPoints = 'name' | 'geo';
+export function geocodingDocs(endpoint: GeoEndPoints) {
+  switch (endpoint) {
+    case 'name':
+      return applyDecorators(
+        ApiQuery({
+          name: 'name',
+          description: '검색할 지역 이름',
+          type: String,
+          example: '성북구',
+        }),
+        ApiOkResponse({
+          description: '검색한 지역 이름에 대한 지역 리스트',
+          type: [String],
+        }),
+        ApiOperation({
+          summary: '이름 기반 시군구 검색',
+          description: '이름 형식 기반 LIKE 연산, 시군구 리스트 반환',
+        }),
+      );
+    case 'geo':
+      return applyDecorators(
+        ApiQuery({
+          name: 'geo',
+          description: '검색할 지역 위도, 경도',
+          type: String,
+          example: 'point(127.0164 37.4984)',
+        }),
+        ApiOperation({
+          summary: '좌표 기반 시군구 검색',
+          description:
+            'Point(경도, 위도) 형식으로 좌표를 입력하면 해당 좌표 주변 시군구 리스트 반환',
+        }),
+        ApiOkResponse({
+          description: '검색한 좌표에 대한 지역 리스트',
+          type: [String],
+        }),
+      );
+  }
 }
