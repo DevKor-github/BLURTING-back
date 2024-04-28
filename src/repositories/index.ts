@@ -7,3 +7,4 @@ export { BlurtingLikeRepository } from './blurtingLike.repository';
 export { BlurtingReplyRepository } from './blurtingReply.repository';
 export { NotificationRepository } from './notification.repository';
 export { ReportRepository } from './report.repository';
+export { UserRepository } from './user.repository';

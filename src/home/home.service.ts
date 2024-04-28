@@ -1,74 +1,47 @@
 import { Injectable } from '@nestjs/common';
 import { HomeInfoResponseDto } from './dtos/homInfoResponse.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThan, Repository } from 'typeorm';
-import {
-  BlurtingArrowEntity,
-  BlurtingAnswerEntity,
-  LikeEntity,
-  UserEntity,
-} from 'src/entities';
 import { InjectModel } from '@nestjs/mongoose';
 import { Chatting } from 'src/chat/models';
 import { Model } from 'mongoose';
 import { BlurtingAnswerDto } from 'src/blurting/dtos/pageResponse.dto';
+import {
+  BlurtingAnswerRepository,
+  BlurtingArrowRepository,
+  BlurtingLikeRepository,
+  UserRepository,
+} from 'src/repositories';
 
 @Injectable()
 export class HomeService {
   constructor(
-    @InjectRepository(LikeEntity)
-    private readonly likeRepository: Repository<LikeEntity>,
-    @InjectRepository(BlurtingArrowEntity)
-    private readonly arrowRepository: Repository<BlurtingArrowEntity>,
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(BlurtingAnswerEntity)
-    private readonly answerRepository: Repository<BlurtingAnswerEntity>,
+    private readonly likeRepository: BlurtingLikeRepository,
+    private readonly arrowRepository: BlurtingArrowRepository,
+    private readonly userRepository: UserRepository,
+    private readonly answerRepository: BlurtingAnswerRepository,
     @InjectModel(Chatting.name)
     private readonly chattingModel: Model<Chatting>,
   ) {}
 
-  async like(userId: number, answerId: number) {
-    const like = await this.likeRepository.findOne({
-      where: {
-        answerId,
-        userId,
-      },
-    });
+  async likeAnswer(userId: number, answerId: number) {
+    const like = await this.likeRepository.findOne(answerId, userId);
     if (like) {
-      const answer = await this.answerRepository.findOne({
-        where: { id: answerId },
-        relations: ['question', 'question.group'],
-      });
-      answer.allLikes--;
-      await this.answerRepository.save(answer);
-      await this.likeRepository.remove(like);
+      await Promise.all([
+        this.likeRepository.delete(answerId, userId),
+        this.answerRepository.updateLikes(answerId, false),
+      ]);
     } else {
-      const newLike = this.likeRepository.create({
-        answerId,
-        userId,
-      });
-      const answer = await this.answerRepository.findOne({
-        where: { id: answerId },
-        relations: ['question', 'question.group'],
-      });
-      answer.allLikes++;
-      await this.answerRepository.save(answer);
-      await this.likeRepository.save(newLike);
+      await Promise.all([
+        this.likeRepository.insert(answerId, userId),
+        this.answerRepository.updateLikes(answerId, true),
+      ]);
     }
   }
 
   async getHomeInfo(userId: number): Promise<HomeInfoResponseDto> {
-    const likes = await this.likeRepository.count({
-      where: { answer: { user: { id: userId } } },
-    });
-
-    const arrows = await this.arrowRepository.find({
-      relations: ['from', 'to'],
-    });
+    const likes = await this.likeRepository.countByUserId(userId);
 
     let matchedArrows: number = 0;
-
+    const arrows = await this.arrowRepository.findAll();
     for (let i = 0; i < arrows.length; i++) {
       for (let j = i + 1; j < arrows.length; ++j) {
         if (
@@ -84,10 +57,7 @@ export class HomeService {
       }
     }
 
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['group'],
-    });
+    const user = await this.userRepository.findOneById(userId);
     let seconds = -1;
     if (
       user.group &&
@@ -100,39 +70,21 @@ export class HomeService {
         user.group.createdAt.getTime();
       seconds = 8 * 60 * 60 * 1000 - (timeOffset % (8 * 60 * 60 * 1000));
     }
+
     const chats = await this.chattingModel.find();
+
     const startDayTime = new Date(new Date().getTime() - 5 * 60 * 60 * 1000);
     startDayTime.setHours(5, 0, 0, 0);
-    let answers = await this.answerRepository.find({
-      where: { postedAt: MoreThan(startDayTime) },
-      order: {
-        allLikes: 'DESC',
-      },
-      relations: ['user', 'user.userInfo', 'question'],
-      take: 3,
-    });
+    let answers = await this.answerRepository.findTop(startDayTime);
     if (answers.length < 3) {
-      answers = await this.answerRepository.find({
-        order: {
-          allLikes: 'DESC',
-        },
-        relations: ['user', 'user.userInfo', 'question'],
-        take: 3,
-      });
+      answers = await this.answerRepository.findTop(new Date(2023, 0, 1));
     }
     const answersDto = await Promise.all(
       answers.map(async (answerEntity) => {
-        const likes = await this.likeRepository.find({
-          where: {
-            answer: {
-              id: answerEntity.id,
-            },
-          },
-        });
-
-        let iLike = false;
-        if (likes.filter((item) => item.userId === user.id).length > 0)
-          iLike = true;
+        const iLike = await this.likeRepository.findOne(
+          answerEntity.id,
+          userId,
+        );
 
         return {
           question: answerEntity.question.question,
@@ -140,8 +92,8 @@ export class HomeService {
             answerEntity,
             null,
             answerEntity.user,
-            iLike,
-            likes.length,
+            iLike ? true : false,
+            answerEntity.allLikes,
           ),
         };
       }),

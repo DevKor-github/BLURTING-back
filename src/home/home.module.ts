@@ -10,10 +10,14 @@ import {
 } from 'src/entities';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Chatting, ChattingSchema } from 'src/chat/models';
+import {
+  BlurtingAnswerRepository,
+  BlurtingArrowRepository,
+  BlurtingLikeRepository,
+  UserRepository,
+} from 'src/repositories';
 
 @Module({
-  controllers: [HomeController],
-  providers: [HomeService],
   imports: [
     TypeOrmModule.forFeature([
       LikeEntity,
@@ -24,6 +28,14 @@ import { Chatting, ChattingSchema } from 'src/chat/models';
     MongooseModule.forFeature([
       { name: Chatting.name, schema: ChattingSchema },
     ]),
+  ],
+  controllers: [HomeController],
+  providers: [
+    HomeService,
+    BlurtingAnswerRepository,
+    BlurtingArrowRepository,
+    UserRepository,
+    BlurtingLikeRepository,
   ],
 })
 export class HomeModule {}
