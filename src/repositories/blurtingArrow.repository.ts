@@ -15,7 +15,7 @@ export class BlurtingArrowRepository {
     userId: number,
     groupId: number,
   ): Promise<BlurtingArrowEntity> {
-    return this.arrowRepository.findOne({
+    return await this.arrowRepository.findOne({
       where: {
         from: { id: userId },
         group: { id: groupId },
@@ -28,7 +28,7 @@ export class BlurtingArrowRepository {
     userId: number,
     groupId: number,
   ): Promise<BlurtingArrowEntity[]> {
-    return this.arrowRepository.find({
+    return await this.arrowRepository.find({
       where: {
         from: { id: userId },
         group: { id: groupId },
@@ -42,7 +42,7 @@ export class BlurtingArrowRepository {
     userId: number,
     groupId: number,
   ): Promise<BlurtingArrowEntity[]> {
-    return this.arrowRepository.find({
+    return await this.arrowRepository.find({
       where: {
         to: { id: userId },
         group: { id: groupId },
@@ -50,6 +50,10 @@ export class BlurtingArrowRepository {
       order: { no: 'ASC' },
       relations: ['to', 'to.userInfo'],
     });
+  }
+
+  async findAll(): Promise<BlurtingArrowEntity[]> {
+    return await this.arrowRepository.find({ relations: ['from', 'to'] });
   }
 
   async insert(info: ArrowDto): Promise<void> {

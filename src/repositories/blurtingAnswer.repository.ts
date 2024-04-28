@@ -6,7 +6,7 @@ import {
   BlurtingQuestionEntity,
   UserEntity,
 } from 'src/entities';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 
 @Injectable()
 export class BlurtingAnswerRepository {
@@ -16,18 +16,30 @@ export class BlurtingAnswerRepository {
   ) {}
 
   async findById(id: number): Promise<BlurtingAnswerEntity> {
-    return this.answerRepository.findOne({
+    return await this.answerRepository.findOne({
       where: { id },
       relations: ['user', 'user.group', 'question', 'question.group'],
     });
   }
 
   async findByQuestion(questionId: number): Promise<BlurtingAnswerEntity[]> {
-    return this.answerRepository.find({
+    return await this.answerRepository.find({
       where: { question: { id: questionId } },
       order: { postedAt: 'ASC', reply: { createdAt: 'DESC' } },
       relations: ['question', 'user', 'reply', 'reply.user'],
     });
+  }
+
+  async findTop(startTime: Date): Promise<BlurtingAnswerEntity[]> {
+    const answers = await this.answerRepository.find({
+      where: { postedAt: MoreThan(startTime) },
+      order: {
+        allLikes: 'DESC',
+      },
+      relations: ['user', 'user.userInfo', 'question'],
+      take: 3,
+    });
+    return answers;
   }
 
   async insert(info: AnswerDto): Promise<void> {

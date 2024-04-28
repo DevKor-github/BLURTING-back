@@ -11,7 +11,7 @@ export class BlurtingLikeRepository {
   ) {}
 
   async findOne(answerId: number, userId: number): Promise<LikeEntity> {
-    return this.likeRepository.findOne({
+    return await this.likeRepository.findOne({
       where: { answerId, userId },
     });
   }
@@ -23,5 +23,12 @@ export class BlurtingLikeRepository {
 
   async delete(answerId: number, userId: number): Promise<void> {
     await this.likeRepository.delete({ answerId, userId });
+  }
+
+  async countByUserId(id: number): Promise<number> {
+    const likes = await this.likeRepository.count({
+      where: { answer: { user: { id } } },
+    });
+    return likes;
   }
 }
