@@ -325,16 +325,11 @@ export class BlurtingService {
         const room = answerEntity.user
           ? await this.chatService.findCreatedRoom([id, answerEntity.user.id])
           : null;
-        const user = answerEntity.user
-          ? await this.userService.findUserByVal('id', answerEntity.user.id)
-          : null;
 
         return BlurtingAnswerDto.ToDto(
           answerEntity,
           room?.id,
-          user,
           iLike ? true : false,
-          answerEntity.allLikes,
         );
       }),
     );

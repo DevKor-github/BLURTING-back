@@ -3,7 +3,6 @@ import { HomeInfoResponseDto } from './dtos/homInfoResponse.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Chatting } from 'src/chat/models';
 import { Model } from 'mongoose';
-import { BlurtingAnswerDto } from 'src/blurting/dtos/pageResponse.dto';
 import {
   BlurtingAnswerRepository,
   BlurtingArrowRepository,
@@ -11,6 +10,7 @@ import {
   UserRepository,
 } from 'src/repositories';
 import { compareDateGroupExist, getDateTimeOfNow } from 'src/common/util/time';
+import { AnswerWithQuestionDto } from './dtos';
 
 @Injectable()
 export class HomeService {
@@ -81,16 +81,11 @@ export class HomeService {
           userId,
         );
 
-        return {
-          question: answerEntity.question.question,
-          ...BlurtingAnswerDto.ToDto(
-            answerEntity,
-            null,
-            answerEntity.user,
-            iLike ? true : false,
-            answerEntity.allLikes,
-          ),
-        };
+        return AnswerWithQuestionDto.ToDto(
+          answerEntity,
+          null,
+          iLike ? true : false,
+        );
       }),
     );
 

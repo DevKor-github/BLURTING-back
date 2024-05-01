@@ -11,7 +11,6 @@ import {
   BlurtingGroupEntity,
   BlurtingQuestionEntity,
   ReplyEntity,
-  UserEntity,
 } from 'src/entities';
 import { ApiProperty } from '@nestjs/swagger';
 import { Mbti, Sex } from 'src/common/enums';
@@ -79,20 +78,18 @@ export class BlurtingAnswerDto {
   static ToDto(
     answerEntity: BlurtingAnswerEntity,
     room: string,
-    user: UserEntity,
     ilike: boolean = false,
-    likes: number,
   ): BlurtingAnswerDto {
     return {
       id: answerEntity.id,
-      userId: user?.id ?? 0,
-      userNickname: user?.userNickname ?? '탈퇴한 사용자',
+      userId: answerEntity.user?.id ?? 0,
+      userNickname: answerEntity.user?.userNickname ?? '탈퇴한 사용자',
       userSex: answerEntity.userSex ?? Sex.Female,
       answer: answerEntity.answer,
       postedAt: answerEntity.postedAt,
-      mbti: user?.userInfo?.mbti ?? null,
-      room: room ?? null,
-      likes,
+      mbti: answerEntity.user?.userInfo?.mbti ?? null,
+      room,
+      likes: answerEntity.allLikes,
       ilike,
       reply: answerEntity.reply
         ? answerEntity.reply.map((e) => BlurtingReplyDto.toDto(e))

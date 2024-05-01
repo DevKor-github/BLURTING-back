@@ -26,7 +26,7 @@ export class BlurtingAnswerRepository {
     return await this.answerRepository.find({
       where: { question: { id: questionId } },
       order: { postedAt: 'ASC', reply: { createdAt: 'DESC' } },
-      relations: ['question', 'user', 'reply', 'reply.user'],
+      relations: ['question', 'user', 'user.userInfo', 'reply', 'reply.user'],
     });
   }
 
