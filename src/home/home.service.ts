@@ -10,7 +10,7 @@ import {
   BlurtingLikeRepository,
   UserRepository,
 } from 'src/repositories';
-import { getDateTimeOfNow } from 'src/common/util/time';
+import { compareDateGroupExist, getDateTimeOfNow } from 'src/common/util/time';
 
 @Injectable()
 export class HomeService {
@@ -43,28 +43,24 @@ export class HomeService {
 
     let matchedArrows: number = 0;
     const arrows = await this.arrowRepository.findAll();
-    for (let i = 0; i < arrows.length; i++) {
-      for (let j = i + 1; j < arrows.length; ++j) {
-        if (
-          arrows[i].from != null &&
-          arrows[i].to != null &&
-          arrows[j].from != null &&
-          arrows[j].to != null &&
-          arrows[i].from.id == arrows[j].to.id &&
-          arrows[i].to.id == arrows[j].from.id
-        ) {
+    const arrowSet = new Set();
+    arrows.forEach((arrow) => {
+      if (arrow.from?.id && arrow.to?.id) {
+        const forwardKey = `${arrow.from.id}-${arrow.to.id}-${arrow.group.id}-${arrow.no}`;
+        const reverseKey = `${arrow.to.id}-${arrow.from.id}-${arrow.group.id}-${arrow.no}`;
+
+        if (arrowSet.has(reverseKey)) {
           matchedArrows++;
+          arrowSet.delete(reverseKey);
+        } else {
+          arrowSet.add(forwardKey);
         }
       }
-    }
+    });
 
     const user = await this.userRepository.findOneById(userId);
     let seconds = -1;
-    if (
-      user.group &&
-      user.group.createdAt >
-        new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
-    ) {
+    if (user.group && compareDateGroupExist(user.group.createdAt)) {
       const timeOffset =
         getDateTimeOfNow().getTime() - user.group.createdAt.getTime();
       seconds = 8 * 60 * 60 * 1000 - (timeOffset % (8 * 60 * 60 * 1000));

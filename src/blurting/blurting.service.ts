@@ -39,6 +39,7 @@ import {
   NotificationRepository,
   ReportRepository,
 } from 'src/repositories';
+import { compareDateGroupExist } from 'src/common/util/time';
 
 @Injectable()
 export class BlurtingService {
@@ -205,11 +206,7 @@ export class BlurtingService {
     if (groupQueue.includes(user.id)) {
       return State.Matching;
     }
-    if (
-      user.group &&
-      user.group.createdAt >
-        new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
-    ) {
+    if (user.group && compareDateGroupExist(user.group.createdAt)) {
       return State.Blurting;
     }
     if (user.group) {
