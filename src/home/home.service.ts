@@ -10,6 +10,7 @@ import {
   BlurtingLikeRepository,
   UserRepository,
 } from 'src/repositories';
+import { getDateTimeOfNow } from 'src/common/util/time';
 
 @Injectable()
 export class HomeService {
@@ -65,9 +66,7 @@ export class HomeService {
         new Date(new Date().getTime() - 1000 * 60 * 60 * 63)
     ) {
       const timeOffset =
-        new Date().getTime() +
-        9 * 60 * 60 * 1000 -
-        user.group.createdAt.getTime();
+        getDateTimeOfNow().getTime() - user.group.createdAt.getTime();
       seconds = 8 * 60 * 60 * 1000 - (timeOffset % (8 * 60 * 60 * 1000));
     }
 

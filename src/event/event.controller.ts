@@ -37,6 +37,7 @@ import { UserProfileDto } from 'src/dtos/user.dto';
 import { OtherPeopleInfoDto } from 'src/blurting/dtos/member.dto';
 import { ArrowInfoResponseDto } from 'src/blurting/dtos/arrow.dto';
 import { AccessGuard } from 'src/auth/guard/access.guard';
+import { getDateTimeOfNow } from 'src/common/util/time';
 
 @Controller('event')
 @ApiTags('event')
@@ -73,7 +74,7 @@ export class EventController {
     if (
       eventUser?.group &&
       eventUser?.group?.createdAt >
-        new Date(new Date().getTime() - 1000 * 60 * 15 + 1000 * 60 * 60 * 9)
+        new Date(getDateTimeOfNow().getTime() - 1000 * 60 * 15)
     ) {
       return 1;
     }
@@ -151,7 +152,7 @@ export class EventController {
 
     if (
       eventUser.group.createdAt >
-      new Date(new Date().getTime() + 1000 * 60 * 60 * 9 - 1000 * 60 * 20)
+      new Date(getDateTimeOfNow().getTime() - 1000 * 60 * 20)
     ) {
       throw new HttpException('화살 보내기가 끝나지 않았습니다', 400);
     }

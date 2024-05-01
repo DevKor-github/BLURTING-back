@@ -21,6 +21,7 @@ import { ArrowInfoResponseDto } from 'src/blurting/dtos/arrow.dto';
 import { OtherPeopleInfoDto } from 'src/blurting/dtos/member.dto';
 import axios from 'axios';
 import { UserProfileDtoWithBlur } from 'src/dtos/user.dto';
+import { getDateTimeOfNow } from 'src/common/util/time';
 
 @Injectable()
 export class EventService {
@@ -57,7 +58,7 @@ export class EventService {
 
   async createGroup(users: number[]) {
     const group = await this.groupRepository.save({
-      createdAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
+      createdAt: getDateTimeOfNow(),
     });
     await Promise.all(
       users.map(async (id) => {
@@ -148,7 +149,7 @@ export class EventService {
       if (
         user.group &&
         user.group.createdAt >
-          new Date(new Date().getTime() - 1000 * 60 * 15 + 1000 * 60 * 60 * 9)
+          new Date(getDateTimeOfNow().getTime() - 1000 * 60 * 15)
       ) {
         return 1;
       }
@@ -224,7 +225,7 @@ export class EventService {
     const answerEntity = this.answerRepository.create({
       user: user,
       question: { id: questionId } as BlurtingQuestionEntity,
-      postedAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
+      postedAt: getDateTimeOfNow(),
       answer: answer,
       userSex: user.userInfo.sex,
     });
