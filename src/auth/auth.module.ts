@@ -1,10 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import {
-  UserEntity,
-  AuthPhoneNumberEntity,
-  UserImageEntity,
-} from 'src/entities';
+import { AuthPhoneNumberEntity } from 'src/entities';
 import {
   JwtSignupStrategy,
   JwtAccessStrategy,
@@ -16,20 +12,14 @@ import { AuthService } from './auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from 'src/user/user.module';
-import { PointModule } from 'src/point/point.module';
 import { AuthPhoneNumberRepository } from 'src/repositories';
 @Module({
   imports: [
     UserModule,
     PassportModule.register({ session: false }),
-    TypeOrmModule.forFeature([
-      UserEntity,
-      AuthPhoneNumberEntity,
-      UserImageEntity,
-    ]),
+    TypeOrmModule.forFeature([AuthPhoneNumberEntity]),
     JwtModule.register({}),
     UserModule,
-    PointModule,
   ],
   controllers: [AuthController],
   providers: [
