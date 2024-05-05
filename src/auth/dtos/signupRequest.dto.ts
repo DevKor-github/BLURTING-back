@@ -13,7 +13,6 @@ import {
   Mbti,
   Degree,
   Major,
-  University,
   Character,
   Hobby,
   Religion,
@@ -37,11 +36,6 @@ export class SignupUserRequestDto {
   @IsPhoneNumber()
   @ApiProperty({ description: 'phoneNumber' })
   phoneNumber: string;
-
-  @ValidateIf((o) => o.email !== undefined && o.email !== null)
-  @IsEmail()
-  @ApiProperty({ description: 'email' })
-  email: string;
 
   @ValidateIf((o) => o.sex !== undefined && o.sex !== null)
   @IsEnum(Sex)
@@ -117,15 +111,6 @@ export class SignupUserRequestDto {
     isArray: true,
   })
   hobby: Hobby[];
-
-  @ValidateIf((o) => o.university !== undefined && o.university !== null)
-  @IsEnum(University)
-  @ApiProperty({
-    description: 'university',
-    enum: University,
-    enumName: 'University',
-  })
-  university: University;
 
   @ValidateIf((o) => o.images !== undefined && o.images !== null)
   @IsArray({ message: 'not valid' })

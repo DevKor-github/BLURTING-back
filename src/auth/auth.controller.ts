@@ -27,7 +27,6 @@ import {
   AlreadyCheckDocs,
   AlreadyRegisteredDocs,
   CheckCodeDocs,
-  CheckMailDocs,
   LoginDocs,
   RefreshDocs,
   SignupBackDocs,
@@ -62,16 +61,6 @@ export class AuthController {
     return { signupToken };
   }
 
-  @Get('/check/email')
-  @CheckMailDocs()
-  async checkMail(
-    @Query('code') code: string,
-    @Query('email') email: string,
-  ): Promise<string> {
-    await this.authService.checkMail(code, email);
-    return '<h1>가입 완료!</h1>블러팅 앱으로 돌아가주세요.';
-  }
-
   @UseGuards(SignupGuard)
   @Post('/signup')
   @SignupDocs()
@@ -96,13 +85,10 @@ export class AuthController {
       throw new BadRequestException('invalid info');
     switch (pageName) {
       case 'phoneNumber':
-        await this.authService.validatePhoneNumber(info['phoneNumber'], id);
+        await this.authService.validatePhoneNumber(info['phoneNumber']);
         break;
       case 'image':
         await this.userService.updateUserImages(id, info['images']);
-        break;
-      case 'email':
-        await this.authService.validateEmail(id, info['email']);
         break;
       default:
         await this.userService.updateUserInfo(infoId, pageName, info[pageName]);

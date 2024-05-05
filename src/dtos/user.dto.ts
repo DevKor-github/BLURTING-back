@@ -11,9 +11,7 @@ export class LoginDto {
 }
 
 export class UserProfileDto extends OmitType(SignupUserRequestDto, [
-  'email',
   'phoneNumber',
-  'university',
 ] as const) {
   @ValidateIf((o) => o.nickname !== undefined && o.nickname !== null)
   @IsString()
