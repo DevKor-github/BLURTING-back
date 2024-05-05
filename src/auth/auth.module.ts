@@ -20,6 +20,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { UserModule } from 'src/user/user.module';
 import { PointModule } from 'src/point/point.module';
+import { AuthPhoneNumberRepository } from 'src/repositories';
 @Module({
   imports: [
     UserModule,
@@ -42,6 +43,7 @@ import { PointModule } from 'src/point/point.module';
     JwtAccessStrategy,
     JwtRefreshStrategy,
     JwtSignupStrategy,
+    AuthPhoneNumberRepository,
   ],
   exports: [
     AuthService,

@@ -23,6 +23,7 @@ import { UserService } from 'src/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
 import { UnivMailMap } from 'src/common/const';
 import { PointService } from 'src/point/point.service';
+import { AuthPhoneNumberRepository } from 'src/repositories';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const crypto = require('crypto');
@@ -30,8 +31,7 @@ const crypto = require('crypto');
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(AuthPhoneNumberEntity)
-    private readonly authPhoneNumberRepository: Repository<AuthPhoneNumberEntity>,
+    private readonly authPhoneNumberRepository: AuthPhoneNumberRepository,
     @InjectRepository(AuthMailEntity)
     private readonly authMailRepository: Repository<AuthMailEntity>,
     private readonly mailerService: MailerService,
@@ -92,10 +92,7 @@ export class AuthService {
     phoneNumber: string,
     userId: number,
   ): Promise<void> {
-    const phone = await this.authPhoneNumberRepository.findOne({
-      where: { phoneNumber, isValid: false },
-      order: { createdAt: 'DESC' },
-    });
+    const phone = await this.authPhoneNumberRepository.findByPhone(phoneNumber);
 
     const existingUser =
       await this.userService.findCompleteUserByPhone(phoneNumber);
@@ -107,7 +104,7 @@ export class AuthService {
       );
     }
     if (phone) {
-      await this.authPhoneNumberRepository.delete(phone);
+      await this.authPhoneNumberRepository.deleteByPhone(phone.phoneNumber);
     }
 
     this.sendCode(phoneNumber, userId);
@@ -207,10 +204,9 @@ export class AuthService {
     const user = await this.userService.findUserByPhone(phoneNumber);
     if (!user) throw new NotFoundException('가입되지 않은 전화번호입니다.');
 
-    const phone = await this.authPhoneNumberRepository.findOne({
-      where: { phoneNumber: user.phoneNumber, isValid: false },
-      order: { createdAt: 'DESC' },
-    });
+    const phone = await this.authPhoneNumberRepository.findByPhone(
+      user.phoneNumber,
+    );
 
     if (phone && phone.createdAt.getTime() + 1000 * 10 > Date.now()) {
       throw new NotAcceptableException(
@@ -218,7 +214,7 @@ export class AuthService {
       );
     }
     if (phone) {
-      await this.authPhoneNumberRepository.delete(phone);
+      await this.authPhoneNumberRepository.deleteByPhone(phone.phoneNumber);
     }
 
     this.sendCode(phoneNumber, user.id);
@@ -226,12 +222,10 @@ export class AuthService {
 
   async sendCode(phoneNumber: string, userId: number) {
     if (phoneNumber === '01090319869' || phoneNumber === '01056210281') {
-      const phoneEntity = this.authPhoneNumberRepository.create({
+      const phoneEntity = this.authPhoneNumberRepository.insert(
         phoneNumber,
-        code: '000000',
-        isValid: false,
-      });
-      await this.authPhoneNumberRepository.save(phoneEntity);
+        '000000',
+      );
       return;
     }
 
@@ -250,12 +244,10 @@ export class AuthService {
       ],
     };
 
-    const phoneEntity = this.authPhoneNumberRepository.create({
-      phoneNumber: phoneNumber,
-      code: number,
-      isValid: false,
-    });
-    await this.authPhoneNumberRepository.save(phoneEntity);
+    const phoneEntity = this.authPhoneNumberRepository.insert(
+      phoneNumber,
+      number,
+    );
 
     const accessKey = process.env.NAVER_API_KEY;
     const secretKey = process.env.NAVER_API_SECRET;
@@ -291,11 +283,10 @@ export class AuthService {
   }
 
   async checkCode(code: string, phoneNumber: string) {
-    const phone = await this.authPhoneNumberRepository.findOne({
-      where: { code, phoneNumber },
-      relations: ['user'],
-      order: { createdAt: 'DESC' },
-    });
+    const phone = await this.authPhoneNumberRepository.findByPhoneCode(
+      phoneNumber,
+      code,
+    );
     if (!phone) {
       throw new UnauthorizedException('인증번호가 일치하지 않습니다.');
     }
@@ -308,7 +299,7 @@ export class AuthService {
       throw new ConflictException('이미 인증된 번호입니다.');
     }
 
-    await this.authPhoneNumberRepository.delete(phone);
+    await this.authPhoneNumberRepository.deleteByPhone(phone.phoneNumber);
     return true;
   }
 }
