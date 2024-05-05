@@ -9,3 +9,4 @@ export { Sex } from './sex.enum';
 export { SexOrient } from './sexOrient.enum';
 export { University } from './university.enum';
 export { Religion } from './religion.enum';
+export { Job } from './job.enum';

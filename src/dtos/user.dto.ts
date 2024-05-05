@@ -11,6 +11,7 @@ export class LoginDto {
 }
 
 export class UserProfileDto extends OmitType(SignupUserRequestDto, [
+  'birth',
   'phoneNumber',
 ] as const) {
   @IsOptional()
@@ -33,6 +34,7 @@ export class UserProfileDto extends OmitType(SignupUserRequestDto, [
       hobby: this.GetHobby(userInfo.hobby ?? 0),
       sex: userInfo.sex ?? null,
       sexOrient: userInfo.sexOrient ?? null,
+      job: userInfo.job ?? null,
     };
   }
 

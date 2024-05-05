@@ -91,7 +91,7 @@ export class AuthService {
 
   async checkComplete(id: number): Promise<boolean> {
     const user = await this.userService.findUserByVal('id', id);
-    return user.phoneNumber && user.email != null;
+    return user.phoneNumber && user.userInfo.job != null;
   }
 
   async alreadySigned(phoneNumber: string): Promise<void> {
@@ -123,6 +123,7 @@ export class AuthService {
     const API_URL = `https://sens.apigw.ntruss.com/sms/v2/services/${process.env.SENS_SERVICE_ID}/messages`;
     const rand = Math.floor(Math.random() * 1000000).toString();
     const number = rand.padStart(6, '0');
+    console.log(number);
     const body = {
       type: 'SMS',
       from: process.env.SENS_PHONE_NUMBER,

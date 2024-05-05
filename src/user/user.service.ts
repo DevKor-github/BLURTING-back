@@ -99,7 +99,7 @@ export class UserService {
   async updateUser(
     id: number,
     field: string,
-    value: string | UserInfoEntity | BlurtingGroupEntity,
+    value: string | Date | UserInfoEntity | BlurtingGroupEntity,
   ) {
     const user = await this.userRepository.findOne({
       where: { id: id },
@@ -170,7 +170,7 @@ export class UserService {
 
   async findUserByPhone(phone: string) {
     const user = await this.userRepository.findOne({
-      where: { phoneNumber: phone, email: Not(IsNull()) },
+      where: { phoneNumber: phone, token: Not(IsNull()) },
       relations: ['userInfo', 'group'],
     });
     return user;
@@ -186,7 +186,6 @@ export class UserService {
         where: {
           id: validatedUser.id,
           phoneNumber: validatedUser.phoneNumber,
-          email: validatedUser.email,
         },
         relations: ['userInfo', 'group'],
       });
@@ -198,7 +197,6 @@ export class UserService {
     const user = await this.userRepository.findOne({
       where: {
         phoneNumber: phone,
-        email: Not(IsNull()),
       },
     });
     return user;

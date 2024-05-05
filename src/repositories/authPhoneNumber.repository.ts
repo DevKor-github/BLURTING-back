@@ -23,7 +23,6 @@ export class AuthPhoneNumberRepository {
   ): Promise<AuthPhoneNumberEntity> {
     return await this.authPhoneNumberRepository.findOne({
       where: { code, phoneNumber },
-      relations: ['user'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -38,6 +37,6 @@ export class AuthPhoneNumberRepository {
   }
 
   async deleteByPhone(phoneNumber: string): Promise<void> {
-    await this.authPhoneNumberRepository.delete(phoneNumber);
+    await this.authPhoneNumberRepository.delete({ phoneNumber: phoneNumber });
   }
 }

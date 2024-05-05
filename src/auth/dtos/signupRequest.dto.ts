@@ -6,6 +6,7 @@ import {
   IsArray,
   IsEnum,
   IsOptional,
+  IsDate,
 } from 'class-validator';
 import {
   Sex,
@@ -16,6 +17,7 @@ import {
   Character,
   Hobby,
   Religion,
+  Job,
 } from 'src/common/enums';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -33,9 +35,14 @@ export class SignupEmailRequestDto {
 
 export class SignupUserRequestDto {
   @IsOptional()
-  @IsPhoneNumber()
+  @IsPhoneNumber('KR', { message: '올바른 전화번호가 아닙니다.' })
   @ApiProperty({ description: 'phoneNumber' })
   phoneNumber: string;
+
+  @IsOptional()
+  @IsDate()
+  @ApiProperty({ description: 'birth', example: '2000-01-01' })
+  birth: Date;
 
   @IsOptional()
   @IsEnum(Sex)
@@ -89,6 +96,11 @@ export class SignupUserRequestDto {
   @IsEnum(Mbti)
   @ApiProperty({ description: 'mbti', enum: Mbti, enumName: 'Mbti' })
   mbti: Mbti;
+
+  @IsOptional()
+  @IsEnum(Job)
+  @ApiProperty({ description: 'job', enum: Job, enumName: 'Job' })
+  job: Job;
 
   @IsOptional()
   @IsArray()

@@ -53,7 +53,6 @@ export class AuthController {
     if (Page[page] != 'checkPhoneNumber') {
       throw new BadRequestException('invalid signup token');
     }
-
     await this.authService.checkCode(code, body.phoneNumber);
     await this.userService.updateUser(id, 'phoneNumber', body.phoneNumber);
     const signupToken = await this.authService.getSignupToken(signupPayload);
@@ -69,7 +68,7 @@ export class AuthController {
     @Body() info: SignupUserRequestDto,
   ) {
     const { id, infoId, page } = signupPayload;
-    if (page == 16) {
+    if (page == 17) {
       const result = await this.authService.checkComplete(id);
       if (!result) throw new BadRequestException('invalid info');
       await this.userService.createSocketUser(id);
@@ -81,14 +80,19 @@ export class AuthController {
     }
 
     const pageName = Object.keys(Page).find((key) => Page[key] == page);
+
     if (info[pageName] == undefined || info[pageName] == null)
       throw new BadRequestException('invalid info');
+
     switch (pageName) {
       case 'phoneNumber':
         await this.authService.validatePhoneNumber(info['phoneNumber']);
         break;
-      case 'image':
+      case 'images':
         await this.userService.updateUserImages(id, info['images']);
+        break;
+      case 'birth':
+        await this.userService.updateUser(id, 'birth', info['birth']);
         break;
       default:
         await this.userService.updateUserInfo(infoId, pageName, info[pageName]);

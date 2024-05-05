@@ -230,7 +230,7 @@ export class UserController {
     const { id } = req.user as JwtPayload;
     try {
       const user = await this.userService.findUserByVal('id', id);
-      return res.json({ email: user.email, phoneNumber: user.phoneNumber });
+      return res.json({ phoneNumber: user.phoneNumber });
     } catch (err) {
       console.log(err);
       return err;
