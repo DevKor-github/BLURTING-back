@@ -1,4 +1,4 @@
-import { IsString, IsNumber, ValidateIf } from 'class-validator';
+import { IsString, IsNumber, IsOptional } from 'class-validator';
 import { Character, Hobby } from 'src/common/enums';
 import { CharacterMask, HobbyMask } from 'src/common/const';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
@@ -13,7 +13,7 @@ export class LoginDto {
 export class UserProfileDto extends OmitType(SignupUserRequestDto, [
   'phoneNumber',
 ] as const) {
-  @ValidateIf((o) => o.nickname !== undefined && o.nickname !== null)
+  @IsOptional()
   @IsString()
   @ApiProperty({ description: 'nickname' })
   nickname: string;

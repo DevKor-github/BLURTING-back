@@ -4,7 +4,7 @@ import {
   IsString,
   IsArray,
   IsEnum,
-  ValidateIf,
+  IsOptional,
 } from 'class-validator';
 import {
   BlurtingAnswerEntity,
@@ -58,7 +58,7 @@ export class BlurtingAnswerDto {
   @ApiProperty({ description: 'mbti' })
   mbti: Mbti;
 
-  @ValidateIf((o) => o.room !== null)
+  @IsOptional()
   @IsString()
   @ApiProperty({ description: '귓속말 연결된 상대는 roomId, 아니면 null' })
   room: string;
