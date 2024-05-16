@@ -30,6 +30,13 @@ export class BlurtingAnswerRepository {
     });
   }
 
+  async existsByUser(userId: number, questionId: number): Promise<boolean> {
+    const answer = await this.answerRepository.exist({
+      where: { user: { id: userId }, question: { id: questionId } },
+    });
+    return answer;
+  }
+
   async findTop(startTime: Date): Promise<BlurtingAnswerEntity[]> {
     const answers = await this.answerRepository.find({
       where: { postedAt: MoreThan(startTime) },

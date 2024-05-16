@@ -375,7 +375,7 @@ export class BlurtingService {
         { delay: 10 * 60 * 1000 },
       );
     }
-    if (answer.length >= 100) {
+    if (!(await this.answerRepository.existsByUser(userId, questionId))) {
       return await this.pointService.giveBlurtingPoint(userId);
     }
 
