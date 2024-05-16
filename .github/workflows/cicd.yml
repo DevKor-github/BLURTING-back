@@ -83,4 +83,4 @@ jobs:
           docker stop ${{ github.ref_name == 'main' && env.DOCKER_CONTAINER_MAIN || env.DOCKER_CONTAINER_RENEWAL }} || true
           docker rm ${{ github.ref_name == 'main' && env.DOCKER_CONTAINER_MAIN || env.DOCKER_CONTAINER_RENEWAL }} || true
           docker rmi ${{ github.ref_name == 'main' && env.DOCKER_IMAGE_MAIN || env.DOCKER_IMAGE_RENEWAL }} || true
-          docker run --env-file ./.env -d -p ${{ github.ref_name == 'main' && '3080:3080' || '3081:3080' }} --name ${{ github.ref_name == 'main' && env.DOCKER_CONTAINER_MAIN || env.DOCKER_CONTAINER_RENEWAL }} --network host --restart always ${{ github.ref_name == 'main' && env.DOCKER_IMAGE_MAIN || env.DOCKER_IMAGE_RENEWAL }}
+          docker run --env-file ./.env -d -p ${{ github.ref_name == 'main' && '3080:3080' || '3081:3080' }} --name ${{ github.ref_name == 'main' && env.DOCKER_CONTAINER_MAIN || env.DOCKER_CONTAINER_RENEWAL }} --restart always ${{ github.ref_name == 'main' && env.DOCKER_IMAGE_MAIN || env.DOCKER_IMAGE_RENEWAL }}
