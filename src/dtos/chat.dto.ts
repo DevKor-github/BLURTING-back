@@ -116,12 +116,12 @@ export class RoomChatDto {
   blur: number;
 
   @IsBoolean()
-  @ApiProperty({ description: 'connected' })
+  @ApiProperty({ description: '상대방의 신고, 나가기 등으로 연결 해제' })
   connected: boolean;
 
-  @IsDate()
-  @ApiProperty({ description: 'point 써서 귓속말 건 시각' })
-  readonly connectedAt: Date;
+  @IsBoolean()
+  @ApiProperty({ description: 'point를 써서 대화를 지속하는지 여부' })
+  continued: boolean;
 
   @ValidateIf((o) => o.blurChange != null)
   @ApiProperty({ description: 'blur step 별 처음 바뀔 때 blur step' })
@@ -148,8 +148,10 @@ export class RoomChatDto {
       otherImage: othereSocketUser?.userImage ?? null,
       hasRead: otherUser.hasRead,
       blur: otherUser.blur ?? 1,
-      connected: othereSocketUser.isDeleted ? false : roomInfo.connected ?? true,
-      connectedAt: roomInfo.connectedAt ?? null,
+      connected: othereSocketUser.isDeleted
+        ? false
+        : roomInfo.connected ?? true,
+      continued: roomInfo.continued,
       blurChange: blurChange ?? null,
       chats: chattings,
     };
