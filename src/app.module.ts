@@ -52,7 +52,7 @@ import { EventModule } from './event/event.module';
     PointModule,
     BullModule.forRoot({
       redis: {
-        host: 'host.docker.internal',
+        host: process.env.DB_HOST,
         port: 6379,
       },
     }),
