@@ -74,6 +74,9 @@ export class UserInfoEntity {
   @Column({ nullable: true })
   hobby?: number;
 
+  @Column({ nullable: true, type: 'enum', enum: Job })
+  job?: Job;
+
   @OneToOne(() => UserEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinColumn()
   user: UserEntity;
