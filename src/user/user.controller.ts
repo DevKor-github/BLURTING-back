@@ -16,6 +16,7 @@ import {
   ApiOperation,
   ApiBody,
   ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { FcmService } from 'src/firebase/fcm.service';
@@ -24,6 +25,7 @@ import { UpdateProfileDto, UserProfileDto } from 'src/dtos/user.dto';
 import { UserService } from './user.service';
 
 @Controller('user')
+@ApiTags('user')
 export class UserController {
   constructor(
     private readonly userService: UserService,

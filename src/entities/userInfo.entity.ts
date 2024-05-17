@@ -40,6 +40,8 @@ export class UserInfoEntity {
 
   @Column({
     nullable: true,
+    type: 'enum',
+    enum: Religion,
   })
   religion?: Religion;
 

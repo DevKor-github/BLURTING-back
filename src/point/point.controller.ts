@@ -15,6 +15,7 @@ import {
   ApiOperation,
   ApiBody,
   ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
 import { JwtPayload } from 'src/interfaces/auth';
 import { PointService } from './point.service';
@@ -25,6 +26,7 @@ import { User } from 'src/decorators/accessUser.decorator';
 import { AccessGuard } from 'src/auth/guard/access.guard';
 
 @Controller('point')
+@ApiTags('point')
 export class PointController {
   constructor(
     private readonly pointService: PointService,
