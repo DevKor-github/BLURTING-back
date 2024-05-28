@@ -4,7 +4,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { redisStore } from 'cache-manager-redis-store';
 import {
-  BLurtingArrowEntity,
+  BlurtingArrowEntity,
   BlurtingAnswerEntity,
   BlurtingEventEntity,
   BlurtingGroupEntity,
@@ -24,7 +24,7 @@ import { BlurtingModule } from 'src/blurting/blurting.module';
       BlurtingEventEntity,
       BlurtingQuestionEntity,
       BlurtingAnswerEntity,
-      BLurtingArrowEntity,
+      BlurtingArrowEntity,
       UserEntity,
     ]),
     CacheModule.register({

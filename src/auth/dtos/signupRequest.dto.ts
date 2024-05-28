@@ -5,7 +5,8 @@ import {
   IsNumber,
   IsArray,
   IsEnum,
-  ValidateIf,
+  IsOptional,
+  IsDate,
 } from 'class-validator';
 import {
   Sex,
@@ -13,10 +14,10 @@ import {
   Mbti,
   Degree,
   Major,
-  University,
   Character,
   Hobby,
   Religion,
+  Job,
 } from 'src/common/enums';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -33,22 +34,22 @@ export class SignupEmailRequestDto {
 }
 
 export class SignupUserRequestDto {
-  @ValidateIf((o) => o.IsPhoneNumber !== undefined && o.IsPhoneNumber !== null)
-  @IsPhoneNumber()
+  @IsOptional()
+  @IsPhoneNumber('KR', { message: '올바른 전화번호가 아닙니다.' })
   @ApiProperty({ description: 'phoneNumber' })
   phoneNumber: string;
 
-  @ValidateIf((o) => o.email !== undefined && o.email !== null)
-  @IsEmail()
-  @ApiProperty({ description: 'email' })
-  email: string;
+  @IsOptional()
+  @IsDate()
+  @ApiProperty({ description: 'birth', example: '2000-01-01' })
+  birth: Date;
 
-  @ValidateIf((o) => o.sex !== undefined && o.sex !== null)
+  @IsOptional()
   @IsEnum(Sex)
   @ApiProperty({ description: 'sex', enum: Sex, enumName: 'Sex' })
   sex: Sex;
 
-  @ValidateIf((o) => o.sexOrient !== undefined && o.sexOrient !== null)
+  @IsOptional()
   @IsEnum(SexOrient)
   @ApiProperty({
     description: 'sexOrient',
@@ -57,12 +58,12 @@ export class SignupUserRequestDto {
   })
   sexOrient: SexOrient;
 
-  @ValidateIf((o) => o.region !== undefined && o.region !== null)
+  @IsOptional()
   @IsString()
   @ApiProperty({ description: 'region' })
   region: string;
 
-  @ValidateIf((o) => o.religion !== undefined && o.religion !== null)
+  @IsOptional()
   @IsEnum(Religion)
   @ApiProperty({
     description: 'religion',
@@ -71,32 +72,37 @@ export class SignupUserRequestDto {
   })
   religion: Religion;
 
-  @ValidateIf((o) => o.drink !== undefined && o.drink !== null)
+  @IsOptional()
   @IsEnum(Degree)
   @ApiProperty({ description: 'drink', enum: Degree, enumName: 'Degree' })
   drink: Degree;
 
-  @ValidateIf((o) => o.cigarette !== undefined && o.cigarette !== null)
+  @IsOptional()
   @IsEnum(Degree)
   @ApiProperty({ description: 'cigarette', enum: Degree, enumName: 'Degree' })
   cigarette: Degree;
 
-  @ValidateIf((o) => o.height !== undefined && o.height !== null)
+  @IsOptional()
   @IsNumber()
   @ApiProperty({ description: 'height' })
   height: number;
 
-  @ValidateIf((o) => o.major !== undefined && o.major !== null)
+  @IsOptional()
   @IsEnum(Major)
   @ApiProperty({ description: 'major', enum: Major, enumName: 'Major' })
   major: Major;
 
-  @ValidateIf((o) => o.mbti !== undefined && o.mbti !== null)
+  @IsOptional()
   @IsEnum(Mbti)
   @ApiProperty({ description: 'mbti', enum: Mbti, enumName: 'Mbti' })
   mbti: Mbti;
 
-  @ValidateIf((o) => o.character !== undefined && o.character !== null)
+  @IsOptional()
+  @IsEnum(Job)
+  @ApiProperty({ description: 'job', enum: Job, enumName: 'Job' })
+  job: Job;
+
+  @IsOptional()
   @IsArray()
   @IsEnum(Character, { each: true })
   @ApiProperty({
@@ -107,7 +113,7 @@ export class SignupUserRequestDto {
   })
   character: Character[];
 
-  @ValidateIf((o) => o.hobby !== undefined && o.hobby !== null)
+  @IsOptional()
   @IsArray()
   @IsEnum(Hobby, { each: true })
   @ApiProperty({
@@ -118,16 +124,7 @@ export class SignupUserRequestDto {
   })
   hobby: Hobby[];
 
-  @ValidateIf((o) => o.university !== undefined && o.university !== null)
-  @IsEnum(University)
-  @ApiProperty({
-    description: 'university',
-    enum: University,
-    enumName: 'University',
-  })
-  university: University;
-
-  @ValidateIf((o) => o.images !== undefined && o.images !== null)
+  @IsOptional()
   @IsArray({ message: 'not valid' })
   @IsString({ each: true })
   @ApiProperty({ example: ['s3.asfsva', 'asdfasdf'] })

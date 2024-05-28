@@ -11,23 +11,29 @@ import {
   ApiQuery,
   ApiRequestTimeoutResponse,
   ApiUnauthorizedResponse,
+  ApiOkResponse,
 } from '@nestjs/swagger';
-import { SignupTokenResponseDto, TokenResponseDto } from 'src/auth/dtos';
-import { CreateUserDto } from 'src/dtos/user.dto';
+import {
+  SignupTokenResponseDto,
+  SignupPhoneRequestDto,
+  SignupUserRequestDto,
+  TokenResponseDto,
+} from 'src/auth/dtos';
 
 export function CheckCodeDocs() {
   return applyDecorators(
+    ApiConflictResponse({ description: '사용 중 전화번호' }),
+    ApiBadRequestResponse({ description: 'invalid signup token' }),
+    ApiUnauthorizedResponse({ description: '인증번호 오류' }),
+    ApiRequestTimeoutResponse({ description: '인증번호 시간 초과' }),
+    ApiCreatedResponse({ description: '성공', type: SignupTokenResponseDto }),
     ApiQuery({
       name: 'code',
       description: '인증번호',
       type: String,
       example: '010123',
     }),
-    ApiConflictResponse({ description: '사용 중 전화번호' }),
-    ApiBadRequestResponse({ description: 'invalid signup token' }),
-    ApiUnauthorizedResponse({ description: '인증번호 오류' }),
-    ApiRequestTimeoutResponse({ description: '인증번호 시간 초과' }),
-    ApiCreatedResponse({ description: '성공', type: SignupTokenResponseDto }),
+    ApiBody({ description: 'phone', type: SignupPhoneRequestDto }),
   );
 }
 
@@ -58,6 +64,11 @@ export function SignupDocs() {
       description: 'new signup token',
       type: SignupTokenResponseDto,
     }),
+    ApiBadRequestResponse({
+      description: 'invalid signup token or invalid info',
+    }),
+    ApiConflictResponse({ description: '이미 가입된 정보' }),
+    ApiNotAcceptableResponse({ description: '10초 내 재요청' }),
     ApiHeader({
       name: 'authorization',
       required: true,
@@ -65,7 +76,7 @@ export function SignupDocs() {
     }),
     ApiBody({
       description: '유저 정보 차례대로 하나씩',
-      type: CreateUserDto,
+      type: SignupUserRequestDto,
     }),
     ApiOperation({
       summary: '회원가입',
@@ -183,5 +194,47 @@ export function AlreadyCheckDocs() {
       type: String,
       example: '010123',
     }),
+    ApiBody({ description: 'phone', type: SignupPhoneRequestDto }),
   );
+}
+
+type GeoEndPoints = 'name' | 'geo';
+export function geocodingDocs(endpoint: GeoEndPoints) {
+  switch (endpoint) {
+    case 'name':
+      return applyDecorators(
+        ApiQuery({
+          name: 'name',
+          description: '검색할 지역 이름',
+          type: String,
+          example: '성북구',
+        }),
+        ApiOkResponse({
+          description: '검색한 지역 이름에 대한 지역 리스트',
+          type: [String],
+        }),
+        ApiOperation({
+          summary: '이름 기반 시군구 검색',
+          description: '이름 형식 기반 LIKE 연산, 시군구 리스트 반환',
+        }),
+      );
+    case 'geo':
+      return applyDecorators(
+        ApiQuery({
+          name: 'geo',
+          description: '검색할 지역 위도, 경도',
+          type: String,
+          example: 'point(127.0164 37.4984)',
+        }),
+        ApiOperation({
+          summary: '좌표 기반 시군구 검색',
+          description:
+            'Point(경도, 위도) 형식으로 좌표를 입력하면 해당 좌표 주변 시군구 리스트 반환',
+        }),
+        ApiOkResponse({
+          description: '검색한 좌표에 대한 지역 리스트',
+          type: [String],
+        }),
+      );
+  }
 }

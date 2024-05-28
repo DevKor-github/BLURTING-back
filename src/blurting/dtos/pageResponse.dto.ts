@@ -4,19 +4,18 @@ import {
   IsString,
   IsArray,
   IsEnum,
-  ValidateIf,
+  IsOptional,
 } from 'class-validator';
 import {
   BlurtingAnswerEntity,
   BlurtingGroupEntity,
   BlurtingQuestionEntity,
   ReplyEntity,
-  UserEntity,
 } from 'src/entities';
 import { ApiProperty } from '@nestjs/swagger';
 import { Mbti, Sex } from 'src/common/enums';
 
-export class ReplyDto {
+export class BlurtingReplyDto {
   @ApiProperty({ description: '답글 작성 유저 아이디' })
   writerUserId: number;
   @ApiProperty({ description: '답글 작성 유저 닉네임' })
@@ -25,7 +24,7 @@ export class ReplyDto {
   content: string;
   @ApiProperty({ description: '답글 작성 시간 ( 한국 시간 기준 )' })
   createdAt: Date;
-  static toDto(entity: ReplyEntity): ReplyDto {
+  static toDto(entity: ReplyEntity): BlurtingReplyDto {
     return {
       writerUserId: entity.user?.id ?? null,
       writerUserName: entity.user?.userNickname ?? '탈퇴한 사용자',
@@ -59,7 +58,7 @@ export class BlurtingAnswerDto {
   @ApiProperty({ description: 'mbti' })
   mbti: Mbti;
 
-  @ValidateIf((o) => o.room !== null)
+  @IsOptional()
   @IsString()
   @ApiProperty({ description: '귓속말 연결된 상대는 roomId, 아니면 null' })
   room: string;
@@ -73,29 +72,27 @@ export class BlurtingAnswerDto {
   @ApiProperty({ description: '답변 ID' })
   id: number;
 
-  @ApiProperty({ description: '답글들', type: ReplyDto, isArray: true })
-  reply: ReplyDto[];
+  @ApiProperty({ description: '답글들', type: BlurtingReplyDto, isArray: true })
+  reply: BlurtingReplyDto[];
 
   static ToDto(
     answerEntity: BlurtingAnswerEntity,
     room: string,
-    user: UserEntity,
     ilike: boolean = false,
-    likes: number,
   ): BlurtingAnswerDto {
     return {
       id: answerEntity.id,
-      userId: user?.id ?? 0,
-      userNickname: user?.userNickname ?? '탈퇴한 사용자',
+      userId: answerEntity.user?.id ?? 0,
+      userNickname: answerEntity.user?.userNickname ?? '탈퇴한 사용자',
       userSex: answerEntity.userSex ?? Sex.Female,
       answer: answerEntity.answer,
       postedAt: answerEntity.postedAt,
-      mbti: user?.userInfo?.mbti ?? null,
-      room: room ?? null,
-      likes,
+      mbti: answerEntity.user?.userInfo?.mbti ?? null,
+      room,
+      likes: answerEntity.allLikes,
       ilike,
       reply: answerEntity.reply
-        ? answerEntity.reply.map((e) => ReplyDto.toDto(e))
+        ? answerEntity.reply.map((e) => BlurtingReplyDto.toDto(e))
         : null,
     };
   }
@@ -144,14 +141,4 @@ export class BlurtingPageDto {
       answers: answersDto,
     };
   }
-}
-
-export class AnswerDto {
-  @IsNumber()
-  @ApiProperty({ description: 'question 고유 아이디' })
-  questionId: number;
-
-  @IsString()
-  @ApiProperty({ description: 'answer' })
-  answer: string;
 }

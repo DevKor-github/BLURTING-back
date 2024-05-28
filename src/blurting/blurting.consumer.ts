@@ -10,14 +10,17 @@ import { Job, Queue } from 'bull';
 import { BlurtingService } from './blurting.service';
 import { BlurtingGroupEntity } from 'src/entities';
 import { FcmService } from 'src/firebase/fcm.service';
+import { ChatService } from 'src/chat/chat.service';
 
 @Processor('blurtingQuestions')
 export class BlurtingConsumer {
   constructor(
     private blurtingService: BlurtingService,
     private fcmService: FcmService,
+    private chatService: ChatService,
     @InjectQueue('blurtingQuestions') private readonly queue: Queue,
   ) {}
+
   @Process()
   async processNewBlurtingQuestion(job: Job) {
     const question: string = job.data.question;
@@ -34,6 +37,7 @@ export class BlurtingConsumer {
           );
         }),
       );
+      await this.chatService.blockWhispers(group.createdAt, users);
       return;
     }
     await this.blurtingService.insertQuestionToGroup(
@@ -51,6 +55,7 @@ export class BlurtingConsumer {
       }),
     );
   }
+
   @OnQueueError()
   queueErrorHandler(error: Error) {
     console.log('job error occured');

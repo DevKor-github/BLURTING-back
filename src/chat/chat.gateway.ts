@@ -13,6 +13,7 @@ import { AddChatDto, ChatDto, InRoomDto } from 'src/dtos/chat.dto';
 import { ChatService } from './chat.service';
 import { ReportService } from 'src/report/report.service';
 import { ReportingRequestDto } from 'src/report/dtos/reportingRequest.dto';
+import { getDateTimeOfNow } from 'src/common/util/time';
 
 @WebSocketGateway({ namespace: 'whisper' })
 export class ChatGateway
@@ -133,7 +134,7 @@ export class ChatGateway
   ) {
     const addChat: ChatDto = {
       ...chatData,
-      createdAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
+      createdAt: getDateTimeOfNow(),
       userId: client.data.userId,
     };
     const adapter = this.server.adapter as any;

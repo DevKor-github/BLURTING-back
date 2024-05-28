@@ -12,8 +12,8 @@ import {
   Mbti,
   Degree,
   Major,
-  University,
   Religion,
+  Job,
 } from 'src/common/enums';
 
 @Entity('userInfo')
@@ -74,8 +74,8 @@ export class UserInfoEntity {
   @Column({ nullable: true })
   hobby?: number;
 
-  @Column({ nullable: true, type: 'enum', enum: University })
-  university?: University;
+  @Column({ nullable: true, type: 'enum', enum: Job })
+  job?: Job;
 
   @OneToOne(() => UserEntity, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinColumn()

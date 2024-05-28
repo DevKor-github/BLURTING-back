@@ -25,7 +25,6 @@ export class Room extends Document {
     required: true,
     type: String,
   })
-  @IsNotEmpty()
   @IsString()
   id: string;
 
@@ -42,7 +41,6 @@ export class Room extends Document {
     type: Boolean,
     default: true,
   })
-  @IsNotEmpty()
   @IsBoolean()
   connected: boolean;
 
@@ -53,6 +51,14 @@ export class Room extends Document {
   })
   @IsDate()
   connectedAt: Date;
+
+  @Prop({
+    required: true,
+    type: Boolean,
+    default: true,
+  })
+  @IsBoolean()
+  continued: boolean;
 }
 
 export const RoomSchema = SchemaFactory.createForClass(Room);

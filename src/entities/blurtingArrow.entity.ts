@@ -10,7 +10,7 @@ import { UserEntity } from './users.entity';
 import { BlurtingGroupEntity } from './blurtingGroup.entity';
 
 @Entity()
-export class BLurtingArrowEntity {
+export class BlurtingArrowEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

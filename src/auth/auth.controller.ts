@@ -12,14 +12,13 @@ import { UserService } from 'src/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
 import { SignupGuard } from './guard/signup.guard';
 import { Page } from 'src/common/enums/page.enum';
-import { CreateUserDto, LoginDto } from 'src/dtos/user.dto';
+import { LoginDto } from 'src/dtos/user.dto';
 import { ApiTags } from '@nestjs/swagger';
 import {
+  SignupTokenResponseDto,
   TokenResponseDto,
   SignupPhoneRequestDto,
-  SignupEmailRequestDto,
-  SignupImageRequestDto,
-  SignupTokenResponseDto,
+  SignupUserRequestDto,
 } from './dtos';
 import { RefreshGuard } from './guard/refresh.guard';
 import { SignupUser } from 'src/decorators/signupUser.decorator';
@@ -28,14 +27,10 @@ import {
   AlreadyCheckDocs,
   AlreadyRegisteredDocs,
   CheckCodeDocs,
-  CheckMailDocs,
   LoginDocs,
   RefreshDocs,
   SignupBackDocs,
   SignupDocs,
-  SignupEmailDocs,
-  SignupImageDocs,
-  SignupPhoneNumberDocs,
   SignupStartDocs,
 } from 'src/decorators/swagger/auth.decorator';
 @Controller('auth')
@@ -58,21 +53,11 @@ export class AuthController {
     if (Page[page] != 'checkPhoneNumber') {
       throw new BadRequestException('invalid signup token');
     }
-
-    await this.authService.checkCode(id, code, body.phoneNumber);
-    const signupToken = this.authService.getSignupToken(signupPayload);
+    await this.authService.checkCode(code, body.phoneNumber);
+    await this.userService.updateUser(id, 'phoneNumber', body.phoneNumber);
+    const signupToken = await this.authService.getSignupToken(signupPayload);
 
     return { signupToken };
-  }
-
-  @Get('/check/email')
-  @CheckMailDocs()
-  async checkMail(
-    @Query('code') code: string,
-    @Query('email') email: string,
-  ): Promise<string> {
-    await this.authService.checkMail(code, email);
-    return '<h1>가입 완료!</h1>블러팅 앱으로 돌아가주세요.';
   }
 
   @UseGuards(SignupGuard)
@@ -80,10 +65,10 @@ export class AuthController {
   @SignupDocs()
   async signup(
     @SignupUser() signupPayload: SignupPayload,
-    @Body() info: CreateUserDto,
+    @Body() info: SignupUserRequestDto,
   ) {
     const { id, infoId, page } = signupPayload;
-    if (page == 16) {
+    if (page == 17) {
       const result = await this.authService.checkComplete(id);
       if (!result) throw new BadRequestException('invalid info');
       await this.userService.createSocketUser(id);
@@ -95,9 +80,20 @@ export class AuthController {
     }
 
     const pageName = Object.keys(Page).find((key) => Page[key] == page);
+
     if (info[pageName] == undefined || info[pageName] == null)
       throw new BadRequestException('invalid info');
+
     switch (pageName) {
+      case 'phoneNumber':
+        await this.authService.validatePhoneNumber(info['phoneNumber']);
+        break;
+      case 'images':
+        await this.userService.updateUserImages(id, info['images']);
+        break;
+      case 'birth':
+        await this.userService.updateUser(id, 'birth', info['birth']);
+        break;
       default:
         await this.userService.updateUserInfo(infoId, pageName, info[pageName]);
     }
@@ -117,53 +113,6 @@ export class AuthController {
       infoId: userInfo.id,
       page: 0,
     });
-
-    return { signupToken };
-  }
-
-  @Post('/signup/phonenumber')
-  @UseGuards(SignupGuard)
-  @SignupPhoneNumberDocs()
-  async signupPhoneNumber(
-    @SignupUser() signupPayload: SignupPayload,
-    @Body() body: SignupPhoneRequestDto,
-  ): Promise<SignupTokenResponseDto> {
-    const { id, page } = signupPayload;
-    if (Page[page] != 'phoneNumber') {
-      throw new BadRequestException('invalid signup token');
-    }
-    await this.authService.validatePhoneNumber(body.phoneNumber, id);
-    const signupToken = this.authService.getSignupToken(signupPayload);
-
-    return { signupToken };
-  }
-
-  @Post('/signup/images')
-  @UseGuards(SignupGuard)
-  @SignupImageDocs()
-  async signupImage(
-    @SignupUser() signupPayload: SignupPayload,
-    @Body() body: SignupImageRequestDto,
-  ): Promise<SignupTokenResponseDto> {
-    const { id } = signupPayload;
-    await this.userService.updateUserImages(id, body.images);
-    const signupToken = this.authService.getSignupToken(signupPayload);
-    return { signupToken };
-  }
-
-  @Post('/signup/email')
-  @UseGuards(SignupGuard)
-  @SignupEmailDocs()
-  async signupEmail(
-    @SignupUser() signupPayload: SignupPayload,
-    @Body() body: SignupEmailRequestDto,
-  ): Promise<SignupTokenResponseDto> {
-    const { id, page } = signupPayload;
-    if (Page[page] != 'email') {
-      throw new BadRequestException('invalid signup token');
-    }
-    await this.authService.sendVerificationCode(id, body.email);
-    const signupToken = this.authService.getSignupToken(signupPayload);
 
     return { signupToken };
   }
@@ -189,7 +138,7 @@ export class AuthController {
   async login(@Body() loginDto: LoginDto) {
     const { id } = loginDto;
 
-    const user = await this.authService.validateUser(id);
+    const user = await this.userService.findUserByVal('id', id);
     const refreshToken = await this.authService.getRefreshToken(user.id);
     const accessToken = this.authService.getAccessToken(user.id);
     return {
@@ -220,8 +169,14 @@ export class AuthController {
 
   @Post('/alreay/signed/check')
   @AlreadyCheckDocs()
-  async alreadyCheck(@Query('code') code: string) {
-    const result = await this.authService.checkCodeAlready(code);
-    return result;
+  async alreadyCheck(
+    @Query('code') code: string,
+    @Body() body: SignupPhoneRequestDto,
+  ) {
+    await this.authService.checkCode(code, body.phoneNumber);
+    const user = await this.userService.findUserByPhone(body.phoneNumber);
+    const refreshJwt = await this.authService.getRefreshToken(user.id);
+    const accessJwt = await this.authService.getAccessToken(user.id);
+    return { refreshToken: refreshJwt, accessToken: accessJwt, id: user.id };
   }
 }

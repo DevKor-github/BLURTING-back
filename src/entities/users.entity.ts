@@ -13,14 +13,11 @@ export class UserEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: true, length: 20 })
-  userName?: string;
-
   @Column({ length: 50 })
   userNickname: string;
 
-  @Column({ nullable: true, length: 100 })
-  email?: string;
+  @Column({ nullable: true })
+  birth?: Date;
 
   @Column({ nullable: true, length: 11 })
   phoneNumber?: string;

@@ -1,12 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import {
-  UserEntity,
-  AuthMailEntity,
-  AuthPhoneNumberEntity,
-  UserImageEntity,
-  ToCheckEntity,
-} from 'src/entities';
+import { AuthPhoneNumberEntity } from 'src/entities';
 import {
   JwtSignupStrategy,
   JwtAccessStrategy,
@@ -17,24 +11,15 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { MailerModule } from '@nestjs-modules/mailer';
 import { UserModule } from 'src/user/user.module';
-import { PointModule } from 'src/point/point.module';
+import { AuthPhoneNumberRepository } from 'src/repositories';
 @Module({
   imports: [
     UserModule,
     PassportModule.register({ session: false }),
-    TypeOrmModule.forFeature([
-      UserEntity,
-      AuthMailEntity,
-      AuthPhoneNumberEntity,
-      UserImageEntity,
-      ToCheckEntity,
-    ]),
+    TypeOrmModule.forFeature([AuthPhoneNumberEntity]),
     JwtModule.register({}),
-    MailerModule,
     UserModule,
-    PointModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -42,6 +27,7 @@ import { PointModule } from 'src/point/point.module';
     JwtAccessStrategy,
     JwtRefreshStrategy,
     JwtSignupStrategy,
+    AuthPhoneNumberRepository,
   ],
   exports: [
     AuthService,

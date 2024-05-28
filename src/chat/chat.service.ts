@@ -109,6 +109,7 @@ export class ChatService {
       blur: 0,
       connected: true,
       connectedAt: getDateTimeOfNow(),
+      continued: true,
     });
     await room.save();
 
@@ -327,5 +328,17 @@ export class ChatService {
     });
     const otherUser = room.users.find((user) => user.userId != userId);
     this.fcmService.sendPush(otherUser.userId, MESSAGES.NEW_MESSAGE, 'whisper');
+  }
+
+  async blockWhispers(createdAt: Date, groupUsers: number[]): Promise<void> {
+    await this.roomModel.updateMany(
+      {
+        users: {
+          $elemMatch: { userId: { $in: groupUsers } },
+        },
+        connectedAt: { $gt: createdAt },
+      },
+      { $set: { continued: false } },
+    );
   }
 }
