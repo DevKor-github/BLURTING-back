@@ -71,6 +71,9 @@ export class AuthController {
     if (page == 17) {
       const result = await this.authService.checkComplete(id);
       if (!result) throw new BadRequestException('invalid info');
+
+      const nickname = await this.userService.pickRandomNickname();
+      await this.userService.updateUser(id, 'userNickname', nickname);
       await this.userService.createSocketUser(id);
       return {
         refreshToken: await this.authService.getRefreshToken(id),
