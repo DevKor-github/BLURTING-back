@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { HomeInfoResponseDto } from './dtos/homInfoResponse.dto';
+import { HomeInfoResponseDto, RandomUserDto } from './dtos/homInfoResponse.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Chatting } from 'src/chat/models';
 import { Model } from 'mongoose';
@@ -11,6 +11,8 @@ import {
 } from 'src/repositories';
 import { compareDateGroupExist, getDateTimeOfNow } from 'src/common/util/time';
 import { AnswerWithQuestionDto } from './dtos';
+import { UserService } from 'src/user/user.service';
+import { Sex, SexOrient } from 'src/common/enums';
 
 @Injectable()
 export class HomeService {
@@ -21,6 +23,7 @@ export class HomeService {
     private readonly answerRepository: BlurtingAnswerRepository,
     @InjectModel(Chatting.name)
     private readonly chattingModel: Model<Chatting>,
+    private readonly userService: UserService,
   ) {}
 
   async likeAnswer(userId: number, answerId: number) {
@@ -97,5 +100,32 @@ export class HomeService {
       chats: chats.length,
       likes,
     };
+  }
+
+  async getRandomUsers(userId: number): Promise<RandomUserDto[]> {
+    const user = await this.userRepository.findOneById(userId);
+    let oppositeSex: Sex[];
+    if (user.userInfo.sexOrient == SexOrient.Bisexual) {
+      oppositeSex = [Sex.Female, Sex.Male];
+    } else if (user.userInfo.sexOrient == SexOrient.Homosexual) {
+      oppositeSex = [user.userInfo.sex];
+    } else if (user.userInfo.sex == Sex.Female) {
+      oppositeSex = [Sex.Male];
+    } else {
+      oppositeSex = [Sex.Female];
+    }
+
+    const randomUsers = await this.userRepository.selectRandom(
+      3,
+      userId,
+      oppositeSex,
+      user.userInfo.sexOrient,
+    );
+    return Promise.all(
+      randomUsers.map(async (user) => {
+        const images = await this.userService.getUserImages(user.id);
+        return new RandomUserDto(user, images);
+      }),
+    );
   }
 }
