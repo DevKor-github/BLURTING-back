@@ -327,7 +327,8 @@ export class AuthService {
       phoneNumber === '01090319869' ||
       phoneNumber === '01056210281' ||
       phoneNumber === '01077310281' ||
-      phoneNumber === '01040681036'
+      phoneNumber === '01040681036' ||
+      phoneNumber === '01029053228'
     ) {
       const phoneEntity = this.authPhoneNumberRepository.create({
         user: user,
