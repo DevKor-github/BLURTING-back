@@ -5,7 +5,14 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Sex, SexOrient, Hobby, Character, Nickname } from 'src/common/enums';
+import {
+  Sex,
+  SexOrient,
+  Hobby,
+  Character,
+  Nickname,
+  PreNickname,
+} from 'src/common/enums';
 import { CharacterMask, HobbyMask } from 'src/common/const';
 import {
   BlurtingGroupEntity,
@@ -52,20 +59,26 @@ export class UserService {
   }
 
   async pickRandomNickname() {
+    const preNicknames = Object.values(PreNickname).filter((key) => {
+      return isNaN(Number(key));
+    });
     const nicknames = Object.values(Nickname).filter((key) => {
       return isNaN(Number(key));
     });
-    let rand = Math.floor(Math.random() * 1000);
-    const index = rand % nicknames.length;
-    rand = Math.floor(Math.random() * 1000);
-    const nickname = nicknames[index].toString() + rand.toString();
+    const index1 = Math.floor(Math.random() * 1000) % preNicknames.length;
+    const index2 = Math.floor(Math.random() * 1000) % nicknames.length;
+    const nickname =
+      preNicknames[index1].toString() + ' ' + nicknames[index2].toString();
+
+    if (await this.findUserByVal('userNickname', nickname)) {
+      return this.pickRandomNickname();
+    }
+
     return nickname;
   }
 
   async createUser() {
-    const nickname = await this.pickRandomNickname();
     const user = this.userRepository.create({
-      userNickname: nickname,
       point: 0,
     });
     return await this.userRepository.save(user);

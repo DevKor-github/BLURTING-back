@@ -34,6 +34,14 @@ export class HomeController {
     await this.homeService.likeAnswer(id, answerId);
   }
 
+  @Get('/todayRandom')
+  @UseGuards(AuthGuard('access'))
+  @Docs('random')
+  async getTodayRandom(@User() userPayload: JwtPayload) {
+    const { id } = userPayload;
+    return await this.homeService.getRandomUsers(id);
+  }
+
   @Get('/version')
   @Docs('version')
   async getVersion() {
