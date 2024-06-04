@@ -5,7 +5,7 @@ import { FcmService } from './fcm.service';
 import { JwtPayload } from 'src/interfaces/auth';
 import { User } from 'src/decorators/accessUser.decorator';
 import { Docs } from 'src/decorators/swagger/fcm.decorator';
-import { AccessGuard } from 'src/auth/guard/acces.guard';
+import { AccessGuard } from 'src/auth/guard/access.guard';
 
 @Controller('fcm')
 @ApiTags('fcm')

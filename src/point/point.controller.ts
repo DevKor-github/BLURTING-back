@@ -6,7 +6,7 @@ import { UserService } from 'src/user/user.service';
 import { PointHistoryDto } from 'src/dtos/point.dto';
 import { ReportService } from 'src/report/report.service';
 import { User } from 'src/decorators/accessUser.decorator';
-import { AccessGuard } from 'src/auth/guard/acces.guard';
+import { AccessGuard } from 'src/auth/guard/access.guard';
 import { Docs } from 'src/decorators/swagger/point.decorator';
 
 @Controller('point')

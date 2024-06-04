@@ -3,7 +3,7 @@ import { FcmService } from 'src/firebase/fcm.service';
 import { JwtPayload } from 'src/interfaces/auth';
 import { UpdateProfileDto, UserProfileDto } from 'src/dtos/user.dto';
 import { UserService } from './user.service';
-import { AccessGuard } from 'src/auth/guard/acces.guard';
+import { AccessGuard } from 'src/auth/guard/access.guard';
 import { Docs } from 'src/decorators/swagger/user.decorator';
 import { User } from 'src/decorators/accessUser.decorator';
 import { ApiTags } from '@nestjs/swagger';
@@ -93,7 +93,7 @@ export class UserController {
     const { id } = user;
 
     const foundUser = await this.userService.findUserByVal('id', id);
-    return { email: foundUser.email, phoneNumber: foundUser.phoneNumber };
+    return { phoneNumber: foundUser.phoneNumber };
   }
 
   @UseGuards(AccessGuard)
