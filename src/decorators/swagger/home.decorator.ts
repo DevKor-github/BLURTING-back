@@ -1,8 +1,14 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiBody, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
-import { HomeInfoResponseDto, likeHomeAnswerDto } from 'src/home/dtos';
+import {
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
+import { HomeInfoResponseDto, likeHomeAnswerDto } from 'src/domain/home/dtos';
+import { RandomUserDto } from 'src/domain/home/dtos/homInfoResponse.dto';
 
-type HomeEndPoints = 'default' | 'like' | 'version';
+type HomeEndPoints = 'default' | 'like' | 'version' | 'random';
 export function Docs(endpoint: HomeEndPoints) {
   switch (endpoint) {
     case 'default':
@@ -30,6 +36,13 @@ export function Docs(endpoint: HomeEndPoints) {
           summary: '버전 정보',
           description: 'latestVersion: 최신 버전 정보 반환',
         }),
+      );
+    case 'random':
+      return applyDecorators(
+        ApiOperation({
+          summary: '오늘의 인연',
+        }),
+        ApiResponse({ type: RandomUserDto, isArray: true }),
       );
   }
 }

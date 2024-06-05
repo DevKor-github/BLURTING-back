@@ -3,7 +3,7 @@ export { Degree } from './degree.enum';
 export { Hobby } from './hobby.enum';
 export { Major } from './major.enum';
 export { Mbti } from './mbti.enum';
-export { Nickname } from './nickname.enum';
+export { PreNickname, Nickname } from './nickname.enum';
 export { Page } from './page.enum';
 export { Sex } from './sex.enum';
 export { SexOrient } from './sexOrient.enum';

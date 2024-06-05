@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
-import { NotificationListDto } from 'src/firebase/dtos/notificationList.dto';
+import { NotificationListDto } from 'src/domain/firebase/dtos/notificationList.dto';
 
 type FcmEndpoints =
   | 'getNotificationList'
