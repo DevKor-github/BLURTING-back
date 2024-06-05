@@ -63,7 +63,7 @@ export class HomeService {
     if (user.group && compareDateGroupExist(user.group.createdAt)) {
       const timeOffset =
         getDateTimeOfNow().getTime() - user.group.createdAt.getTime();
-      seconds = 8 * 60 * 60 * 1000 - (timeOffset % (8 * 60 * 60 * 1000));
+      seconds = 3 * 60 * 60 * 1000 - (timeOffset % (3 * 60 * 60 * 1000));
     }
 
     const chats = await this.chattingModel.find();
