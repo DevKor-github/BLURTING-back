@@ -17,6 +17,7 @@ import { BullModule } from '@nestjs/bull';
 import { HomeModule } from './domain/home/home.module';
 import { ReportModule } from './domain/report/report.module';
 import { EventModule } from './domain/event/event.module';
+import { ValidationModule } from './domain/validation/validation.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { EventModule } from './domain/event/event.module';
     HomeModule,
     ReportModule,
     EventModule,
+    ValidationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
