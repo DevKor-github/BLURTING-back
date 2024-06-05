@@ -167,7 +167,7 @@ export class AuthController {
     await this.authService.alreadySigned(body.phoneNumber);
   }
 
-  @Post('/alreay/signed/check')
+  @Post('/already/signed/check')
   @AlreadyCheckDocs()
   async alreadyCheck(
     @Query('code') code: string,
