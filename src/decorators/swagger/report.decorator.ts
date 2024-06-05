@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam } from '@nestjs/swagger';
-import { ReportingRequestDto } from 'src/report/dtos/reportingRequest.dto';
+import { ReportingRequestDto } from 'src/domain/report/dtos/reportingRequest.dto';
 
 export function ReportDocs() {
   return applyDecorators(

@@ -6,7 +6,7 @@ import {
   ApiOperation,
   ApiResponse,
 } from '@nestjs/swagger';
-import { UpdateProfileDto, UserProfileDto } from 'src/dtos/user.dto';
+import { UpdateProfileDto, UserProfileDto } from 'src/domain/dtos/user.dto';
 
 type UserEndpoints =
   | 'setNotificationToken'

@@ -6,7 +6,7 @@ import {
   ApiOperation,
   ApiResponse,
 } from '@nestjs/swagger';
-import { PointHistoryDto } from 'src/dtos/point.dto';
+import { PointHistoryDto } from 'src/domain/dtos/point.dto';
 
 type PointEndpoints =
   | 'checkPoint'
