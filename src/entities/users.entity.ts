@@ -13,8 +13,8 @@ export class UserEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 50 })
-  userNickname: string;
+  @Column({ nullable: true, length: 10 })
+  userNickname?: string;
 
   @Column({ nullable: true })
   birth?: Date;

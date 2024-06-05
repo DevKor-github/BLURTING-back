@@ -13,7 +13,7 @@ export class PointHistoryDto {
   @ApiProperty({ description: 'date' })
   readonly date: Date;
 
-  static ToDto(pointHistory: PointHistoryEntity): PointHistoryDto {
+  constructor(pointHistory: PointHistoryEntity) {
     return {
       history: pointHistory.history,
       date: pointHistory.updatedAt,

@@ -1,6 +1,27 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { AnswerWithQuestionDto } from './answerWithQuestion.dto';
 
+export class RandomUserDto {
+  @ApiProperty({ description: '유저 아이디' })
+  id: number;
+
+  @ApiProperty({ description: '유저 닉네임' })
+  userNickname: string;
+
+  @ApiProperty({ description: '유저 사진' })
+  image: string;
+
+  @ApiProperty({ description: '유저 한줄소개' })
+  comment: string;
+
+  constructor(user, images: string[]) {
+    this.id = user.id;
+    this.userNickname = user.userNickname;
+    this.image = images.length > 0 ? images[0] : null;
+    this.comment = user.comment ?? '';
+  }
+}
+
 export class HomeInfoResponseDto {
   @ApiProperty({ description: 'MVP 질문들', type: [AnswerWithQuestionDto] })
   answers: AnswerWithQuestionDto[];

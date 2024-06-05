@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { ChatService } from 'src/chat/chat.service';
 import { UserService } from 'src/user/user.service';
 import { PointHistoryDto } from 'src/dtos/point.dto';
 import { PointHistoryEntity, UserEntity } from 'src/entities';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
 export class PointService {
@@ -15,23 +15,36 @@ export class PointService {
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(PointHistoryEntity)
     private readonly pointRepository: Repository<PointHistoryEntity>,
+    @InjectDataSource()
+    private readonly datasource: DataSource,
   ) {}
 
-  async checkResPoint(id: number, point: number) {
-    const user = await this.userRepository.findOne({ where: { id: id } });
-    return user.point - point >= 0;
+  async checkResPoint(id: number, point: number): Promise<boolean> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    return user.point >= point;
   }
 
-  async updatePoint(id: number, point: number) {
-    const user = await this.userRepository.findOne({ where: { id: id } });
-    user.point += point;
-    if (user.point < 0) {
-      return false;
-    }
-    return await this.userRepository.save(user);
+  async updatePoint(id: number, point: number): Promise<number | false> {
+    let result;
+    await this.datasource.manager.transaction(
+      'SERIALIZABLE',
+      async (manager) => {
+        const user = await manager.findOne(UserEntity, { where: { id } });
+        if (user.point + point < 0) {
+          result = false;
+        }
+        await manager.update(UserEntity, { id }, { point: user.point + point });
+        result = user.point + point;
+      },
+    );
+    return result;
   }
 
-  async recordPointHistory(id: number, point: number, history: string) {
+  async recordPointHistory(
+    id: number,
+    point: number,
+    history: string,
+  ): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id: id } });
     const record = this.pointRepository.create({
       type: point > 0,
@@ -42,32 +55,34 @@ export class PointService {
     this.pointRepository.save(record);
   }
 
-  async getPointHistory(id: number, type: boolean) {
+  async getPointHistory(
+    id: number,
+    type: boolean,
+  ): Promise<Array<PointHistoryDto>> {
     const user = await this.userRepository.findOne({ where: { id: id } });
     const records = await this.pointRepository.find({
       where: { type: type, user: user },
       order: { updatedAt: 'DESC' },
     });
 
-    const dtoPromises = records.map((record) => PointHistoryDto.ToDto(record));
-    return await Promise.all(dtoPromises);
+    return records.map((record) => new PointHistoryDto(record));
   }
 
-  async giveSignupPoint(userId: number) {
+  async giveSignupPoint(userId: number): Promise<number | false> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (user.point == 0) {
       const updatedPoint = await this.updatePoint(userId, 20);
       if (updatedPoint) {
         const history = '회원가입 기념 20p가 적립 되었습니다.';
         this.recordPointHistory(userId, 20, history);
-        return updatedPoint.point;
+        return updatedPoint;
       }
       return false;
     }
     return false;
   }
 
-  async checkChatPoint(users: number[]) {
+  async checkChatPoint(users: number[]): Promise<false | number> {
     const room = await this.chatService.findCreatedRoom(users);
     if (
       !room ||
@@ -89,7 +104,7 @@ export class PointService {
     return false;
   }
 
-  async checkNicknamePoint(userId: number) {
+  async checkNicknamePoint(userId: number): Promise<number | false> {
     const point = await this.updatePoint(userId, -40);
     if (point) {
       const nickname = await this.userService.pickRandomNickname();
@@ -101,22 +116,22 @@ export class PointService {
     return point;
   }
 
-  async giveBlurtingPoint(userId: number) {
+  async giveBlurtingPoint(userId: number): Promise<number | false> {
     const updatedPoint = await this.updatePoint(userId, 10);
     if (updatedPoint) {
       const history = '100자 이상 답변하여 10p가 지급 되었습니다.';
       this.recordPointHistory(userId, 10, history);
-      return updatedPoint.point;
+      return updatedPoint;
     }
     return false;
   }
 
-  async giveAdPoint(userId: number) {
+  async giveAdPoint(userId: number): Promise<number | false> {
     const updatedPoint = await this.updatePoint(userId, 5);
     if (updatedPoint) {
       const history = '광고 시청으로 5p가 지급 되었습니다.';
       this.recordPointHistory(userId, 5, history);
-      return updatedPoint.point;
+      return updatedPoint;
     }
     return false;
   }

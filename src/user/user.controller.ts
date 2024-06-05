@@ -1,28 +1,12 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Req,
-  Res,
-  Get,
-  Delete,
-  Param,
-  UseGuards,
-} from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import {
-  ApiCreatedResponse,
-  ApiHeader,
-  ApiOperation,
-  ApiBody,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import { Controller, Post, Body, Get, Delete, UseGuards } from '@nestjs/common';
 import { FcmService } from 'src/firebase/fcm.service';
 import { JwtPayload } from 'src/interfaces/auth';
 import { UpdateProfileDto, UserProfileDto } from 'src/dtos/user.dto';
 import { UserService } from './user.service';
+import { AccessGuard } from 'src/auth/guard/access.guard';
+import { Docs } from 'src/decorators/swagger/user.decorator';
+import { User } from 'src/decorators/accessUser.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('user')
 @ApiTags('user')
@@ -32,235 +16,93 @@ export class UserController {
     private readonly fcmService: FcmService,
   ) {}
 
-  @UseGuards(AuthGuard('access'))
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiBody({
-    description: 'firebase 알림 토큰',
-    schema: {
-      type: 'object',
-      properties: {
-        token: {
-          type: 'string',
-        },
-      },
-    },
-  })
-  @ApiOperation({
-    summary: '알림 설정',
-    description: 'firebase token 저장',
-  })
+  @UseGuards(AccessGuard)
+  @Docs('setNotificationToken')
   @Post('/notification')
   async setNotificationToken(
-    @Req() req: Request,
+    @User() user: JwtPayload,
     @Body() notificationToken: { token: string },
-    @Res() res: Response,
-  ) {
-    const { id } = req.user as JwtPayload;
+  ): Promise<void> {
+    const { id } = user;
     await this.userService.createSocketUser(id);
     await this.fcmService.enableNotification(id, notificationToken.token);
-    return res.sendStatus(200);
   }
 
-  @UseGuards(AuthGuard('access'))
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiBody({
-    description: 'firebase 알림 토큰',
-    schema: {
-      type: 'object',
-      properties: {
-        title: {
-          type: 'string',
-        },
-        text: {
-          type: 'string',
-        },
-        type: {
-          type: 'string',
-          example: 'whisper/blurting',
-        },
-      },
-    },
-  })
-  @ApiOperation({
-    summary: '알림 테스트',
-    description: 'firebase 테스트',
-  })
+  @UseGuards(AccessGuard)
+  @Docs('testNotification')
   @Post('/testfcm')
   async testNotification(
-    @Req() req: Request,
+    @User() user: JwtPayload,
     @Body() notification: { title: string; text: string; type: string },
-  ) {
-    const { id } = req.user as JwtPayload;
+  ): Promise<void> {
+    const { id } = user;
     await this.fcmService.sendPush(id, notification.text, notification.type);
   }
 
-  @UseGuards(AuthGuard('access'))
-  @ApiCreatedResponse({
-    description: 'get user profile',
-    type: UserProfileDto,
-  })
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiOperation({
-    summary: '내 프로필',
-    description: '내 프로필 보기',
-  })
+  @UseGuards(AccessGuard)
+  @Docs('getUserProfile')
   @Get('/profile')
-  async getUserProfile(
-    @Req() req: Request,
-    @Param('userId') userId: number,
-    @Res() res: Response,
-  ) {
-    const { id } = req.user as JwtPayload;
+  async getUserProfile(@User() user: JwtPayload): Promise<UserProfileDto> {
+    const { id } = user;
     const images = await this.userService.getUserImages(id);
     const profile = await this.userService.getUserProfile(id, images);
-    return res.json(profile);
+    return profile;
   }
 
-  @UseGuards(AuthGuard('access'))
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiBody({
-    description: '수정할 유저 정보 json',
-    type: UpdateProfileDto,
-  })
-  @ApiOperation({
-    summary: '프로필 정보 수정',
-    description: '프로필 정보 수정하기',
-  })
+  @UseGuards(AccessGuard)
+  @Docs('updateProfile')
   @Post('/update')
   async updateProfile(
-    @Req() req: Request,
+    @User() user: JwtPayload,
     @Body() updateProfileDto: UpdateProfileDto,
-    @Res() res: Response,
-  ) {
-    const { id } = req.user as JwtPayload;
-    try {
-      for (const key in updateProfileDto) {
-        if (key != 'images') {
-          this.userService.updateUserInfo(id, key, updateProfileDto[key]);
-        } else {
-          this.userService.updateUserImages(id, updateProfileDto.images);
-        }
+  ): Promise<void> {
+    const { id } = user;
+
+    for (const key in updateProfileDto) {
+      if (key != 'images') {
+        this.userService.updateUserInfo(id, key, updateProfileDto[key]);
+      } else {
+        this.userService.updateUserImages(id, updateProfileDto.images);
       }
-      return res.sendStatus(201);
-    } catch (err) {
-      console.log(err);
-      return err;
     }
   }
 
-  @UseGuards(AuthGuard('access'))
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiOperation({
-    summary: '유저 삭제',
-    description: '유저 삭제하기',
-  })
+  @UseGuards(AccessGuard)
+  @Docs('deleteUser')
   @Delete()
-  async deleteUser(@Req() req: Request, @Res() res: Response) {
-    const { id } = req.user as JwtPayload;
-    try {
-      await this.userService.deleteUser(id);
-      return res.sendStatus(204);
-    } catch (err) {
-      console.log(err);
-      return err;
-    }
+  async deleteUser(@User() user: JwtPayload): Promise<void> {
+    const { id } = user;
+
+    await this.userService.deleteUser(id);
   }
 
-  @UseGuards(AuthGuard('access'))
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiOperation({
-    summary: '유저 포인트',
-    description: '현재 포인트 확인하기',
-  })
+  @UseGuards(AccessGuard)
+  @Docs('getUserPoint')
   @Get()
-  async getUserPoint(@Req() req: Request, @Res() res: Response) {
-    const { id } = req.user as JwtPayload;
-    try {
-      const user = await this.userService.findUserByVal('id', id);
-      return res.json({ point: user.point });
-    } catch (err) {
-      console.log(err);
-      return err;
-    }
+  async getUserPoint(@User() user: JwtPayload): Promise<{ point: number }> {
+    const { id } = user;
+
+    const foundUser = await this.userService.findUserByVal('id', id);
+    return { point: foundUser.point };
   }
 
-  @UseGuards(AuthGuard('access'))
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiOperation({
-    summary: '설정 - 계정/정보',
-    description: '설정에서 계정/정보 클릭 시 나오는 내용',
-  })
-  @ApiResponse({
-    description: 'email, phoneNumber',
-    schema: {
-      properties: {
-        email: { type: 'string' },
-        phoneNumber: { type: 'string' },
-      },
-    },
-  })
+  @UseGuards(AccessGuard)
+  @Docs('getUserAccount')
   @Get('/account')
-  async getUserAccount(@Req() req: Request, @Res() res: Response) {
-    const { id } = req.user as JwtPayload;
-    try {
-      const user = await this.userService.findUserByVal('id', id);
-      return res.json({ phoneNumber: user.phoneNumber });
-    } catch (err) {
-      console.log(err);
-      return err;
-    }
+  async getUserAccount(@User() user: JwtPayload) {
+    const { id } = user;
+
+    const foundUser = await this.userService.findUserByVal('id', id);
+    return { phoneNumber: foundUser.phoneNumber };
   }
 
-  @UseGuards(AuthGuard('access'))
-  @ApiHeader({
-    name: 'authorization',
-    required: true,
-    example: 'Bearer asdas.asdasd.asd',
-  })
-  @ApiOperation({
-    summary: '유저 성별',
-  })
-  @ApiResponse({
-    description: 'sex',
-    type: 'string',
-  })
+  @UseGuards(AccessGuard)
+  @Docs('getUserSex')
   @Get('/sex')
-  async getUserSex(@Req() req: Request, @Res() res: Response) {
-    const { id } = req.user as JwtPayload;
-    try {
-      const user = await this.userService.findUserByVal('id', id);
-      return res.json({ sex: user.userInfo.sex });
-    } catch (err) {
-      console.log(err);
-      return err;
-    }
+  async getUserSex(@User() user: JwtPayload) {
+    const { id } = user;
+
+    const foundUser = await this.userService.findUserByVal('id', id);
+    return { sex: foundUser.userInfo.sex };
   }
 }
