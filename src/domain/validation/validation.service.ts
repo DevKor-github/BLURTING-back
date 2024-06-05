@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import axios from 'axios';
 import crypto from 'crypto';
-import queryString from 'query-string';
+
 import { ProductPurchase } from 'src/interfaces/productPurchase';
 
 @Injectable()
@@ -53,6 +53,7 @@ export class ValidationService {
   }
 
   async verify(queryUrl: string, debug: boolean) {
+    const queryString: any = await import('query-string');
     const { signature, key_id } = queryString.parse(queryUrl);
 
     if (
