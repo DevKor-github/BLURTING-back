@@ -210,6 +210,7 @@ export class UserService {
     const user = await this.userRepository.findOne({
       where: {
         phoneNumber: phone,
+        token: Not(IsNull()),
       },
     });
     return user;
