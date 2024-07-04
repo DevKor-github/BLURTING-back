@@ -89,8 +89,9 @@ export class ChatService {
     return socketUser;
   }
 
-  async createChatRoom(userIds: number[]) {
+  async createChatRoom(userIds: number[], free: boolean): Promise<number> {
     const roomId = Date.now();
+    let blurtingDate = null;
     const users: ChatUserDto[] = userIds.map((userId) => ({
       userId,
       hasRead: getDateTimeOfNow(),
@@ -98,12 +99,19 @@ export class ChatService {
       isDeleted: false,
     }));
 
+    if (free) {
+      const user = await this.userService.findUserByVal('id', userIds[1]);
+      blurtingDate = user.group.createdAt;
+      console.log(blurtingDate);
+    }
+
     const room = await this.roomModel.create({
       id: roomId,
       users: users,
       blur: 0,
       connected: true,
       connectedAt: getDateTimeOfNow(),
+      freeExpired: free ? false : null,
     });
     await room.save();
 
@@ -113,7 +121,7 @@ export class ChatService {
   async reConnectChat(roomId: string): Promise<void> {
     await this.roomModel.findOneAndUpdate(
       { where: { id: roomId } },
-      { connectedAt: getDateTimeOfNow() },
+      { connectedAt: getDateTimeOfNow(), freeExpired: null },
     );
   }
 
@@ -154,6 +162,20 @@ export class ChatService {
       },
       {
         connected: false,
+      },
+    );
+  }
+
+  async finishFreeChatRoom(userId: number): Promise<void> {
+    await this.roomModel.findOneAndUpdate(
+      {
+        users: {
+          $elemMatch: { userId: userId },
+        },
+        freeExpired: false,
+      },
+      {
+        freeExpired: true,
       },
     );
   }

@@ -56,11 +56,11 @@ export class Room extends Document {
 
   @Prop({
     required: false,
-    type: Date,
+    type: Boolean,
     default: null,
   })
   @IsDate()
-  blurtingAt: Date;
+  freeExpired: boolean;
 }
 
 export const RoomSchema = SchemaFactory.createForClass(Room);

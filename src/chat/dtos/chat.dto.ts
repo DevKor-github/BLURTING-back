@@ -54,8 +54,12 @@ export class RoomChatDto {
   blur: number;
 
   @IsBoolean()
-  @ApiProperty({ description: 'connected' })
+  @ApiProperty({ description: '삭제 신고로 인해 연결이 끊겼는가' })
   connected: boolean;
+
+  @IsBoolean()
+  @ApiProperty({ description: '무료 채팅 종료' })
+  freeExpired: boolean;
 
   @IsDate()
   @ApiProperty({ description: 'point 써서 귓속말 건 시각' })
@@ -89,6 +93,7 @@ export class RoomChatDto {
       connected: othereSocketUser.isDeleted
         ? false
         : roomInfo.connected ?? true,
+      freeExpired: roomInfo.freeExpired ?? false,
       connectedAt: roomInfo.connectedAt ?? null,
       blurChange: blurChange ?? null,
       chats: chattings,

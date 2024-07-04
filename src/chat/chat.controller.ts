@@ -2,7 +2,7 @@ import { Controller, Param, Get, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtPayload } from 'src/interfaces/auth';
 import { ChatService } from './chat.service';
-import { RoomChatDto, RoomInfoDto } from 'src/dtos/chat.dto';
+import { RoomChatDto, RoomInfoDto } from 'src/chat/dtos';
 import { UserProfileDto } from 'src/dtos/user.dto';
 import { Docs } from 'src/decorators/swagger/chat.decorator';
 import { User } from 'src/decorators/accessUser.decorator';

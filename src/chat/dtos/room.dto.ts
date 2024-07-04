@@ -1,4 +1,4 @@
-import { IsBoolean, IsDate, IsString, IsEnum } from 'class-validator';
+import { IsBoolean, IsDate, IsString, IsEnum, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Chatting, SocketUser } from 'src/chat/models';
 import { Sex } from 'src/common/enums';
@@ -36,9 +36,9 @@ export class RoomInfoDto {
     return {
       roomId: roomId,
       hasRead: hasRead,
-      nickname: otherUserSchema.isDeleted
+      nickname: otherUserSchema?.isDeleted
         ? '탈퇴한 사용자'
-        : otherUserSchema.userNickname,
+        : otherUserSchema?.userNickname,
       sex: otherUserSchema?.userSex ?? null,
       latest_chat: chattingSchema?.chat ?? null,
       latest_time: chattingSchema?.createdAt ?? null,
@@ -52,4 +52,12 @@ export class InRoomDto {
 
   @IsBoolean()
   inRoom: boolean;
+}
+
+export class RoomRequestDto {
+  @IsNumber()
+  userId: number;
+
+  @IsBoolean()
+  free: boolean;
 }

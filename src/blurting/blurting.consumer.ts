@@ -10,12 +10,14 @@ import { Job, Queue } from 'bull';
 import { BlurtingService } from './blurting.service';
 import { BlurtingGroupEntity } from 'src/entities';
 import { FcmService } from 'src/firebase/fcm.service';
+import { ChatService } from 'src/chat/chat.service';
 
 @Processor('blurtingQuestions')
 export class BlurtingConsumer {
   constructor(
-    private blurtingService: BlurtingService,
-    private fcmService: FcmService,
+    private readonly blurtingService: BlurtingService,
+    private readonly fcmService: FcmService,
+    private readonly chatService: ChatService,
     @InjectQueue('blurtingQuestions') private readonly queue: Queue,
   ) {}
 
@@ -33,6 +35,7 @@ export class BlurtingConsumer {
             `블러팅이 종료되었습니다. 원하는 상대에게 화살을 보내세요!`,
             'blurting',
           );
+          await this.chatService.finishFreeChatRoom(userid);
         }),
       );
       return;
