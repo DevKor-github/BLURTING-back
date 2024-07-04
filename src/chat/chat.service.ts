@@ -7,12 +7,7 @@ import { Repository } from 'typeorm';
 import { UnauthorizedException } from '@nestjs/common/exceptions';
 import { Socket } from 'socket.io';
 import * as jwt from 'jsonwebtoken';
-import {
-  ChatDto,
-  RoomInfoDto,
-  ChatUserDto,
-  RoomChatDto,
-} from 'src/dtos/chat.dto';
+import { ChatDto, RoomInfoDto, ChatUserDto, RoomChatDto } from 'src/chat/dtos';
 import { UserService } from 'src/user/user.service';
 import { FcmService } from 'src/firebase/fcm.service';
 import { NotificationEntity } from 'src/entities';

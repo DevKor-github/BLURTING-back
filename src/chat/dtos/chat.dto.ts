@@ -5,13 +5,12 @@ import {
   IsDate,
   IsNumber,
   IsString,
-  IsEnum,
   IsArray,
   ValidateIf,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Chatting, SocketUser, Room } from 'src/chat/models';
-import { Sex } from 'src/common/enums';
+import { SocketUser, Room } from 'src/chat/models';
+import { ChatUserDto } from './user.dto';
 
 export class ChatDto {
   @IsString()
@@ -36,67 +35,6 @@ export class AddChatDto extends PickType(ChatDto, [
   'roomId',
   'chat',
 ] as const) {}
-
-export class ChatUserDto {
-  @IsNumber()
-  @ApiProperty({ description: 'userId' })
-  readonly userId: number;
-
-  @IsDate()
-  @ApiProperty({ description: 'hasRead' })
-  readonly hasRead: Date;
-
-  @IsBoolean()
-  @ApiProperty({ description: 'isDeleted' })
-  readonly isDeleted: boolean;
-
-  @IsNumber()
-  @ApiProperty({ description: 'blur step' })
-  blur: number;
-}
-
-export class RoomInfoDto {
-  @IsString()
-  @ApiProperty({ description: 'roomId' })
-  readonly roomId: string;
-
-  @IsDate()
-  @ApiProperty({ description: 'hasRead' })
-  readonly hasRead: Date;
-
-  @IsString()
-  @ApiProperty({ description: 'nickname' })
-  readonly nickname: string;
-
-  @IsEnum(Sex)
-  readonly sex: Sex;
-
-  @IsString()
-  @ApiProperty({ description: 'latest_chat' })
-  readonly latest_chat: string;
-
-  @IsDate()
-  @ApiProperty({ description: 'latest_time' })
-  readonly latest_time: Date;
-
-  static ToDto(
-    roomId: string,
-    hasRead: Date,
-    otherUserSchema: SocketUser,
-    chattingSchema: Chatting,
-  ): RoomInfoDto {
-    return {
-      roomId: roomId,
-      hasRead: hasRead,
-      nickname: otherUserSchema.isDeleted
-        ? '탈퇴한 사용자'
-        : otherUserSchema.userNickname,
-      sex: otherUserSchema?.userSex ?? null,
-      latest_chat: chattingSchema?.chat ?? null,
-      latest_time: chattingSchema?.createdAt ?? null,
-    };
-  }
-}
 
 export class RoomChatDto {
   @IsNumber()
@@ -148,18 +86,12 @@ export class RoomChatDto {
       otherImage: othereSocketUser?.userImage ?? null,
       hasRead: otherUser.hasRead,
       blur: otherUser.blur ?? 1,
-      connected: othereSocketUser.isDeleted ? false : roomInfo.connected ?? true,
+      connected: othereSocketUser.isDeleted
+        ? false
+        : roomInfo.connected ?? true,
       connectedAt: roomInfo.connectedAt ?? null,
       blurChange: blurChange ?? null,
       chats: chattings,
     };
   }
-}
-
-export class InRoomDto {
-  @IsString()
-  roomId: string;
-
-  @IsBoolean()
-  inRoom: boolean;
 }

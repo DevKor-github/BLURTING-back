@@ -5,7 +5,7 @@ import {
   ApiOperation,
   ApiParam,
 } from '@nestjs/swagger';
-import { RoomChatDto, RoomInfoDto } from 'src/dtos/chat.dto';
+import { RoomChatDto, RoomInfoDto } from 'src/chat/dtos';
 import { UserProfileDto } from 'src/dtos/user.dto';
 
 type ChatEndpoints = 'getChatRooms' | 'getChats' | 'getUserProfile';

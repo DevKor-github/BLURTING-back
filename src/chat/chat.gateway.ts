@@ -9,7 +9,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { AddChatDto, ChatDto, InRoomDto } from 'src/dtos/chat.dto';
+import { AddChatDto, ChatDto, InRoomDto } from 'src/chat/dtos';
 import { ChatService } from './chat.service';
 import { ReportService } from 'src/report/report.service';
 import { ReportingRequestDto } from 'src/report/dtos/reportingRequest.dto';
