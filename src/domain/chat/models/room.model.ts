@@ -25,7 +25,6 @@ export class Room extends Document {
     required: true,
     type: String,
   })
-  @IsNotEmpty()
   @IsString()
   id: string;
 
@@ -42,7 +41,6 @@ export class Room extends Document {
     type: Boolean,
     default: true,
   })
-  @IsNotEmpty()
   @IsBoolean()
   connected: boolean;
 

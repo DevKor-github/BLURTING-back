@@ -96,19 +96,12 @@ export class ChatService {
 
   async createChatRoom(userIds: number[], free: boolean): Promise<number> {
     const roomId = Date.now();
-    let blurtingDate = null;
     const users: ChatUserDto[] = userIds.map((userId) => ({
       userId,
       hasRead: getDateTimeOfNow(),
       blur: 0,
       isDeleted: false,
     }));
-
-    if (free) {
-      const user = await this.userService.findUserByVal('id', userIds[1]);
-      blurtingDate = user.group.createdAt;
-      console.log(blurtingDate);
-    }
 
     const room = await this.roomModel.create({
       id: roomId,
