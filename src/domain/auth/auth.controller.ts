@@ -68,19 +68,6 @@ export class AuthController {
     @Body() info: SignupUserRequestDto,
   ) {
     const { id, infoId, page } = signupPayload;
-    if (page == 17) {
-      const result = await this.authService.checkComplete(id);
-      if (!result) throw new BadRequestException('invalid info');
-
-      const nickname = await this.userService.pickRandomNickname();
-      await this.userService.updateUser(id, 'userNickname', nickname);
-      await this.userService.createSocketUser(id);
-      return {
-        refreshToken: await this.authService.getRefreshToken(id),
-        accessToken: this.authService.getAccessToken(id),
-        userId: id,
-      };
-    }
 
     const pageName = Object.keys(Page).find((key) => Page[key] == page);
 
@@ -97,6 +84,20 @@ export class AuthController {
       case 'birth':
         await this.userService.updateUser(id, 'birth', info['birth']);
         break;
+      case 'job':
+        await this.userService.updateUserInfo(infoId, pageName, info[pageName]);
+
+        const result = await this.authService.checkComplete(id);
+        if (!result) throw new BadRequestException('invalid info');
+
+        const nickname = await this.userService.pickRandomNickname();
+        await this.userService.updateUser(id, 'userNickname', nickname);
+        await this.userService.createSocketUser(id);
+        return {
+          refreshToken: await this.authService.getRefreshToken(id),
+          accessToken: this.authService.getAccessToken(id),
+          userId: id,
+        };
       default:
         await this.userService.updateUserInfo(infoId, pageName, info[pageName]);
     }
