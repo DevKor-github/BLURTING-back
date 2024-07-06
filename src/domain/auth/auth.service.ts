@@ -117,9 +117,11 @@ export class AuthService {
   async sendCode(phoneNumber: string) {
     if (
       phoneNumber === '01090319869' ||
-      phoneNumber === '01056210281' ||
-      phoneNumber === '01029053228' ||
-      phoneNumber === '01077310281'
+      phoneNumber === '01035979869' ||
+      phoneNumber === '01073709869' ||
+      phoneNumber === '01086489869' ||
+      phoneNumber === '01082793877' ||
+      phoneNumber === '01040681036'
     ) {
       await this.authPhoneNumberRepository.insert(phoneNumber, '000000');
       return;
