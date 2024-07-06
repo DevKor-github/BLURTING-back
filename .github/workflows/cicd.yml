@@ -2,11 +2,16 @@ name: docker-build
 
 on:
   push:
-    branches: ['main']
+    branches:
+      - main
+      - renewal
 
 env:
-  DOCKER_IMAGE: ghcr.io/overthestream/blurting
-  DOCKER_CONTAINER: blurting
+  DB_DATABASE: ${{ (github.ref_name == 'main' && secrets.DB_DATABASE_MAIN) || (github.ref_name == 'renewal' && secrets.DB_DATABASE_RENEWAL) }}
+  DOCKER_IMAGE_MAIN: ghcr.io/overthestream/blurting:latest
+  DOCKER_CONTAINER_MAIN: blurting
+  DOCKER_IMAGE_RENEWAL: ghcr.io/overthestream/blurting:renewal
+  DOCKER_CONTAINER_RENEWAL: blurting-renewal
 
 jobs:
   build:
@@ -31,7 +36,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: ${{ env.DOCKER_IMAGE }}:latest
+          tags: ${{ github.ref_name == 'main' && env.DOCKER_IMAGE_MAIN || env.DOCKER_IMAGE_RENEWAL }}
 
   deploy:
     needs: build
@@ -43,7 +48,7 @@ jobs:
           echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
-          echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
+          echo "DB_DATABASE=${{ env.DB_DATABASE }}" >> .env
           echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
           echo "ACCESS_TOKEN_SECRET_KEY=${{ secrets.ACCESS_TOKEN_SECRET_KEY }}" >> .env
           echo "REFRESH_TOKEN_SECRET_KEY=${{ secrets.REFRESH_TOKEN_SECRET_KEY }}" >> .env
@@ -75,5 +80,7 @@ jobs:
           echo "DISCORD_TOKEN=${{secrets.DISCORD_TOKEN}}" >> .env
       - name: Run Docker
         run: |
-          docker stop ${{env.DOCKER_CONTAINER}} && docker rm ${{env.DOCKER_CONTAINER}} && docker rmi ${{env.DOCKER_IMAGE}}:latest
-          docker run --env-file ./.env -d -p 3080:3080 --name ${{env.DOCKER_CONTAINER}} --network host --restart always ${{env.DOCKER_IMAGE}}:latest
+          docker stop ${{ github.ref_name == 'main' && env.DOCKER_CONTAINER_MAIN || env.DOCKER_CONTAINER_RENEWAL }} || true
+          docker rm ${{ github.ref_name == 'main' && env.DOCKER_CONTAINER_MAIN || env.DOCKER_CONTAINER_RENEWAL }} || true
+          docker rmi ${{ github.ref_name == 'main' && env.DOCKER_IMAGE_MAIN || env.DOCKER_IMAGE_RENEWAL }} || true
+          docker run --env-file ./.env -d -p ${{ github.ref_name == 'main' && '3080:3080' || '3081:3081' }} --name ${{ github.ref_name == 'main' && env.DOCKER_CONTAINER_MAIN || env.DOCKER_CONTAINER_RENEWAL }} --network host --restart always ${{ github.ref_name == 'main' && env.DOCKER_IMAGE_MAIN || env.DOCKER_IMAGE_RENEWAL }}

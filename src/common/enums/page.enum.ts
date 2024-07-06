@@ -15,5 +15,4 @@ export enum Page {
   hobby = 14,
   images = 15,
   job = 16,
-  complete = 17,
 }

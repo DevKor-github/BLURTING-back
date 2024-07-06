@@ -17,7 +17,7 @@ import {
   ReplyRequestDto,
   BlurtingProfileDto,
   BlurtingPageDto,
-} from 'src/blurting/dtos';
+} from 'src/domain/blurting/dtos';
 
 export function BlurtingStateDocs() {
   return applyDecorators(

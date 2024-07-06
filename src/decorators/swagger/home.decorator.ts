@@ -5,8 +5,8 @@ import {
   ApiOperation,
   ApiResponse,
 } from '@nestjs/swagger';
-import { HomeInfoResponseDto, likeHomeAnswerDto } from 'src/home/dtos';
-import { RandomUserDto } from 'src/home/dtos/homInfoResponse.dto';
+import { HomeInfoResponseDto, likeHomeAnswerDto } from 'src/domain/home/dtos';
+import { RandomUserDto } from 'src/domain/home/dtos/homInfoResponse.dto';
 
 type HomeEndPoints = 'default' | 'like' | 'version' | 'random';
 export function Docs(endpoint: HomeEndPoints) {

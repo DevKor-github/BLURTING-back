@@ -18,7 +18,7 @@ import {
   SignupPhoneRequestDto,
   SignupUserRequestDto,
   TokenResponseDto,
-} from 'src/auth/dtos';
+} from 'src/domain/auth/dtos';
 
 export function CheckCodeDocs() {
   return applyDecorators(
