@@ -35,6 +35,9 @@ export class BlurtingAnswerEntity {
   @Column({ default: 0 })
   allLikes: number;
 
-  @OneToMany(() => ReplyEntity, (reply) => reply.answer)
+  @OneToMany(
+    () => ReplyEntity,
+    (reply) => reply.answer,
+  )
   reply: ReplyEntity[];
 }

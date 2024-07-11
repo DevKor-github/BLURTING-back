@@ -15,7 +15,11 @@ export class NotificationEntity {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => UserEntity, () => undefined, { onDelete: 'CASCADE' })
+  @ManyToOne(
+    () => UserEntity,
+    () => undefined,
+    { onDelete: 'CASCADE' },
+  )
   user: UserEntity;
 
   @Column()

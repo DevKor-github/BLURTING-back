@@ -6,7 +6,10 @@ export class BlurtingPreQuestionEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => BlurtingGroupEntity, (group) => group.questions)
+  @ManyToOne(
+    () => BlurtingGroupEntity,
+    (group) => group.questions,
+  )
   group: BlurtingGroupEntity;
 
   @Column()

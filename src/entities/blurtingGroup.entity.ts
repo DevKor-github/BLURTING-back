@@ -9,6 +9,9 @@ export class BlurtingGroupEntity {
   @Column()
   createdAt: Date;
 
-  @OneToMany(() => BlurtingQuestionEntity, (question) => question.group)
+  @OneToMany(
+    () => BlurtingQuestionEntity,
+    (question) => question.group,
+  )
   questions: BlurtingQuestionEntity[];
 }

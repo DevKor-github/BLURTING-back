@@ -148,7 +148,9 @@ export class RoomChatDto {
       otherImage: othereSocketUser?.userImage ?? null,
       hasRead: otherUser.hasRead,
       blur: otherUser.blur ?? 1,
-      connected: othereSocketUser.isDeleted ? false : roomInfo.connected ?? true,
+      connected: othereSocketUser.isDeleted
+        ? false
+        : roomInfo.connected ?? true,
       connectedAt: roomInfo.connectedAt ?? null,
       blurChange: blurChange ?? null,
       chats: chattings,
