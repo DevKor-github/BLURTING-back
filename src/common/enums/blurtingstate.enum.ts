@@ -3,4 +3,5 @@ export enum State {
   Blurting,
   Matching,
   End,
+  Arrowing,
 }

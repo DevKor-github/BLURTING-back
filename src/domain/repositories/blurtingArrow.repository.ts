@@ -27,11 +27,13 @@ export class BlurtingArrowRepository {
   async findFromId(
     userId: number,
     groupId: number,
-  ): Promise<BlurtingArrowEntity[]> {
-    return await this.arrowRepository.find({
+    part: number,
+  ): Promise<BlurtingArrowEntity> {
+    return await this.arrowRepository.findOne({
       where: {
         from: { id: userId },
         group: { id: groupId },
+        no: part,
       },
       order: { no: 'ASC' },
       relations: ['to', 'to.userInfo'],
@@ -41,11 +43,13 @@ export class BlurtingArrowRepository {
   async findToId(
     userId: number,
     groupId: number,
+    part: number,
   ): Promise<BlurtingArrowEntity[]> {
     return await this.arrowRepository.find({
       where: {
         to: { id: userId },
         group: { id: groupId },
+        no: part,
       },
       order: { no: 'ASC' },
       relations: ['to', 'to.userInfo'],

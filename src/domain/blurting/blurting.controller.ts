@@ -18,7 +18,6 @@ import {
   AnswerRequestDto,
   OtherPeopleInfoDto,
   ReplyRequestDto,
-  ArrowInfoResponseDto,
   BlurtingPageDto,
   BlurtingProfileDto,
   ArrowResultResponseDto,
@@ -27,14 +26,13 @@ import { ApiParam, ApiTags } from '@nestjs/swagger';
 import {
   AnswerDocs,
   BlurtingDocs,
-  GetArrowsDocs,
   GroupMemberDocs,
   LikeDocs,
   MakeArrowDocs,
   BlurtingStateDocs,
   OtherProfileDocs,
   ReplyDocs,
-  ResultDocs,
+  GetArrowsResultDocs,
 } from 'src/decorators/swagger/blurting.decorator';
 import { User } from 'src/decorators/accessUser.decorator';
 import { State } from 'src/common/enums/blurtingstate.enum';
@@ -111,24 +109,25 @@ export class BlurtingController {
   }
 
   @UseGuards(AuthGuard('access'))
-  @Post('/arrow/:toId/:day')
+  @Post('/arrow/:toId/:part')
   @MakeArrowDocs()
   async makeArrow(
     @User() userPayload: JwtPayload,
     @Param('toId') toId: number,
-    @Param('day') day: number,
+    @Param('part') part: number,
   ): Promise<void> {
     const { id } = userPayload;
-    return this.blurtingService.makeArrow(id, toId, day);
+    return this.blurtingService.makeArrow(id, toId, part);
   }
 
   @UseGuards(AuthGuard('access'))
   @Get('/arrow')
-  @GetArrowsDocs()
+  @GetArrowsResultDocs()
   async getArrows(
     @User() userPayload: JwtPayload,
-  ): Promise<ArrowInfoResponseDto> {
+  ): Promise<ArrowResultResponseDto> {
     const { id } = userPayload;
+    this.blurtingService.getArrows(id);
     return this.blurtingService.getArrows(id);
   }
 
@@ -148,16 +147,6 @@ export class BlurtingController {
   async getBlurtingState(@User() userPayload: JwtPayload): Promise<State> {
     const { id } = userPayload;
     return this.blurtingService.getBlurtingState(id);
-  }
-
-  @UseGuards(AuthGuard('access'))
-  @Get('/result')
-  @ResultDocs()
-  async getBlurtingResult(
-    @User() userPayload: JwtPayload,
-  ): Promise<ArrowResultResponseDto> {
-    const { id } = userPayload;
-    return this.blurtingService.getFinalArrow(id);
   }
 
   @UseGuards(AuthGuard('access'))

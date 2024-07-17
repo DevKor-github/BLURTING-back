@@ -21,7 +21,6 @@ import { PointService } from 'src/domain/point/point.service';
 import {
   OtherPeopleInfoDto,
   BlurtingProfileDto,
-  ArrowInfoResponseDto,
   BlurtingAnswerDto,
   BlurtingPageDto,
   ArrowResultResponseDto,
@@ -39,7 +38,7 @@ import {
   NotificationRepository,
   ReportRepository,
 } from 'src/domain/repositories';
-import { compareDateGroupExist } from 'src/common/util/time';
+import { compareDateGroupExist, getDateTimeOfNow } from 'src/common/util/time';
 
 @Injectable()
 export class BlurtingService {
@@ -207,6 +206,9 @@ export class BlurtingService {
       return State.Matching;
     }
     if (user.group && compareDateGroupExist(user.group.createdAt)) {
+      if (await this.checkPartOver(user.group.id)) {
+        return State.Arrowing;
+      }
       return State.Blurting;
     }
     if (user.group) {
@@ -342,9 +344,17 @@ export class BlurtingService {
     return blurtingPage;
   }
 
-  async checkAllAnswered(questionId: number) {
+  async checkAllAnswered(questionId: number): Promise<boolean> {
     const answers = await this.answerRepository.findByQuestion(questionId);
     return answers.length === 6;
+  }
+
+  async checkPartOver(groupId: number): Promise<boolean> {
+    const questions = await this.questionRepository.findByGroup(groupId);
+    if (questions.length % 3 === 0) {
+      return await this.checkAllAnswered(questions[questions.length - 1].id);
+    }
+    return false;
   }
 
   async postAnswer(
@@ -467,18 +477,18 @@ export class BlurtingService {
     }
   }
 
-  async makeArrow(userId: number, toId: number, day: number): Promise<void> {
+  async makeArrow(userId: number, toId: number, part: number): Promise<void> {
     const user = await this.userService.findUserByVal('id', userId);
     const question = await this.questionRepository.findByGroup(user.group.id);
-    if (question.length / 3 < day)
-      throw new BadRequestException(day + ' part가 끝나지 않았습니다.');
+    if (question.length / 3 < part)
+      throw new BadRequestException(part + ' part가 끝나지 않았습니다.');
 
     const arrow = await this.arrowRepository.findOneFromId(
       userId,
       user.group.id,
     );
-    const no = day;
-    if (arrow && arrow.no >= day) {
+    const no = part;
+    if (arrow && arrow.no >= part) {
       throw new BadRequestException('이미 화살표 존재');
     }
     await this.arrowRepository.insert({
@@ -499,66 +509,60 @@ export class BlurtingService {
     );
   }
 
-  async getArrows(userId: number): Promise<ArrowInfoResponseDto> {
+  async getArrows(userId: number): Promise<ArrowResultResponseDto> {
     const user = await this.userService.findUserByVal('id', userId);
-    if (!user.group) return { iSended: [], iReceived: [] };
+    if (!user.group)
+      return { matching: false, matchedWith: null, iReceived: [] };
 
-    const sendArrows = await this.arrowRepository.findFromId(
+    let part, matchedWith;
+    let matching = false;
+
+    if (
+      user.group.createdAt >
+      new Date(getDateTimeOfNow().getTime() - 9 * 60 * 60 * 1000)
+    ) {
+      part = 3;
+    } else if (
+      user.group.createdAt >
+      new Date(getDateTimeOfNow().getTime() - 6 * 60 * 60 * 1000)
+    ) {
+      part = 2;
+    } else if (
+      user.group.createdAt >
+      new Date(getDateTimeOfNow().getTime() - 3 * 60 * 60 * 1000)
+    ) {
+      part = 1;
+    }
+
+    const sendArrow = await this.arrowRepository.findFromId(
       userId,
       user.group.id,
+      part,
     );
-
     const receiveArrows = await this.arrowRepository.findToId(
       userId,
       user.group.id,
+      part,
     );
-    const sendDto = sendArrows.map((arrow) => {
-      return {
-        fromId: arrow.from?.id ?? -1,
-        toId: userId,
-        day: arrow.no,
-        username: arrow.from?.userNickname,
-        userSex: arrow.from?.userInfo.sex,
-      };
-    });
 
-    const receiveDto = receiveArrows.map((arrow) => {
-      return {
-        fromId: arrow.from?.id ?? -1,
-        toId: userId,
-        day: arrow.no,
-        username: arrow.from?.userNickname,
-        userSex: arrow.from?.userInfo.sex,
-      };
-    });
-    return { iSended: sendDto, iReceived: receiveDto };
-  }
-
-  async getFinalArrow(userId: number): Promise<ArrowResultResponseDto> {
-    const user = await this.userService.findUserByVal('id', userId);
-    const arrowDtos = await this.getArrows(userId);
-    const finalSend = arrowDtos.iSended[arrowDtos.iSended.length - 1];
-    const finalRecieves = arrowDtos.iReceived;
-    let matched;
-
-    if (finalSend == undefined || finalSend == null || finalSend?.day != 3) {
-      matched = [];
-    } else {
-      matched = finalRecieves.filter((recieve) => {
-        if (
-          recieve.day === finalSend.day &&
-          recieve.fromId === finalSend.toId
-        ) {
-          return true;
+    const receiveDto = await Promise.all(
+      receiveArrows.map(async (arrow) => {
+        if (sendArrow.to === arrow.from) {
+          matching = true;
+          const images = await this.userService.getUserImages(arrow.from?.id);
+          matchedWith = await this.userService.getUserProfile(
+            arrow.from?.id,
+            images,
+          );
         }
-      });
-    }
+        return {
+          fromId: arrow.from?.id ?? -1,
+          nickname: arrow.from?.userNickname,
+          sex: arrow.from?.userInfo.sex,
+        };
+      }),
+    );
 
-    return {
-      myname: user.userNickname,
-      mysex: user.userInfo.sex,
-      othername: matched.length > 0 ? finalSend?.username : null,
-      othersex: matched.length > 0 ? finalSend?.userSex : null,
-    };
+    return { matching, matchedWith, iReceived: receiveDto };
   }
 }

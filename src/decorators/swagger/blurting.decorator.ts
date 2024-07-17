@@ -12,11 +12,11 @@ import {
 } from '@nestjs/swagger';
 import {
   AnswerRequestDto,
-  ArrowInfoResponseDto,
   OtherPeopleInfoDto,
   ReplyRequestDto,
   BlurtingProfileDto,
   BlurtingPageDto,
+  ArrowResultResponseDto,
 } from 'src/domain/blurting/dtos';
 
 export function BlurtingStateDocs() {
@@ -143,16 +143,15 @@ export function MakeArrowDocs() {
   );
 }
 
-export function GetArrowsDocs() {
+export function GetArrowsResultDocs() {
   return applyDecorators(
     ApiOperation({
-      summary: '내 화살표 보기',
-      description: '내 화살표 보기',
+      summary: '화살표 결과 보기',
     }),
     ApiUnauthorizedResponse({ description: '토큰 만료' }),
     ApiOkResponse({
-      description: '내 화살표 보기 성공',
-      type: ArrowInfoResponseDto,
+      description: '화살표 결과',
+      type: ArrowResultResponseDto,
     }),
   );
 }
@@ -190,31 +189,6 @@ export function GroupMemberDocs() {
     ApiOkResponse({
       description: '그룹 정보',
       type: [OtherPeopleInfoDto],
-    }),
-  );
-}
-
-export function ResultDocs() {
-  return applyDecorators(
-    ApiHeader({
-      name: 'authorization',
-      required: true,
-      example: 'Bearer asdas.asdasd.asd',
-    }),
-    ApiOperation({
-      summary: '지난 블러팅',
-      description: '블러팅 끝나고 누구랑 매칭되었는지 반환',
-    }),
-    ApiResponse({
-      description: '매칭된 유저 정보 반환',
-      schema: {
-        properties: {
-          myname: { type: 'string' },
-          mysex: { type: 'string' },
-          othername: { type: 'string' },
-          othersex: { type: 'string' },
-        },
-      },
     }),
   );
 }
