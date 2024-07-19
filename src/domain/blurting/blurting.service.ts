@@ -196,7 +196,7 @@ export class BlurtingService {
     const user = await this.userService.findUserByVal('id', id);
     const sexOrient = this.userService.getUserSexOrient(user.userInfo);
     //const region = user.userInfo.region.split(' ')[0];
-    const qName = /*`${region}_*/ `${sexOrient}`;
+    const qName = `${sexOrient}_beta`;
     const groupQueue: number[] = await this.cacheManager.get(qName);
     if (!groupQueue) {
       await this.cacheManager.set(qName, []);
@@ -227,7 +227,7 @@ export class BlurtingService {
       const user = await this.userService.findUserByVal('id', id);
       const sexOrient = this.userService.getUserSexOrient(user.userInfo);
       //const region = user.userInfo.region.split(' ')[0];
-      const qName = /*`${region}_*/ `${sexOrient}`;
+      const qName = `${sexOrient}_beta`;
       const groupQueue: number[] = await this.cacheManager.get(qName);
 
       if (groupQueue.length < 2) {
@@ -282,11 +282,10 @@ export class BlurtingService {
         }
       }
     } catch (err) {
-      console.log(err);
       const user = await this.userService.findUserByVal('id', id);
       const sexOrient = this.userService.getUserSexOrient(user.userInfo);
       //const region = user.userInfo.region.split(' ')[0];
-      const qName = /*`${region}_*/ `${sexOrient}`;
+      const qName = `${sexOrient}_beta`;
 
       const groupQueue: number[] = await this.cacheManager.get(qName);
       if (groupQueue.includes(id)) {
