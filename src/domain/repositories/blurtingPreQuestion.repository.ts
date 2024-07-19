@@ -31,6 +31,7 @@ export class BlurtingPreQuestionRepository {
       group: { id: info.groupId } as BlurtingGroupEntity,
       no: info.no,
       question: info.question,
+      isUploaded: false,
     });
     await this.preQuestionRepository.save(questionEntity);
   }

@@ -349,9 +349,9 @@ export class BlurtingService {
   }
 
   async checkPartOver(groupId: number): Promise<boolean> {
-    const questions = await this.questionRepository.findByGroup(groupId);
-    if (questions.length % 3 === 0) {
-      return await this.checkAllAnswered(questions[questions.length - 1].id);
+    const question = await this.questionRepository.findLatestByGroup(groupId);
+    if (question.no % 3 === 0) {
+      return await this.checkAllAnswered(question.id);
     }
     return false;
   }

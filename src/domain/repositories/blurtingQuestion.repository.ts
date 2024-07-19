@@ -43,6 +43,7 @@ export class BlurtingQuestionRepository {
     return this.questionRepository.find({
       where: { group: { id: groupId } },
       order: { no: 'DESC' },
+      relations: ['group'],
     });
   }
 
