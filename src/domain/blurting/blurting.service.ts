@@ -253,7 +253,7 @@ export class BlurtingService {
 
       if (sexOrient == 'female' || sexOrient == 'male') {
         const oppositeSexorient = this.getOppositeQueueName(sexOrient);
-        const oppositeQueueName = /*`${region}_*/ `${oppositeSexorient}`;
+        const oppositeQueueName = `${oppositeSexorient}_beta`;
         let oppositeQueue: number[] =
           await this.cacheManager.get(oppositeQueueName);
 
