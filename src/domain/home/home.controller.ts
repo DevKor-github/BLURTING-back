@@ -43,8 +43,11 @@ export class HomeController {
   }
 
   @Get('/version')
+  @UseGuards(AuthGuard('access'))
   @Docs('version')
-  async getVersion() {
-    return { latestVersion: '1.3.0' };
+  async getVersion(@User() userPayload: JwtPayload) {
+    const { id } = userPayload;
+    const updateProfile = await this.homeService.updateProfile(id);
+    return { latestVersion: '1.3.0', updateProfile: updateProfile };
   }
 }

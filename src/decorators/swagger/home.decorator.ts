@@ -33,8 +33,9 @@ export function Docs(endpoint: HomeEndPoints) {
     case 'version':
       return applyDecorators(
         ApiOperation({
-          summary: '버전 정보',
-          description: 'latestVersion: 최신 버전 정보 반환',
+          summary: '버전 정보, 프로필 업데이트 필요 여부',
+          description:
+            'latestVersion: 최신 버전 정보 반환, updateProfile: 프로필 업데이트 필요 여부',
         }),
       );
     case 'random':

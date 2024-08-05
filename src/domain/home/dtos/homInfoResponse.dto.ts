@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { AnswerWithQuestionDto } from './answerWithQuestion.dto';
+import { UserEntity } from 'src/domain/entities';
 
 export class RandomUserDto {
   @ApiProperty({ description: '유저 아이디' })
@@ -11,14 +12,18 @@ export class RandomUserDto {
   @ApiProperty({ description: '유저 사진' })
   image: string;
 
-  @ApiProperty({ description: '유저 한줄소개' })
-  comment: string;
+  @ApiProperty({ description: '유저 지역' })
+  region: string;
 
-  constructor(user, images: string[]) {
+  @ApiProperty({ description: '유저 mbti' })
+  mbti: string;
+
+  constructor(user: UserEntity, images: string[]) {
     this.id = user.id;
     this.userNickname = user.userNickname;
     this.image = images.length > 0 ? images[0] : null;
-    this.comment = user.comment ?? '';
+    this.region = user.userInfo?.region ?? '';
+    this.mbti = user.userInfo?.mbti ?? '';
   }
 }
 

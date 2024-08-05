@@ -38,7 +38,7 @@ import {
   NotificationRepository,
   ReportRepository,
 } from 'src/domain/repositories';
-import { compareDateGroupExist, getDateTimeOfNow } from 'src/common/util/time';
+import { compareDateGroupExist } from 'src/common/util/time';
 
 @Injectable()
 export class BlurtingService {
@@ -513,25 +513,12 @@ export class BlurtingService {
     if (!user.group)
       return { matching: false, matchedWith: null, iReceived: [] };
 
-    let part, matchedWith;
+    let matchedWith;
     let matching = false;
-
-    if (
-      user.group.createdAt >
-      new Date(getDateTimeOfNow().getTime() - 9 * 60 * 60 * 1000)
-    ) {
-      part = 3;
-    } else if (
-      user.group.createdAt >
-      new Date(getDateTimeOfNow().getTime() - 6 * 60 * 60 * 1000)
-    ) {
-      part = 2;
-    } else if (
-      user.group.createdAt >
-      new Date(getDateTimeOfNow().getTime() - 3 * 60 * 60 * 1000)
-    ) {
-      part = 1;
-    }
+    const question = await this.questionRepository.findLatestByGroup(
+      user.group.id,
+    );
+    const part = question.no / 3;
 
     const sendArrow = await this.arrowRepository.findFromId(
       userId,

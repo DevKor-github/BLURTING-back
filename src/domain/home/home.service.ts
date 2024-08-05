@@ -128,4 +128,10 @@ export class HomeService {
       }),
     );
   }
+
+  async updateProfile(userId: number) {
+    const user = await this.userRepository.findOneById(userId);
+    if (user.birth == null) return true;
+    return false;
+  }
 }
