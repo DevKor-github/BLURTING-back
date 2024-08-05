@@ -13,7 +13,6 @@ import {
   SexOrient,
   Mbti,
   Degree,
-  Major,
   Character,
   Hobby,
   Religion,
@@ -86,11 +85,6 @@ export class SignupUserRequestDto {
   @IsNumber()
   @ApiProperty({ description: 'height' })
   height: number;
-
-  @IsOptional()
-  @IsEnum(Major)
-  @ApiProperty({ description: 'major', enum: Major, enumName: 'Major' })
-  major: Major;
 
   @IsOptional()
   @IsEnum(Mbti)

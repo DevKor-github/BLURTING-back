@@ -26,7 +26,6 @@ export class UserProfileDto extends OmitType(SignupUserRequestDto, [
       mbti: userInfo.mbti ?? null,
       region: userInfo.region ?? null,
       religion: userInfo.religion ?? null,
-      major: userInfo.major ?? null,
       character: this.GetCharacter(userInfo.character ?? 0),
       height: userInfo.height ?? null,
       drink: userInfo.drink ?? null,

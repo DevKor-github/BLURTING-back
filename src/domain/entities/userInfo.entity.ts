@@ -6,15 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { UserEntity } from 'src/domain/entities';
-import {
-  Sex,
-  SexOrient,
-  Mbti,
-  Degree,
-  Major,
-  Religion,
-  Job,
-} from 'src/common/enums';
+import { Sex, SexOrient, Mbti, Degree, Religion, Job } from 'src/common/enums';
 
 @Entity('userInfo')
 export class UserInfoEntity {
@@ -61,9 +53,6 @@ export class UserInfoEntity {
 
   @Column({ nullable: true })
   height?: number;
-
-  @Column({ nullable: true, type: 'enum', enum: Major })
-  major?: Major;
 
   @Column({ nullable: true, type: 'enum', enum: Mbti })
   mbti?: Mbti;
