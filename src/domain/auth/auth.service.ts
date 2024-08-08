@@ -121,7 +121,8 @@ export class AuthService {
       phoneNumber === '01073709869' ||
       phoneNumber === '01086489869' ||
       phoneNumber === '01082793877' ||
-      phoneNumber === '01040681036'
+      phoneNumber === '01040681036' ||
+      phoneNumber === '01077310281'
     ) {
       await this.authPhoneNumberRepository.insert(phoneNumber, '000000');
       return;
