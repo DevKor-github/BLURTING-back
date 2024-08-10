@@ -8,6 +8,7 @@ import {
   Param,
   Put,
   NotFoundException,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { BlurtingService } from './blurting.service';
@@ -159,7 +160,7 @@ export class BlurtingController {
   })
   async getBlurtingNo(
     @User() userPayload: JwtPayload,
-    @Param('no') no: number,
+    @Param('no', new ParseIntPipe()) no: number,
   ): Promise<BlurtingPageDto> {
     const { id } = userPayload;
     const user = await this.userService.findUserByVal('id', id);
