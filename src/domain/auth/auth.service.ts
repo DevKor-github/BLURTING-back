@@ -12,6 +12,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/domain/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
 import { AuthPhoneNumberRepository } from 'src/domain/repositories';
+import CoolsmsMessageService, { type MessageType } from 'coolsms-node-sdk';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const crypto = require('crypto');
@@ -23,6 +24,22 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
   ) {}
+
+  messageService = new CoolsmsMessageService(
+    process.env.MESSAGE_API_KEY,
+    process.env.MESSAGE_API_SECRET,
+  );
+
+  async sendSMS(to: string, text: string) {
+    const body = {
+      from: '01052196349',
+      to,
+      type: 'SMS' as MessageType,
+      text,
+      autoTypeDetect: false,
+    };
+    await this.messageService.sendOne(body);
+  }
 
   async getRefreshToken(id: number): Promise<string> {
     const payload: JwtPayload = {
@@ -128,55 +145,12 @@ export class AuthService {
       return;
     }
 
-    const API_URL = `https://sens.apigw.ntruss.com/sms/v2/services/${process.env.SENS_SERVICE_ID}/messages`;
     const rand = Math.floor(Math.random() * 1000000).toString();
     const number = rand.padStart(6, '0');
-    console.log(number);
-    const body = {
-      type: 'SMS',
-      from: process.env.SENS_PHONE_NUMBER,
-      content: `블러팅 휴대폰 인증번호는 [${number}]입니다.`,
-      messages: [
-        {
-          to: phoneNumber,
-          content: `블러팅 휴대폰 인증번호는 [${number}]입니다.`,
-        },
-      ],
-    };
 
+    const text = `블러팅 휴대폰 인증번호는 [${number}]입니다.`;
     await this.authPhoneNumberRepository.insert(phoneNumber, number);
-
-    const accessKey = process.env.NAVER_API_KEY;
-    const secretKey = process.env.NAVER_API_SECRET;
-    const timestamp = Date.now().toString();
-
-    const hmac = crypto.createHmac('sha256', secretKey);
-    hmac.update('POST');
-    hmac.update(' ');
-    hmac.update(`/sms/v2/services/${process.env.SENS_SERVICE_ID}/messages`);
-    hmac.update('\n');
-    hmac.update(`${timestamp}`);
-    hmac.update('\n');
-    hmac.update(`${accessKey}`);
-    const hash = hmac.digest('base64');
-    let response;
-    try {
-      response = await axios.post(API_URL, body, {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-ncp-apigw-timestamp': timestamp,
-          'x-ncp-iam-access-key': accessKey,
-          'x-ncp-apigw-signature-v2': hash,
-        },
-      });
-    } catch (err) {
-      console.log(err);
-      throw new BadRequestException(err.response.data);
-    }
-    if (Number(response.data.statusCode) !== 202)
-      throw new BadRequestException(
-        '올바르지 않은 전화번호입니다. 다시 시도해주세요.',
-      );
+    await this.sendSMS(phoneNumber, text);
   }
 
   async checkCode(code: string, phoneNumber: string) {
