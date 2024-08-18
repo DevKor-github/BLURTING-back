@@ -114,6 +114,7 @@ export class ValidationService {
 
   async validateAdMob(queryUrl: string) {
     const debug = false;
+    console.log('queryUrl', queryUrl);
     await this.verify(queryUrl, debug);
     // TODO: give reward
   }
