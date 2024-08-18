@@ -10,6 +10,7 @@ import { PagedResponse } from 'src/common/pagedResponse.dto';
 import { HotTopicInfoResponseDto } from './dtos/HotTopicInfoResponse.dto';
 import type { HotTopicRequestDto } from './dtos/HotTopicRequest.dto';
 import type { HotTopicAnswerRequestDto } from './dtos/HotTopicAnswerRequest.dto';
+import type { FcmService } from '../firebase/fcm.service';
 
 @Injectable()
 export class HotTopicRepository {
@@ -17,7 +18,10 @@ export class HotTopicRepository {
   private readonly hotTopicAnswerRepository: Repository<HotTopicAnswerEntity>;
   private readonly hotTopicLikeRepository: Repository<HotTopicLikeEntity>;
   private readonly hotTopicAnswerLikeRepository: Repository<HotTopicAnswerLikeEntity>;
-  constructor(@InjectDataSource() private readonly dataSource: DataSource) {
+  constructor(
+    @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly fcmService: FcmService,
+  ) {
     this.hotTopicAnswerLikeRepository = this.dataSource.getRepository(
       HotTopicAnswerLikeEntity,
     );
@@ -159,6 +163,22 @@ export class HotTopicRepository {
       questionId: body.topicId,
     });
     await this.hotTopicAnswerRepository.save(entity);
+    if (body.parentId) {
+      const participants = await this.hotTopicAnswerRepository.find({
+        where: { parentId: body.parentId },
+        select: ['userId'],
+      });
+
+      participants.forEach((p) => {
+        if (p.userId !== userId) {
+          this.fcmService.sendPush(
+            p.userId,
+            '핫 토픽 답변에 답글이 달렸습니다.',
+            'hotTopicAnswer',
+          );
+        }
+      });
+    }
   }
 
   async postLike(userId: number, id: number): Promise<boolean> {
@@ -192,6 +212,17 @@ export class HotTopicRepository {
       userId,
     });
     await this.hotTopicAnswerLikeRepository.save(entity);
+
+    const answer = await this.hotTopicAnswerRepository.findOne({
+      where: { id },
+      select: ['userId'],
+    });
+    this.fcmService.sendPush(
+      answer.userId,
+      '누군가가 당신의 핫 토픽 답변에 좋아요를 눌렀습니다.',
+      'hotTopicAnswerLike',
+    );
+
     return true;
   }
 }
