@@ -1,7 +1,7 @@
 import { IsBoolean, IsNotEmpty, IsString, IsDate } from 'class-validator';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Schema as MongooseSchema, Document, SchemaOptions } from 'mongoose';
-import { ChatUserDto } from 'src/domain/dtos/chat.dto';
+import { ChatUserDto } from 'src/domain/chat/dtos';
 
 const options: SchemaOptions = {
   id: false,
@@ -53,12 +53,11 @@ export class Room extends Document {
   connectedAt: Date;
 
   @Prop({
-    required: true,
+    required: false,
     type: Boolean,
-    default: true,
+    default: null,
   })
-  @IsBoolean()
-  continued: boolean;
+  freeExpired: boolean;
 }
 
 export const RoomSchema = SchemaFactory.createForClass(Room);

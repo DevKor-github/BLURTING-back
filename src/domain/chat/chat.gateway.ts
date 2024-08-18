@@ -9,7 +9,12 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { AddChatDto, ChatDto, InRoomDto } from 'src/domain/dtos/chat.dto';
+import {
+  AddChatDto,
+  ChatDto,
+  InRoomDto,
+  RoomRequestDto,
+} from 'src/domain/chat/dtos';
 import { ChatService } from './chat.service';
 import { ReportService } from 'src/domain/report/report.service';
 import { ReportingRequestDto } from 'src/domain/report/dtos/reportingRequest.dto';
@@ -50,19 +55,19 @@ export class ChatGateway
   @SubscribeMessage('create_room')
   async handleCreateRoom(
     @ConnectedSocket() client: Socket,
-    @MessageBody() user: number,
+    @MessageBody() req: RoomRequestDto,
   ) {
-    const users: number[] = [user, client.data.userId];
+    const users: number[] = [req.userId, client.data.userId];
     const room = await this.chatService.findCreatedRoom(users);
     if (room) {
       const roomId = room.id;
       client.emit('create_room', roomId);
     } else {
-      const roomId = await this.chatService.createChatRoom(users);
+      const roomId = await this.chatService.createChatRoom(users, req.free);
       const createUser = await this.chatService.findUserSocket(
         client.data.userId,
       );
-      const socketUser = await this.chatService.findUserSocket(user);
+      const socketUser = await this.chatService.findUserSocket(req.userId);
       if (socketUser) {
         this.server.to(socketUser.socketId).emit('invite_chat', {
           roomId: roomId,
@@ -70,7 +75,7 @@ export class ChatGateway
           sex: createUser.userSex,
         });
       } else {
-        this.chatService.pushCreateRoom(user);
+        this.chatService.pushCreateRoom(req.userId);
       }
 
       client.join(`${roomId}_list`);
