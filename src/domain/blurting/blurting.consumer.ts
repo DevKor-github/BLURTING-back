@@ -15,9 +15,9 @@ import { ChatService } from 'src/domain/chat/chat.service';
 @Processor('blurtingQuestions')
 export class BlurtingConsumer {
   constructor(
-    private blurtingService: BlurtingService,
-    private fcmService: FcmService,
-    private chatService: ChatService,
+    private readonly blurtingService: BlurtingService,
+    private readonly fcmService: FcmService,
+    private readonly chatService: ChatService,
     @InjectQueue('blurtingQuestions') private readonly queue: Queue,
   ) {}
 
@@ -35,6 +35,7 @@ export class BlurtingConsumer {
             `블러팅이 종료되었습니다. 원하는 상대에게 화살을 보내세요!`,
             'blurting',
           );
+          await this.chatService.finishFreeChatRoom(userid);
         }),
       );
       await this.chatService.blockWhispers(group.createdAt, users);

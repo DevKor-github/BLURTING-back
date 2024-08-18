@@ -82,6 +82,8 @@ jobs:
           echo "APP_STORE_PK=${{secrets.APP_STORE_PK}}" >> .env
           echo "APP_STORE_ISSUER_ID=${{secrets.APP_STORE_ISSUER_ID}}" >> .env
           echo "APP_STORE_BUNDLE_ID=${{secrets.APP_STORE_BUNDLE_ID}}" >> .env
+          echo "MESSAGE_API_KEY=${{secrets.MESSAGE_API_KEY}}" >> .env
+          echo "MESSAGE_API_SECRET=${{secrets.MESSAGE_API_SECRET}}" >> .env
       - name: Run Docker
         run: |
           docker stop ${{ github.ref_name == 'main' && env.DOCKER_CONTAINER_MAIN || env.DOCKER_CONTAINER_RENEWAL }} || true

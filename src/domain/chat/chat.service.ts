@@ -12,7 +12,7 @@ import {
   RoomInfoDto,
   ChatUserDto,
   RoomChatDto,
-} from 'src/domain/dtos/chat.dto';
+} from 'src/domain/chat/dtos';
 import { UserService } from 'src/domain/user/user.service';
 import { FcmService } from 'src/domain/firebase/fcm.service';
 import { NotificationEntity } from 'src/domain/entities';
@@ -94,7 +94,7 @@ export class ChatService {
     return socketUser;
   }
 
-  async createChatRoom(userIds: number[]) {
+  async createChatRoom(userIds: number[], free: boolean): Promise<number> {
     const roomId = Date.now();
     const users: ChatUserDto[] = userIds.map((userId) => ({
       userId,
@@ -109,7 +109,7 @@ export class ChatService {
       blur: 0,
       connected: true,
       connectedAt: getDateTimeOfNow(),
-      continued: true,
+      freeExpired: free ? false : null,
     });
     await room.save();
 
@@ -119,7 +119,7 @@ export class ChatService {
   async reConnectChat(roomId: string): Promise<void> {
     await this.roomModel.findOneAndUpdate(
       { where: { id: roomId } },
-      { connectedAt: getDateTimeOfNow() },
+      { connectedAt: getDateTimeOfNow(), freeExpired: null },
     );
   }
 
@@ -160,6 +160,20 @@ export class ChatService {
       },
       {
         connected: false,
+      },
+    );
+  }
+
+  async finishFreeChatRoom(userId: number): Promise<void> {
+    await this.roomModel.findOneAndUpdate(
+      {
+        users: {
+          $elemMatch: { userId: userId },
+        },
+        freeExpired: false,
+      },
+      {
+        freeExpired: true,
       },
     );
   }
