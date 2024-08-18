@@ -20,7 +20,7 @@ import { ReportService } from 'src/domain/report/report.service';
 import { ReportingRequestDto } from 'src/domain/report/dtos/reportingRequest.dto';
 import { getDateTimeOfNow } from 'src/common/util/time';
 
-@WebSocketGateway({ namespace: 'whisper' })
+@WebSocketGateway(3082, { namespace: 'whisper' })
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
