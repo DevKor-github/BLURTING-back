@@ -17,6 +17,7 @@ import { BullModule } from '@nestjs/bull';
 import { HomeModule } from './domain/home/home.module';
 import { ReportModule } from './domain/report/report.module';
 import { ValidationModule } from './domain/validation/validation.module';
+import { HotTopicModule } from './domain/hotTopic/hotTopic.module';
 
 @Module({
   imports: [
@@ -29,7 +30,6 @@ import { ValidationModule } from './domain/validation/validation.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       autoLoadEntities: true,
-      synchronize: true,
     }),
     MongooseModule.forRoot(process.env.MONGO_URI),
     UserModule,
@@ -50,6 +50,7 @@ import { ValidationModule } from './domain/validation/validation.module';
     ChatModule,
     FcmModule,
     PointModule,
+    HotTopicModule,
     BullModule.forRoot({
       redis: {
         host: 'localhost',
