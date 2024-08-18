@@ -78,6 +78,10 @@ jobs:
           echo "FCM_CLIENT_CERT_URL=${{ secrets.FCM_CLIENT_CERT_URL }}" >> .env
           echo "FCM_UNIVERSE_DOMAIN=${{ secrets.FCM_UNIVERSE_DOMAIN }}" >> .env
           echo "DISCORD_TOKEN=${{secrets.DISCORD_TOKEN}}" >> .env
+          echo "APP_STORE_KID=${{secrets.APP_STORE_KID}}" >> .env
+          echo "APP_STORE_PK=${{secrets.APP_STORE_PK}}" >> .env
+          echo "APP_STORE_ISSUER_ID=${{secrets.APP_STORE_ISSUER_ID}}" >> .env
+          echo "APP_STORE_BUNDLE_ID=${{secrets.APP_STORE_BUNDLE_ID}}" >> .env
       - name: Run Docker
         run: |
           docker stop ${{ github.ref_name == 'main' && env.DOCKER_CONTAINER_MAIN || env.DOCKER_CONTAINER_RENEWAL }} || true
