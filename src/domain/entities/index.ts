@@ -15,3 +15,4 @@ export * from './reply.entity';
 export * from './toCheck.entity';
 export * from './blurtingEvent.entity';
 export * from './blurtingPreQuestion.entity';
+export * from './appStoreConnectTransaction.entity';
