@@ -1,21 +1,16 @@
 import {
   Injectable,
-  BadRequestException,
   ConflictException,
   NotAcceptableException,
   RequestTimeoutException,
   UnauthorizedException,
   NotFoundException,
 } from '@nestjs/common';
-import axios from 'axios';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/domain/user/user.service';
 import { JwtPayload, SignupPayload } from 'src/interfaces/auth';
 import { AuthPhoneNumberRepository } from 'src/domain/repositories';
 import CoolsmsMessageService, { type MessageType } from 'coolsms-node-sdk';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const crypto = require('crypto');
 
 @Injectable()
 export class AuthService {

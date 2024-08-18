@@ -35,7 +35,13 @@ export class Room extends Document {
   })
   @IsNotEmpty()
   users: ChatUserDto[];
-
+  @Prop({
+    required: true,
+    type: Boolean,
+    default: true,
+  })
+  @IsBoolean()
+  continued: boolean;
   @Prop({
     required: true,
     type: Boolean,
