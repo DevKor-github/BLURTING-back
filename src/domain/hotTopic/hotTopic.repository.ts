@@ -10,7 +10,7 @@ import { PagedResponse } from 'src/common/pagedResponse.dto';
 import { HotTopicInfoResponseDto } from './dtos/HotTopicInfoResponse.dto';
 import type { HotTopicRequestDto } from './dtos/HotTopicRequest.dto';
 import type { HotTopicAnswerRequestDto } from './dtos/HotTopicAnswerRequest.dto';
-import type { FcmService } from '../firebase/fcm.service';
+import { FcmService } from '../firebase/fcm.service';
 
 @Injectable()
 export class HotTopicRepository {
