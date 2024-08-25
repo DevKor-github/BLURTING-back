@@ -19,8 +19,10 @@ export class HotTopicSumResponseDto {
     this.question = entity.question;
     this.createdAt = entity.createdAt.getTime();
     this.createdBy = entity.createdBy;
-    this.bestUserName = bestAnswerEntity.user.userNickname;
-    this.bestAnswer = bestAnswerEntity.answer;
+    if (bestAnswerEntity) {
+      this.bestUserName = bestAnswerEntity.user.userNickname;
+      this.bestAnswer = bestAnswerEntity.answer;
+    }
   }
   @ApiProperty({ description: '질문 id' })
   id: number;

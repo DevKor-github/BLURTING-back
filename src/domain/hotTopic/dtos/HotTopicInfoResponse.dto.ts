@@ -72,7 +72,7 @@ export class HotTopicInfoResponseDto extends HotTopicSumResponseDto {
       bestAnswerEntity,
       liked,
     );
-    this.bestAnswerId = bestAnswerEntity.id;
+    if (bestAnswerEntity) this.bestAnswerId = bestAnswerEntity.id;
     this.answers = answerEntities.map((e) => new AnswerDto(e, userId));
   }
   @ApiProperty({ description: '베스트 댓글 id' })
