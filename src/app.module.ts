@@ -30,6 +30,7 @@ import { HotTopicModule } from './domain/hotTopic/hotTopic.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       autoLoadEntities: true,
+      synchronize: true,
     }),
     MongooseModule.forRoot(process.env.MONGO_URI),
     UserModule,
