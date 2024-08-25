@@ -548,6 +548,14 @@ export class BlurtingService {
         };
       }),
     );
+    if (!matching) {
+      const images = await this.userService.getUserImages(sendArrow.to.id);
+      const user = await this.userService.getUserProfile(
+        sendArrow.to.id,
+        images,
+      );
+      return { matching, matchedWith: user, iReceived: receiveDto };
+    }
 
     return { matching, matchedWith, iReceived: receiveDto };
   }
