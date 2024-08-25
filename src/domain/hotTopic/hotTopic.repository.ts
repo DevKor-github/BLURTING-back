@@ -80,7 +80,7 @@ export class HotTopicRepository {
       take: 3,
     });
     const dtos = [];
-    Promise.all(
+    await Promise.all(
       questions.map(async (q) => {
         const likes = await this.hotTopicLikeRepository.count({
           where: { hotTopicId: q.id },
@@ -118,7 +118,7 @@ export class HotTopicRepository {
       take: pageSize,
     });
     const dtos = [];
-    Promise.all(
+    await Promise.all(
       questions.map(async (q) => {
         const likes = await this.hotTopicLikeRepository.count({
           where: { hotTopicId: q.id },
