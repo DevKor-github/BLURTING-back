@@ -518,7 +518,7 @@ export class BlurtingService {
     const question = await this.questionRepository.findLatestByGroup(
       user.group.id,
     );
-    const part = question.no / 3;
+    const part = Math.floor(question.no / 3);
 
     const sendArrow = await this.arrowRepository.findFromId(
       userId,
