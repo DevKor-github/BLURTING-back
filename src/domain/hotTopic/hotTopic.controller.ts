@@ -16,7 +16,7 @@ import type { HotTopicSumResponseDto } from './dtos/HotTopicSumResponse.dto';
 import type { HotTopicInfoResponseDto } from './dtos/HotTopicInfoResponse.dto';
 import { User } from 'src/decorators/accessUser.decorator';
 import type { JwtPayload } from 'src/interfaces/auth';
-import type { PageQuery } from 'src/common/pageQuery.dto';
+import { PageQuery } from 'src/common/pageQuery.dto';
 import type { HotTopicRequestDto } from './dtos/HotTopicRequest.dto';
 import type { HotTopicAnswerRequestDto } from './dtos/HotTopicAnswerRequest.dto';
 
