@@ -108,6 +108,7 @@ export class ChatService {
       users: users,
       blur: 0,
       connected: true,
+      continued: false,
       connectedAt: getDateTimeOfNow(),
       freeExpired: free ? false : null,
     });

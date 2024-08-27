@@ -6,6 +6,7 @@ import { ChatUserDto } from 'src/domain/chat/dtos';
 const options: SchemaOptions = {
   id: false,
   collection: 'room',
+  autoCreate: true,
 };
 
 const ChatUser = new MongooseSchema(
@@ -38,7 +39,7 @@ export class Room extends Document {
   @Prop({
     required: true,
     type: Boolean,
-    default: true,
+    default: false,
   })
   @IsBoolean()
   continued: boolean;
