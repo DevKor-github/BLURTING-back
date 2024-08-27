@@ -532,6 +532,9 @@ export class BlurtingService {
       user.group.id,
       part,
     );
+    if (!sendArrow) {
+      return { matching: false, matchedWith: null, iReceived: [] };
+    }
     const receiveArrows = await this.arrowRepository.findToId(
       userId,
       user.group.id,
