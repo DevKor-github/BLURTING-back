@@ -549,12 +549,16 @@ export class BlurtingService {
       }),
     );
     if (!matching) {
-      const images = await this.userService.getUserImages(sendArrow.to.id);
-      const user = await this.userService.getUserProfile(
-        sendArrow.to.id,
-        images,
-      );
-      return { matching, matchedWith: user, iReceived: receiveDto };
+      let user;
+      if (sendArrow.to) {
+        const images = await this.userService.getUserImages(sendArrow.to.id);
+        user = await this.userService.getUserProfile(sendArrow.to.id, images);
+      }
+      return {
+        matching,
+        matchedWith: sendArrow.to ? user : null,
+        iReceived: receiveDto,
+      };
     }
 
     return { matching, matchedWith, iReceived: receiveDto };
