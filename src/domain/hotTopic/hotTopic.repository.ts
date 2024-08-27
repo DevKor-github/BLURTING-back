@@ -114,8 +114,8 @@ export class HotTopicRepository {
     const [questions, count] = await this.hotTopicRepository.findAndCount({
       order: { createdAt: 'DESC' },
       relations: ['answers', 'answers.likes', 'answers.user', 'likes'],
-      skip: (page - 1) * pageSize,
-      take: pageSize,
+      skip: Number((page - 1) * pageSize),
+      take: Number(pageSize),
     });
     const dtos = [];
     await Promise.all(
