@@ -49,7 +49,7 @@ export class HomeService {
     const arrowSet = new Set();
     arrows.forEach((arrow) => {
       if (!arrow.from || !arrow.to) return;
-      if (arrow.from.id && arrow.to.id) {
+      if (arrow.from?.id && arrow.to?.id) {
         const forwardKey = `${arrow.from.id}-${arrow.to.id}-${arrow.group.id}-${arrow.no}`;
         const reverseKey = `${arrow.to.id}-${arrow.from.id}-${arrow.group.id}-${arrow.no}`;
 
