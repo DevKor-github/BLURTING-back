@@ -128,7 +128,7 @@ export class BlurtingController {
     @User() userPayload: JwtPayload,
   ): Promise<ArrowResultResponseDto> {
     const { id } = userPayload;
-    this.blurtingService.getArrows(id);
+
     return this.blurtingService.getArrows(id);
   }
 

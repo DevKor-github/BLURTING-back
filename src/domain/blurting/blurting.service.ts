@@ -513,7 +513,7 @@ export class BlurtingService {
     if (!user.group)
       return { matching: false, matchedWith: null, iReceived: [] };
 
-    let matchedWith;
+    let matchedWith = null;
     let matching = false;
     const question = await this.questionRepository.findLatestByGroup(
       user.group.id,
@@ -550,7 +550,7 @@ export class BlurtingService {
     );
     if (!matching) {
       let user;
-      if (sendArrow.to) {
+      if (sendArrow && sendArrow.to) {
         const images = await this.userService.getUserImages(sendArrow.to.id);
         user = await this.userService.getUserProfile(sendArrow.to.id, images);
       }
