@@ -228,8 +228,11 @@ export class BlurtingService {
       const sexOrient = this.userService.getUserSexOrient(user.userInfo);
       //const region = user.userInfo.region.split(' ')[0];
       const qName = `${sexOrient}_beta`;
-      const groupQueue: number[] = await this.cacheManager.get(qName);
-
+      let groupQueue: number[] = await this.cacheManager.get(qName);
+      if (!groupQueue) {
+        await this.cacheManager.set(qName, []);
+        groupQueue = [];
+      }
       if (groupQueue.length < 2) {
         groupQueue.push(id);
         await this.cacheManager.set(qName, groupQueue);
@@ -287,7 +290,11 @@ export class BlurtingService {
       //const region = user.userInfo.region.split(' ')[0];
       const qName = `${sexOrient}_beta`;
 
-      const groupQueue: number[] = await this.cacheManager.get(qName);
+      let groupQueue: number[] = await this.cacheManager.get(qName);
+      if (!groupQueue) {
+        await this.cacheManager.set(qName, []);
+        groupQueue = [];
+      }
       if (groupQueue.includes(id)) {
         return State.Matching;
       }
