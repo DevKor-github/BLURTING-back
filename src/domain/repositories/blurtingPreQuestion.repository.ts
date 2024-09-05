@@ -14,6 +14,10 @@ export class BlurtingPreQuestionRepository {
     private readonly preQuestionRepository: Repository<BlurtingPreQuestionEntity>,
   ) {}
 
+  async save(question: BlurtingPreQuestionEntity[]): Promise<void> {
+    await this.preQuestionRepository.save(question);
+  }
+
   async findOne(
     groupId: number,
     no: number,

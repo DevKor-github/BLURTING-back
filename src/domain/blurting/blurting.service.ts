@@ -98,15 +98,17 @@ export class BlurtingService {
     if (no === 9) return;
 
     if (no % 3 === 0) {
+
       const nextPartStartsAt = new Date(
         group.createdAt.getTime() + (no / 3) * (3 * 60 * 60 * 1000),
       );
       const delay = new Date().getTime() - nextPartStartsAt.getTime();
       await this.rQ.add({ group, no: no + 1, users }, { delay: delay });
     } else {
+
       await this.rQ.add(
         { group, no: no + 1, users },
-        { delay: 60 * 60 * 1000 },
+        { delay: 5 }, //60 * 60 * 1000 },
       );
     }
   }
@@ -123,7 +125,6 @@ export class BlurtingService {
         no: i + 1,
         question: QUESTION1[rand],
       });
-      // selected1.push(q);
     }
 
     const selected2: BlurtingPreQuestionEntity[] = [];
@@ -137,7 +138,6 @@ export class BlurtingService {
         no: i + 4,
         question: QUESTION2[rand],
       });
-      // selected2.push(q);
     }
 
     const selected3: BlurtingPreQuestionEntity[] = [];
@@ -151,12 +151,7 @@ export class BlurtingService {
         no: i + 7,
         question: QUESTION3[rand],
       });
-      // selected3.push(q);
     }
-
-    // await this.blurtingPreQuestionRepository.save(selected1);
-    // await this.blurtingPreQuestionRepository.save(selected2);
-    // await this.blurtingPreQuestionRepository.save(selected3);
   }
 
   async createGroup(users: number[]): Promise<void> {

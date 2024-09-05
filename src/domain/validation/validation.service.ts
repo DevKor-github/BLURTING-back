@@ -15,12 +15,14 @@ import jwt from 'jsonwebtoken';
 import { AppStoreConnectTransactionEntity } from 'src/domain/entities';
 import type { ProductPurchase } from 'src/interfaces/productPurchase';
 import type { Repository } from 'typeorm';
+import { PointService } from '../point/point.service';
 
 @Injectable()
 export class ValidationService {
   constructor(
     @InjectRepository(AppStoreConnectTransactionEntity)
     private readonly appStoreConnectTransactionRepository: Repository<AppStoreConnectTransactionEntity>,
+    private readonly pointService: PointService,
   ) {}
   private GOOGLE_AD_KEY_URL =
     'https://gstatic.com/admob/reward/verifier-keys.json';
@@ -116,7 +118,9 @@ export class ValidationService {
     const debug = false;
     console.log('queryUrl', queryUrl);
     await this.verify(queryUrl, debug);
-    // TODO: give reward
+
+    //TODO: give reward
+    await this.pointService.giveAdPoint(1);
   }
 
   async signAppStoreConnectJwt() {

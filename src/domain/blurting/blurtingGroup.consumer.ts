@@ -18,9 +18,13 @@ export class BlurtingRConsumer {
     @InjectQueue('renewaledBlurting') private readonly queue: Queue,
   ) {}
   @Process()
-  async processNewBlurtingQuestion(job: Job) {
-    await this.blurtingService.processPreQuestions(
-      job.data.group,
+  processNewBlurtingQuestion(job: Job) {
+    this.blurtingService.processPreQuestions(
+      {
+        id: job.data.group.id,
+        createdAt: new Date(Date.parse(job.data.group.createdAt)),
+        questions: [],
+      },
       job.data.no,
       job.data.users,
     );
