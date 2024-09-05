@@ -143,14 +143,11 @@ export class ChatGateway
       userId: client.data.userId,
     };
     const adapter = this.server.sockets.adapter as any;
-    console.log(adapter);
-    console.log(adapter.rooms.get(chatData.roomId));
     let read = true;
     if (
       adapter.rooms.get(chatData.roomId) &&
       adapter.rooms.get(chatData.roomId) != undefined
     ) {
-      console.log(addChat);
       this.chatService.addChat(addChat);
       if (adapter.rooms.get(chatData.roomId).size < 2) {
         read = false;
