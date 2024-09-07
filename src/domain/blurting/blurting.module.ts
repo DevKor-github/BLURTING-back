@@ -32,12 +32,14 @@ import {
   NotificationRepository,
   ReportRepository,
 } from 'src/domain/repositories';
+import { BlurtingRConsumer } from './blurtingGroup.consumer';
 
 @Module({
   imports: [
     UserModule,
     TypeOrmModule.forFeature([
       BlurtingGroupEntity,
+
       BlurtingQuestionEntity,
       BlurtingAnswerEntity,
       BlurtingArrowEntity,
@@ -96,6 +98,7 @@ import {
     BlurtingArrowRepository,
     BlurtingGroupRepository,
     BlurtingPreQuestionRepository,
+    BlurtingRConsumer,
     BlurtingQuestionRepository,
     BlurtingReplyRepository,
     BlurtingLikeRepository,

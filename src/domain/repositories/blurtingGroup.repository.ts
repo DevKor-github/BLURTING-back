@@ -12,7 +12,7 @@ export class BlurtingGroupRepository {
 
   async insert(): Promise<BlurtingGroupEntity> {
     return this.groupRepository.save({
-      createdAt: new Date(new Date().getTime() + 9 * 60 * 60 * 1000),
+      createdAt: new Date(),
     });
   }
 }

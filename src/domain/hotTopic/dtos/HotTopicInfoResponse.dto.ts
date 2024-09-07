@@ -10,6 +10,7 @@ class __AnswerDto {
     this.username = entity.user.userNickname;
     this.userId = entity.user.id;
     this.id = entity.id;
+    this.content = entity.answer;
   }
   @ApiProperty({ description: '답변 id' })
   id: number;
@@ -21,6 +22,8 @@ class __AnswerDto {
   createdAt: number;
   @ApiProperty({ description: '작성자 닉네임' })
   username: string;
+  @ApiProperty({ description: '답글 내용' })
+  content: string;
   @ApiProperty({ description: '작성자 id' })
   userId: number;
 }
@@ -32,6 +35,7 @@ class AnswerDto {
     this.username = entity.user.userNickname;
     this.userId = entity.user.id;
     this.id = entity.id;
+    this.content = entity.answer;
     if (entity.childs)
       this.replies = entity.childs
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
@@ -49,6 +53,8 @@ class AnswerDto {
   username: string;
   @ApiProperty({ description: '작성자 id' })
   userId: number;
+  @ApiProperty({ description: '댓글 내용' })
+  content: string;
   @ApiProperty({ description: '답글 목록', type: [__AnswerDto] })
   replies: AnswerDto[];
 }

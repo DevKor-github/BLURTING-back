@@ -58,7 +58,7 @@ export class FcmService {
 
   async sendPush(userId: number, body: string, type: string) {
     const socketUser = await this.socketUserModel.findOne({ userId: userId });
-    if (socketUser.notificationToken) {
+    if (socketUser && socketUser.notificationToken) {
       try {
         await firebase.messaging().send({
           notification: {
