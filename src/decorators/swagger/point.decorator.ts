@@ -36,6 +36,17 @@ export function Docs(endpoint: PointEndpoints) {
           summary: '포인트 차감 가능 여부',
           description: '포인트 차감 가능 여부 판단',
         }),
+        ApiBody({
+          description: '포인트 정보',
+          schema: {
+            type: 'object',
+            properties: {
+              point: {
+                type: 'number',
+              },
+            },
+          },
+        }),
       );
     case 'startChat':
       return applyDecorators(
