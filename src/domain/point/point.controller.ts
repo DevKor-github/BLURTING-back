@@ -21,8 +21,11 @@ export class PointController {
   @UseGuards(AccessGuard)
   @Get('/check')
   @Docs('checkPoint')
-  async checkPoint(@User() user: JwtPayload): Promise<boolean> {
-    return await this.pointService.checkResPoint(user.id, 40);
+  async checkPoint(
+    @User() user: JwtPayload,
+    @Body() info: { point: number },
+  ): Promise<boolean> {
+    return await this.pointService.checkResPoint(user.id, info.point);
   }
 
   @UseGuards(AccessGuard)
