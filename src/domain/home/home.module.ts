@@ -18,10 +18,12 @@ import {
   UserRepository,
 } from 'src/domain/repositories';
 import { UserModule } from 'src/domain/user/user.module';
+import { BlurtingModule } from '../blurting/blurting.module';
 
 @Module({
   imports: [
     UserModule,
+    BlurtingModule,
     TypeOrmModule.forFeature([
       LikeEntity,
       BlurtingArrowEntity,

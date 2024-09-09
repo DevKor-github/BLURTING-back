@@ -28,6 +28,17 @@ export class HomeController {
     return await this.homeService.getHomeInfo(id);
   }
 
+  @Get('/profile/:other')
+  @UseGuards(AuthGuard('access'))
+  @OtherProfileDocs()
+  async getBlurtingProfile(
+    @User() userPayload: JwtPayload,
+    @Param('other') other: number,
+  ): Promise<BlurtingProfileDto> {
+    const { id } = userPayload;
+    return this.blurtingService.getProfile(id, other);
+  }
+
   @Put('/like')
   @UseGuards(AuthGuard('access'))
   @Docs('like')
@@ -46,17 +57,6 @@ export class HomeController {
   async getTodayRandom(@User() userPayload: JwtPayload) {
     const { id } = userPayload;
     return await this.homeService.getRandomUsers(id);
-  }
-
-  @UseGuards(AuthGuard('access'))
-  @Get('/profile/:other')
-  @OtherProfileDocs()
-  async getBlurtingProfile(
-    @User() userPayload: JwtPayload,
-    @Param('other') other: number,
-  ): Promise<BlurtingProfileDto> {
-    const { id } = userPayload;
-    return this.blurtingService.getProfile(id, other);
   }
 
   @Get('/version')
