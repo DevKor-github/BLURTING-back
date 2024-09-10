@@ -11,14 +11,14 @@ import { ApiTags } from '@nestjs/swagger';
 import { HotTopicService } from './hotTopic.service';
 import { AuthGuard } from '@nestjs/passport';
 import { HotTopicDocs } from 'src/decorators/swagger/hotTopic.decorator';
-import type { PagedResponse } from 'src/common/pagedResponse.dto';
+import { PagedResponse } from 'src/common/pagedResponse.dto';
 import type { HotTopicSumResponseDto } from './dtos/HotTopicSumResponse.dto';
 import type { HotTopicInfoResponseDto } from './dtos/HotTopicInfoResponse.dto';
 import { User } from 'src/decorators/accessUser.decorator';
 import type { JwtPayload } from 'src/interfaces/auth';
 import { PageQuery } from 'src/common/pageQuery.dto';
-import type { HotTopicRequestDto } from './dtos/HotTopicRequest.dto';
-import type { HotTopicAnswerRequestDto } from './dtos/HotTopicAnswerRequest.dto';
+import { HotTopicRequestDto } from './dtos/HotTopicRequest.dto';
+import { HotTopicAnswerRequestDto } from './dtos/HotTopicAnswerRequest.dto';
 
 @Controller('hot-topic')
 @ApiTags('hot-topic')
