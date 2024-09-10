@@ -4,7 +4,7 @@ import { ChatService } from 'src/domain/chat/chat.service';
 import { UserService } from 'src/domain/user/user.service';
 import { PointHistoryDto } from 'src/domain/dtos/point.dto';
 import { PointHistoryEntity, UserEntity } from 'src/domain/entities';
-import { DataSource, IsNull, Not, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
 export class PointService {
@@ -126,14 +126,11 @@ export class PointService {
     return false;
   }
 
-  async giveAdPoint(phone: string): Promise<number | false> {
-    const user = await this.userRepository.findOne({
-      where: { phoneNumber: phone, token: Not(IsNull()) },
-    });
-    const updatedPoint = await this.updatePoint(user.id, 10);
+  async giveAdPoint(userId: number): Promise<number | false> {
+    const updatedPoint = await this.updatePoint(userId, 10);
     if (updatedPoint) {
       const history = '광고 시청으로 10p가 지급 되었습니다.';
-      this.recordPointHistory(user.id, 10, history);
+      this.recordPointHistory(userId, 10, history);
       return updatedPoint;
     }
     return false;

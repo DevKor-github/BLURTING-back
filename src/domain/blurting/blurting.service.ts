@@ -38,7 +38,6 @@ import {
   NotificationRepository,
   ReportRepository,
 } from 'src/domain/repositories';
-import { compareDateGroupExist } from 'src/common/util/time';
 
 @Injectable()
 export class BlurtingService {
@@ -198,7 +197,7 @@ export class BlurtingService {
     if (groupQueue.includes(user.id)) {
       return State.Matching;
     }
-    if (user.group && compareDateGroupExist(user.group.createdAt)) {
+    if (user.group && this.checkGroupOver(user.group.id)) {
       if (await this.checkPartOver(user.group.id)) {
         return State.Arrowing;
       }
@@ -351,6 +350,14 @@ export class BlurtingService {
   async checkPartOver(groupId: number): Promise<boolean> {
     const question = await this.questionRepository.findLatestByGroup(groupId);
     if (question.no % 3 === 0) {
+      return await this.checkAllAnswered(question.id);
+    }
+    return false;
+  }
+
+  async checkGroupOver(groupId: number): Promise<boolean> {
+    const question = await this.questionRepository.findLatestByGroup(groupId);
+    if (question.no === 9) {
       return await this.checkAllAnswered(question.id);
     }
     return false;

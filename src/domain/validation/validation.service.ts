@@ -120,9 +120,6 @@ export class ValidationService {
     const debug = false;
     console.log('queryUrl', queryUrl);
     await this.verify(queryUrl, debug);
-
-    //TODO: give reward
-    await this.pointService.giveAdPoint(1);
   }
 
   async signAppStoreConnectJwt() {
