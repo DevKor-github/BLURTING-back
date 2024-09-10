@@ -66,7 +66,7 @@ export class ValidationService {
 
   async verify(queryUrl: string, debug: boolean) {
     const queryString: any = await import('query-string');
-    const { signature, key_id } = queryString.parse(queryUrl);
+    const { signature, key_id, user_id } = queryString.parse(queryUrl);
 
     if (
       !signature ||
@@ -108,7 +108,9 @@ export class ValidationService {
       const verifier = crypto.createVerify('RSA-SHA256');
       verifier.update(contentToVerify);
       const result = verifier.verify(publicKey, signature, 'base64');
-      if (result) return true;
+      if (result) {
+        await this.pointService.giveAdPoint(user_id);
+      }
       throw new BadRequestException('Invalid signature');
     }
     throw new BadRequestException('Invalid key id');
