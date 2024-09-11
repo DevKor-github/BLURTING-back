@@ -3,12 +3,14 @@ import {
   ApiBody,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
+import { UserProfileDto } from 'src/domain/dtos/user.dto';
 import { HomeInfoResponseDto, likeHomeAnswerDto } from 'src/domain/home/dtos';
 import { RandomUserDto } from 'src/domain/home/dtos/homInfoResponse.dto';
 
-type HomeEndPoints = 'default' | 'like' | 'version' | 'random';
+type HomeEndPoints = 'default' | 'like' | 'version' | 'random' | 'otherProfile';
 export function Docs(endpoint: HomeEndPoints) {
   switch (endpoint) {
     case 'default':
@@ -44,6 +46,18 @@ export function Docs(endpoint: HomeEndPoints) {
           summary: '오늘의 인연',
         }),
         ApiResponse({ type: RandomUserDto, isArray: true }),
+      );
+    case 'otherProfile':
+      return applyDecorators(
+        ApiOperation({
+          summary: '다른 사용자 프로필 정보',
+        }),
+        ApiParam({
+          name: 'other',
+          description: '다른 사람 id',
+          type: Number,
+        }),
+        ApiResponse({ type: UserProfileDto }),
       );
   }
 }

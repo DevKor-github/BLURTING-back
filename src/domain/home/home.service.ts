@@ -13,6 +13,7 @@ import { compareDateGroupExist, getDateTimeOfNow } from 'src/common/util/time';
 import { AnswerWithQuestionDto } from './dtos';
 import { UserService } from 'src/domain/user/user.service';
 import { Sex, SexOrient } from 'src/common/enums';
+import { UserProfileDto } from '../dtos/user.dto';
 
 @Injectable()
 export class HomeService {
@@ -128,6 +129,15 @@ export class HomeService {
         return new RandomUserDto(user, images);
       }),
     );
+  }
+
+  async getOtherProfile(userId: number): Promise<UserProfileDto> {
+    const userImages = await this.userService.getUserImages(userId);
+    const userProfile = await this.userService.getUserProfile(
+      userId,
+      userImages,
+    );
+    return userProfile;
   }
 
   async updateProfile(userId: number) {

@@ -6,17 +6,12 @@ import { JwtPayload } from 'src/interfaces/auth';
 import { HomeInfoResponseDto, likeHomeAnswerDto } from './dtos';
 import { User } from 'src/decorators/accessUser.decorator';
 import { Docs } from 'src/decorators/swagger/home.decorator';
-import { OtherProfileDocs } from 'src/decorators/swagger/blurting.decorator';
-import { BlurtingProfileDto } from '../blurting/dtos';
-import { BlurtingService } from '../blurting/blurting.service';
+import { UserProfileDto } from '../dtos/user.dto';
 
 @Controller('home')
 @ApiTags('home')
 export class HomeController {
-  constructor(
-    private readonly homeService: HomeService,
-    private readonly blurtingService: BlurtingService,
-  ) {}
+  constructor(private readonly homeService: HomeService) {}
 
   @Get('/')
   @UseGuards(AuthGuard('access'))
@@ -30,13 +25,12 @@ export class HomeController {
 
   @Get('/profile/:other')
   @UseGuards(AuthGuard('access'))
-  @OtherProfileDocs()
+  @Docs('otherProfile')
   async getBlurtingProfile(
     @User() userPayload: JwtPayload,
     @Param('other') other: number,
-  ): Promise<BlurtingProfileDto> {
-    const { id } = userPayload;
-    return this.blurtingService.getProfile(id, other);
+  ): Promise<UserProfileDto> {
+    return this.homeService.getOtherProfile(other);
   }
 
   @Put('/like')
