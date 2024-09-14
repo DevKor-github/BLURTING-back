@@ -19,7 +19,7 @@ export class PointController {
   ) {}
 
   @UseGuards(AccessGuard)
-  @Get('/check')
+  @Post('/check')
   @Docs('checkPoint')
   async checkPoint(
     @User() user: JwtPayload,
