@@ -1,5 +1,6 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
@@ -17,6 +18,9 @@ export class BlurtingQuestionEntity {
 
   @Column()
   no: number;
+
+  @CreateDateColumn()
+  createdAt: Date;
 
   @Column()
   question: string;
