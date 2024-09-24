@@ -166,7 +166,7 @@ export class ChatService {
   }
 
   async finishFreeChatRoom(userId: number): Promise<void> {
-    await this.roomModel.findOneAndUpdate(
+    await this.roomModel.updateOne(
       {
         users: {
           $elemMatch: { userId: userId },
