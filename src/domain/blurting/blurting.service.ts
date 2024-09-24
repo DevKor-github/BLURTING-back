@@ -197,10 +197,10 @@ export class BlurtingService {
     if (groupQueue.includes(user.id)) {
       return State.Matching;
     }
+    if (user.group && (await this.checkPartOver(user.group.id))) {
+      return State.Arrowing;
+    }
     if (user.group && this.checkGroupOver(user.group.id)) {
-      if (await this.checkPartOver(user.group.id)) {
-        return State.Arrowing;
-      }
       return State.Blurting;
     }
     if (user.group) {
@@ -349,10 +349,17 @@ export class BlurtingService {
 
   async checkPartOver(groupId: number): Promise<boolean> {
     const question = await this.questionRepository.findLatestByGroup(groupId);
+
     if (question.no % 3 === 0) {
-      return await this.checkAllAnswered(question.id);
+      return (
+        (await this.checkAllAnswered(question.id)) ||
+        question.createdAt.getTime() - new Date().getTime() > 60 * 60 * 1000
+      );
     }
-    return false;
+    return (
+      false ||
+      question.createdAt.getTime() - new Date().getTime() > 60 * 60 * 1000
+    );
   }
 
   async checkGroupOver(groupId: number): Promise<boolean> {
