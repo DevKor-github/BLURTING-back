@@ -166,7 +166,7 @@ export class ChatService {
   }
 
   async finishFreeChatRoom(userId: number): Promise<void> {
-    await this.roomModel.findOneAndUpdate(
+    await this.roomModel.updateOne(
       {
         users: {
           $elemMatch: { userId: userId },
@@ -321,9 +321,12 @@ export class ChatService {
   async updateBlurStep(roomId: string, otherUser: number): Promise<number> {
     const room = await this.roomModel.findOne({ id: roomId });
     const index = room.users.findIndex((user) => user.userId == otherUser);
-    room.users[index].blur = await this.checkBlurChange(room, index);
+    const blurChanged = await this.checkBlurChange(room, index);
 
-    await room.save();
+    if (blurChanged != null) {
+      room.users[index].blur = blurChanged;
+      await room.save();
+    }
 
     return room.users[index].blur;
   }
