@@ -47,7 +47,15 @@ export class HotTopicRepository {
         questionId: id,
         parentId: null,
       },
-      relations: ['likes', 'user', 'childs', 'childs.likes', 'childs.user'],
+      relations: [
+        'likes',
+        'user',
+        'user.userInfo',
+        'childs',
+        'childs.likes',
+        'childs.user',
+        'childs.user.userInfo',
+      ],
     });
     const likes = await this.hotTopicLikeRepository.count({
       where: { hotTopicId: id },
