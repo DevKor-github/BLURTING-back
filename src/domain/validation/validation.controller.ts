@@ -23,7 +23,7 @@ export class ValidationController {
   @Get('/admob')
   @ValidationDocs('admobValidation')
   async admobValidation(@Req() req: Request) {
-    
+    console.log('admob:' + req.url);
     this.validationService.validateAdMob(req.url);
   }
 

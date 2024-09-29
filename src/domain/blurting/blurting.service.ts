@@ -68,9 +68,25 @@ export class BlurtingService {
       group.id,
       no,
     );
-    if (!questionToProcess || no > 9) return;
+    if (!questionToProcess || no > 9) {
+      console.log(
+        new Date().toString() +
+          'blurting question process exception no exceed:' +
+          no,
+      );
+      return;
+    }
 
-    if (questionToProcess.isUploaded) return;
+    if (questionToProcess.isUploaded) {
+      console.log(
+        new Date().toString() +
+          'already uploaded - no:' +
+          no +
+          ' groupId:' +
+          group.id,
+      );
+      return;
+    }
     const hour =
       new Date().getHours() + 9 >= 24
         ? new Date().getHours() + 9 - 24
@@ -78,7 +94,10 @@ export class BlurtingService {
     if (hour >= 1 && hour <= 8) {
       const DNDEndsAt = new Date().setHours(23);
       const delay = DNDEndsAt - new Date().getTime();
+
       await this.rQ.add({ group, no: no, users }, { delay: delay });
+      console.log(new Date().toString() + 'Do not disturb me until 8am');
+      console.log(new Date().toString() + 'no:' + no + ' groupId:' + group.id);
       return;
     }
     await this.insertQuestionToGroup(questionToProcess.question, group, no);
@@ -91,18 +110,39 @@ export class BlurtingService {
         );
       }),
     );
+    console.log(
+      new Date().toString() +
+        'question uploaded - no:' +
+        no +
+        ' groupId:' +
+        group.id,
+    );
     await this.blurtingPreQuestionRepository.updateToUpload(
       questionToProcess.id,
     );
-    if (no === 9) return;
+    if (no === 9) {
+      console.log(new Date().toString() + 'blurting end - groupId:' + group.id);
+      return;
+    }
 
     if (no % 3 === 0) {
+      console.log(new Date().toString() + 'part end - groupId:' + group.id);
       const nextPartStartsAt = new Date(
         group.createdAt.getTime() + (no / 3) * (3 * 60 * 60 * 1000),
       );
       const delay = new Date().getTime() - nextPartStartsAt.getTime();
       await this.rQ.add({ group, no: no + 1, users }, { delay: delay });
+      console.log(
+        new Date().toString() +
+          'next part start at: ' +
+          nextPartStartsAt.toString() +
+          ' - groupId:' +
+          group.id,
+      );
     } else {
+      console.log(
+        new Date().toString() + 'question added: ' + ' - groupId:' + group.id,
+      );
       await this.rQ.add(
         { group, no: no + 1, users },
         { delay: 60 * 60 * 1000 },
@@ -149,6 +189,13 @@ export class BlurtingService {
         question: QUESTION3[rand],
       });
     }
+    console.log(
+      new Date().toString() + 'pre questions added, groupId:',
+      group.id,
+    );
+    console.log(new Date().toString() + QUESTION1);
+    console.log(new Date().toString() + QUESTION2);
+    console.log(new Date().toString() + QUESTION3);
   }
 
   async createGroup(users: number[]): Promise<void> {
