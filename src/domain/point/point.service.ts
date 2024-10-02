@@ -32,9 +32,14 @@ export class PointService {
         const user = await manager.findOne(UserEntity, { where: { id } });
         if (user.point + point < 0) {
           result = false;
+        } else {
+          await manager.update(
+            UserEntity,
+            { id },
+            { point: user.point + point },
+          );
+          result = user.point + point;
         }
-        await manager.update(UserEntity, { id }, { point: user.point + point });
-        result = user.point + point;
       },
     );
     return result;
