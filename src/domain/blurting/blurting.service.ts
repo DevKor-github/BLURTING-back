@@ -65,9 +65,11 @@ export class BlurtingService {
   async checkQuestion(){
 
     // check willprocessedAt and call processPreQuestions
-    const users = await this.userService.getUsersInGroup(q.group.id);
-    const questions = await this.blurtingPreQuestionRepository.findQuestionsToProcess();
-    questions.forEach(q=>this.processPreQuestions(q.group, q.no, users ));
+    const questions = await this.blurtingPreQuestionRepository.findQuestionsToProcess();    
+
+    Promise.all(questions.map(async q=>{
+      const users = await this.userService.getUsersInGroup(q.group.id);
+      this.processPreQuestions(q.group, q.no, users.map(user=>user.id) )}));
   }
 
   async processPreQuestions(
