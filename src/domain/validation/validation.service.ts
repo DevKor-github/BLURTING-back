@@ -16,6 +16,7 @@ import { AppStoreConnectTransactionEntity } from 'src/domain/entities';
 import type { ProductPurchase } from 'src/interfaces/productPurchase';
 import type { Repository } from 'typeorm';
 import { PointService } from '../point/point.service';
+import queryString from 'query-string'
 
 @Injectable()
 export class ValidationService {
@@ -65,7 +66,6 @@ export class ValidationService {
   }
 
   async verify(queryUrl: string, debug: boolean) {
-    const queryString: any = await import('query-string');
     const { signature, key_id, user_id } = queryString.parse(queryUrl);
 
     if (
