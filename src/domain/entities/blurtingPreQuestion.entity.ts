@@ -17,4 +17,7 @@ export class BlurtingPreQuestionEntity {
 
   @Column()
   isUploaded: boolean;
+
+  @Column()
+  willProcessedAt: Date;
 }

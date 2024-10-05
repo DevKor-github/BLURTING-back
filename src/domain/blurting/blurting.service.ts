@@ -38,6 +38,7 @@ import {
   NotificationRepository,
   ReportRepository,
 } from 'src/domain/repositories';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class BlurtingService {
@@ -58,6 +59,16 @@ export class BlurtingService {
     private readonly replyRepository: BlurtingReplyRepository,
     private readonly blurtingPreQuestionRepository: BlurtingPreQuestionRepository,
   ) {}
+
+  // check every minute
+  @Cron(CronExpression.EVERY_MINUTE)
+  async checkQuestion(){
+
+    // check willprocessedAt and call processPreQuestions
+    const users = await this.userService.getUsersInGroup(q.group.id);
+    const questions = await this.blurtingPreQuestionRepository.findQuestionsToProcess();
+    questions.forEach(q=>this.processPreQuestions(q.group, q.no, users ));
+  }
 
   async processPreQuestions(
     group: BlurtingGroupEntity,
@@ -93,9 +104,9 @@ export class BlurtingService {
         : new Date().getHours() + 9;
     if (hour >= 1 && hour <= 8) {
       const DNDEndsAt = new Date().setHours(23);
-      const delay = DNDEndsAt - new Date().getTime();
-
-      await this.rQ.add({ group, no: no, users }, { delay: delay });
+      const preQuestion = await this.blurtingPreQuestionRepository.findOne(group.id, no);
+      preQuestion.willProcessedAt = new Date(DNDEndsAt);
+      this.blurtingPreQuestionRepository.save([preQuestion]);
       console.log(new Date().toString() + 'Do not disturb me until 8am');
       console.log(new Date().toString() + 'no:' + no + ' groupId:' + group.id);
       return;
@@ -130,8 +141,9 @@ export class BlurtingService {
       const nextPartStartsAt = new Date(
         group.createdAt.getTime() + (no / 3) * (3 * 60 * 60 * 1000),
       );
-      const delay = new Date().getTime() - nextPartStartsAt.getTime();
-      await this.rQ.add({ group, no: no + 1, users }, { delay: delay });
+      const preQuestion = await this.blurtingPreQuestionRepository.findOne(group.id, no + 1);
+      preQuestion.willProcessedAt = nextPartStartsAt;
+      this.blurtingPreQuestionRepository.save([preQuestion]);
       console.log(
         new Date().toString() +
           'next part start at: ' +
@@ -143,10 +155,9 @@ export class BlurtingService {
       console.log(
         new Date().toString() + 'question added: ' + ' - groupId:' + group.id,
       );
-      await this.rQ.add(
-        { group, no: no + 1, users },
-        { delay: 60 * 60 * 1000 },
-      );
+      const preQuestion = await this.blurtingPreQuestionRepository.findOne(group.id, no + 1);
+      preQuestion.willProcessedAt = new Date(new Date().getTime() + 60 * 60 * 1000);
+      this.blurtingPreQuestionRepository.save([preQuestion]);
     }
   }
 
@@ -435,15 +446,10 @@ export class BlurtingService {
       userSex: user.userInfo.sex,
     });
     if (this.checkAllAnswered(questionId) && question.no % 3 !== 0) {
-      const users = await this.userService.getGroupUsers(userId);
-      await this.rQ.add(
-        {
-          group: question.group,
-          no: question.no + 1,
-          users: users.map((u) => u.id),
-        },
-        { delay: 10 * 60 * 1000 },
-      );
+
+      const preQuestion = await this.blurtingPreQuestionRepository.findOne(question.group.id, question.no + 1);
+      preQuestion.willProcessedAt = new Date(new Date().getTime() + 10 * 60 * 1000);
+      this.blurtingPreQuestionRepository.save([preQuestion]);
     }
     if (!(await this.answerRepository.existsByUser(userId, questionId))) {
       return await this.pointService.giveBlurtingPoint(userId);

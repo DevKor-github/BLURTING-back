@@ -18,6 +18,7 @@ import { HomeModule } from './domain/home/home.module';
 import { ReportModule } from './domain/report/report.module';
 import { ValidationModule } from './domain/validation/validation.module';
 import { HotTopicModule } from './domain/hotTopic/hotTopic.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { HotTopicModule } from './domain/hotTopic/hotTopic.module';
     MongooseModule.forRoot(process.env.MONGO_URI),
     UserModule,
     AuthModule,
+    ScheduleModule.forRoot(),
     S3Module,
     MailerModule.forRoot({
       transport: {
