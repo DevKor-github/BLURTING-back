@@ -85,7 +85,7 @@ export class HotTopicInfoResponseDto extends HotTopicSumResponseDto {
       bestAnswerEntity,
       liked,
     );
-    if (bestAnswerEntity) this.bestAnswerId = bestAnswerEntity.id;
+    if (bestAnswerEntity) this.bestAnswerId = bestAnswerEntity?.id;
     this.answers = answerEntities
       .filter(
         (e) =>
