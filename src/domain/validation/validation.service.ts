@@ -109,7 +109,7 @@ export class ValidationService {
       verifier.update(contentToVerify);
       const result = verifier.verify(publicKey, signature, 'base64');
       if (result) {
-        await this.pointService.giveAdPoint(parseInt(user_id));
+        await this.pointService.giveAdPoint(parseInt(String(user_id)));
       }
       throw new BadRequestException('Invalid signature');
     }
