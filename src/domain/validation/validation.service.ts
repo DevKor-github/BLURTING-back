@@ -16,7 +16,6 @@ import { AppStoreConnectTransactionEntity } from 'src/domain/entities';
 import type { ProductPurchase } from 'src/interfaces/productPurchase';
 import type { Repository } from 'typeorm';
 import { PointService } from '../point/point.service';
-import queryString from 'query-string'
 
 @Injectable()
 export class ValidationService {
@@ -66,13 +65,30 @@ export class ValidationService {
   }
 
   async verify(queryUrl: string, debug: boolean) {
-    const { signature, key_id, user_id } = queryString.parse(queryUrl);
+    const queries = queryUrl.split('?')[1];
+    if (!queries) {
+      throw new BadRequestException('Invalid query');
+    }
+    const kvs = queries.split('&');
+
+    const kvmaps = kvs.map((kv) => {
+      const [key, value] = kv.split('=');
+      return { key, value };
+    });
+
+    const queryString: Record<string, string> = kvmaps.reduce((acc, kv) => {
+      acc[kv.key] = kv.value;
+      return acc;
+    }, {});
+    const { signature, key_id, user_id } = queryString;
 
     if (
       !signature ||
       typeof signature !== 'string' ||
       !key_id ||
-      typeof key_id !== 'string'
+      typeof key_id !== 'string' ||
+      !user_id ||
+      typeof user_id !== 'string'
     ) {
       throw new BadRequestException('Invalid signature');
     }
