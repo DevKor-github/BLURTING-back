@@ -24,7 +24,7 @@ export class BlurtingQuestionRepository {
   async findLatestByGroup(groupId: number): Promise<BlurtingQuestionEntity> {
     return this.questionRepository.findOne({
       where: { group: { id: groupId } },
-      order: { no: 'DESC' },
+      order: { id: 'DESC' },
       relations: ['group'],
     });
   }

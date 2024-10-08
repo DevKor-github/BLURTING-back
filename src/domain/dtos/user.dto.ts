@@ -22,7 +22,7 @@ export class UserProfileDto extends OmitType(SignupUserRequestDto, [
   static ToDto(userInfo: UserInfoEntity, images: string[]): UserProfileDto {
     return {
       images: images.length ? images : [],
-      nickname: userInfo.user.userNickname ?? null,
+      nickname: userInfo.user?.userNickname ?? null,
       mbti: userInfo.mbti ?? null,
       region: userInfo.region ?? null,
       religion: userInfo.religion ?? null,

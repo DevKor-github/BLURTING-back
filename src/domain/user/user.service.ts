@@ -246,6 +246,7 @@ export class UserService {
       where: { user: { id: userId } },
       relations: ['user'],
     });
+    if (!userInfo) return null;
     return UserProfileDto.ToDto(userInfo, image);
   }
 
