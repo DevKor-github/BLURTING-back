@@ -272,17 +272,17 @@ export class BlurtingService {
       await this.cacheManager.set(qName, []);
     }
 
-    if (groupQueue.includes(user.id)) {
-      return State.Matching;
-    }
-    if (user.group != null && (await this.checkPartOver(user.group.id))) {
+    if (user.group && (await this.checkPartOver(user.group.id))) {
       return State.Arrowing;
     }
-    if (user.group != null && (await this.checkGroupOver(user.group.id))) {
+    if (user.group && (await this.checkGroupOver(user.group.id))) {
+      return State.End;
+    }
+    if (user.group) {
       return State.Blurting;
     }
-    if (user.group != null) {
-      return State.End;
+    if (groupQueue.includes(user.id)) {
+      return State.Matching;
     }
     return State.Start;
   }
