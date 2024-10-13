@@ -473,12 +473,8 @@ export class BlurtingService {
       preQuestion.willProcessedAt = new Date(
         new Date().getTime() + 10 * 60 * 1000,
       );
-      this.blurtingPreQuestionRepository.save([preQuestion]);
+      await this.blurtingPreQuestionRepository.save([preQuestion]);
     }
-    if (!(await this.answerRepository.existsByUser(userId, questionId))) {
-      return await this.pointService.giveBlurtingPoint(userId);
-    }
-
     const users = await this.userService.getGroupUsers(userId);
     users.map(async (user) => {
       if (user.id !== userId) {
@@ -489,6 +485,9 @@ export class BlurtingService {
         );
       }
     });
+    if (!(await this.answerRepository.existsByUser(userId, questionId))) {
+      return await this.pointService.giveBlurtingPoint(userId);
+    }
 
     return false;
   }

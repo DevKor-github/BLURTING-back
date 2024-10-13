@@ -5,7 +5,7 @@ import {
   BlurtingGroupEntity,
   BlurtingPreQuestionEntity,
 } from 'src/domain/entities';
-import { Repository,  LessThan } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
 
 @Injectable()
 export class BlurtingPreQuestionRepository {
@@ -18,14 +18,17 @@ export class BlurtingPreQuestionRepository {
     await this.preQuestionRepository.save(question);
   }
 
-  async findQuestionsToProcess():Promise<BlurtingPreQuestionEntity[]>{
+  async findQuestionsToProcess(): Promise<BlurtingPreQuestionEntity[]> {
     return this.preQuestionRepository.find({
       where: {
-        willProcessedAt : LessThan(new Date),
-        isUploaded:false,
-      },      relations: ['group']
-
-    })
+        willProcessedAt: LessThan(new Date()),
+        isUploaded: false,
+      },
+      order: {
+        willProcessedAt: 'ASC',
+      },
+      relations: ['group'],
+    });
   }
 
   async findOne(

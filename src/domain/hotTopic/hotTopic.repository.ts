@@ -65,9 +65,9 @@ export class HotTopicRepository {
     const uidSet = new Set(uids);
     const participants = uidSet.size;
     const answers = question.answers;
-    const best = answers.filter((a) => a.likes.length >= 3).sort(
-      (a, b) => b.likes.length - a.likes.length,
-    )[0];
+    const best = answers
+      .filter((a) => a.likes.length >= 3)
+      .sort((a, b) => b.likes.length - a.likes.length)[0];
     return new HotTopicInfoResponseDto(
       question,
       likes,
@@ -99,9 +99,9 @@ export class HotTopicRepository {
         const uidSet = new Set(uids);
         const participants = uidSet.size;
         const answers = q.answers;
-        const best = answers.filter((a) => a.likes.length >= 3).sort(
-          (a, b) => b.likes.length - a.likes.length,
-        )[0];
+        const best = answers
+          .filter((a) => a.likes.length >= 3)
+          .sort((a, b) => b.likes.length - a.likes.length)[0];
         const dto = new HotTopicSumResponseDto(
           q,
           likes,
@@ -138,9 +138,9 @@ export class HotTopicRepository {
         const uidSet = new Set(uids);
         const participants = uidSet.size;
         const answers = q.answers;
-        const best = answers.filter((a) => a.likes.length >= 3).sort(
-          (a, b) => b.likes.length - a.likes.length,
-        )[0];
+        const best = answers
+          .filter((a) => a.likes.length >= 3)
+          .sort((a, b) => b.likes.length - a.likes.length)[0];
         const dto = new HotTopicSumResponseDto(
           q,
           likes,
