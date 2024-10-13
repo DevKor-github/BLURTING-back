@@ -1,0 +1,126 @@
+import {
+  IsEmail,
+  IsPhoneNumber,
+  IsString,
+  IsNumber,
+  IsArray,
+  IsEnum,
+  IsOptional,
+  IsDate,
+} from 'class-validator';
+import {
+  Sex,
+  SexOrient,
+  Mbti,
+  Degree,
+  Character,
+  Hobby,
+  Religion,
+  Job,
+} from 'src/common/enums';
+import { ApiProperty } from '@nestjs/swagger';
+
+export class SignupPhoneRequestDto {
+  @ApiProperty({ example: '01012345678' })
+  @IsPhoneNumber('KR', { message: '올바른 전화번호가 아닙니다.' })
+  phoneNumber: string;
+}
+
+export class SignupEmailRequestDto {
+  @ApiProperty({ example: 'devkor@korea.ac.kr' })
+  @IsEmail()
+  email: string;
+}
+
+export class SignupUserRequestDto {
+  @IsOptional()
+  @IsPhoneNumber('KR', { message: '올바른 전화번호가 아닙니다.' })
+  @ApiProperty({ description: 'phoneNumber' })
+  phoneNumber: string;
+
+  @IsOptional()
+  @IsDate()
+  @ApiProperty({ description: 'birth', example: '2000-01-01' })
+  birth: Date;
+
+  @IsOptional()
+  @IsEnum(Sex)
+  @ApiProperty({ description: 'sex', enum: Sex, enumName: 'Sex' })
+  sex: Sex;
+
+  @IsOptional()
+  @IsEnum(SexOrient)
+  @ApiProperty({
+    description: 'sexOrient',
+    enum: SexOrient,
+    enumName: 'SexOrient',
+  })
+  sexOrient: SexOrient;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ description: 'region' })
+  region: string;
+
+  @IsOptional()
+  @IsEnum(Religion)
+  @ApiProperty({
+    description: 'religion',
+    enum: Religion,
+    enumName: 'religion',
+  })
+  religion: Religion;
+
+  @IsOptional()
+  @IsEnum(Degree)
+  @ApiProperty({ description: 'drink', enum: Degree, enumName: 'Degree' })
+  drink: Degree;
+
+  @IsOptional()
+  @IsEnum(Degree)
+  @ApiProperty({ description: 'cigarette', enum: Degree, enumName: 'Degree' })
+  cigarette: Degree;
+
+  @IsOptional()
+  @IsNumber()
+  @ApiProperty({ description: 'height' })
+  height: number;
+
+  @IsOptional()
+  @IsEnum(Mbti)
+  @ApiProperty({ description: 'mbti', enum: Mbti, enumName: 'Mbti' })
+  mbti: Mbti;
+
+  @IsOptional()
+  @IsEnum(Job)
+  @ApiProperty({ description: 'job', enum: Job, enumName: 'Job' })
+  job: Job;
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(Character, { each: true })
+  @ApiProperty({
+    description: 'charater',
+    enum: Character,
+    enumName: 'Character',
+    isArray: true,
+  })
+  character: Character[];
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(Hobby, { each: true })
+  @ApiProperty({
+    description: 'hobby',
+    enum: Hobby,
+    enumName: 'Hobby',
+    isArray: true,
+  })
+  hobby: Hobby[];
+
+  @IsOptional()
+  @IsArray({ message: 'not valid' })
+  @IsString({ each: true })
+  @ApiProperty({ example: ['s3.asfsva', 'asdfasdf'] })
+  images: string[];
+}

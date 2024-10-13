@@ -1,0 +1,239 @@
+import { Injectable } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
+import type { DataSource, Repository } from 'typeorm';
+import { HotTopicQuestionEntity } from './entities/hotTopicQuestion.entity';
+import { HotTopicAnswerEntity } from './entities/hotTopicAnswer.entity';
+import { HotTopicLikeEntity } from './entities/hotTopicLike.entity';
+import { HotTopicAnswerLikeEntity } from './entities/hotTopicAnswerLike.entity';
+import { HotTopicSumResponseDto } from './dtos/HotTopicSumResponse.dto';
+import { PagedResponse } from 'src/common/pagedResponse.dto';
+import { HotTopicInfoResponseDto } from './dtos/HotTopicInfoResponse.dto';
+import type { HotTopicRequestDto } from './dtos/HotTopicRequest.dto';
+import type { HotTopicAnswerRequestDto } from './dtos/HotTopicAnswerRequest.dto';
+import { FcmService } from '../firebase/fcm.service';
+
+@Injectable()
+export class HotTopicRepository {
+  private readonly hotTopicRepository: Repository<HotTopicQuestionEntity>;
+  private readonly hotTopicAnswerRepository: Repository<HotTopicAnswerEntity>;
+  private readonly hotTopicLikeRepository: Repository<HotTopicLikeEntity>;
+  private readonly hotTopicAnswerLikeRepository: Repository<HotTopicAnswerLikeEntity>;
+  constructor(
+    @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly fcmService: FcmService,
+  ) {
+    this.hotTopicAnswerLikeRepository = this.dataSource.getRepository(
+      HotTopicAnswerLikeEntity,
+    );
+    this.hotTopicLikeRepository =
+      this.dataSource.getRepository(HotTopicLikeEntity);
+    this.hotTopicAnswerRepository =
+      this.dataSource.getRepository(HotTopicAnswerEntity);
+    this.hotTopicRepository = this.dataSource.getRepository(
+      HotTopicQuestionEntity,
+    );
+  }
+
+  async getHotTopicById(
+    id: number,
+    userId: number,
+  ): Promise<HotTopicInfoResponseDto> {
+    const question = await this.hotTopicRepository.findOne({
+      where: { id },
+      relations: ['answers', 'answers.likes', 'answers.user', 'likes'],
+    });
+    const answerEntities = await this.hotTopicAnswerRepository.find({
+      where: {
+        questionId: id,
+        parentId: null,
+      },
+      relations: [
+        'likes',
+        'user',
+        'user.userInfo',
+        'childs',
+        'childs.likes',
+        'childs.user',
+        'childs.user.userInfo',
+      ],
+    });
+    const likes = await this.hotTopicLikeRepository.count({
+      where: { hotTopicId: id },
+    });
+    const replies = question.answers.length;
+    const uids = question.answers.map((a) => a.userId);
+    const uidSet = new Set(uids);
+    const participants = uidSet.size;
+    const answers = question.answers;
+    const best = answers
+      .filter((a) => a.likes.length >= 3)
+      .sort((a, b) => b.likes.length - a.likes.length)[0];
+    return new HotTopicInfoResponseDto(
+      question,
+      likes,
+      replies,
+      participants,
+      best,
+      question.likes.some((like) => like.userId === userId),
+      answerEntities.sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+      ),
+      userId,
+    );
+  }
+
+  async getLatestSums(userId: number): Promise<HotTopicSumResponseDto[]> {
+    const questions = await this.hotTopicRepository.find({
+      order: { createdAt: 'DESC' },
+      relations: ['answers', 'answers.likes', 'answers.user', 'likes'],
+      take: 3,
+    });
+    const dtos = [];
+    await Promise.all(
+      questions.map(async (q) => {
+        const likes = await this.hotTopicLikeRepository.count({
+          where: { hotTopicId: q.id },
+        });
+        const replies = q.answers.length;
+        const uids = q.answers.map((a) => a.userId);
+        const uidSet = new Set(uids);
+        const participants = uidSet.size;
+        const answers = q.answers;
+        const best = answers
+          .filter((a) => a.likes.length >= 3)
+          .sort((a, b) => b.likes.length - a.likes.length)[0];
+        const dto = new HotTopicSumResponseDto(
+          q,
+          likes,
+          replies,
+          participants,
+          best,
+          q.likes.some((like) => like.userId === userId),
+        );
+        dtos.push(dto);
+      }),
+    );
+    return dtos;
+  }
+
+  async getHotTopics(
+    userId: number,
+    page: number,
+    pageSize: number,
+  ): Promise<PagedResponse<HotTopicSumResponseDto>> {
+    const [questions, count] = await this.hotTopicRepository.findAndCount({
+      order: { createdAt: 'DESC' },
+      relations: ['answers', 'answers.likes', 'answers.user', 'likes'],
+      skip: Number((page - 1) * pageSize),
+      take: Number(pageSize),
+    });
+    const dtos = [];
+    await Promise.all(
+      questions.map(async (q) => {
+        const likes = await this.hotTopicLikeRepository.count({
+          where: { hotTopicId: q.id },
+        });
+        const replies = q.answers.length;
+        const uids = q.answers.map((a) => a.userId);
+        const uidSet = new Set(uids);
+        const participants = uidSet.size;
+        const answers = q.answers;
+        const best = answers
+          .filter((a) => a.likes.length >= 3)
+          .sort((a, b) => b.likes.length - a.likes.length)[0];
+        const dto = new HotTopicSumResponseDto(
+          q,
+          likes,
+          replies,
+          participants,
+          best,
+          q.likes.some((like) => like.userId === userId),
+        );
+        dtos.push(dto);
+      }),
+    );
+    return new PagedResponse(dtos, count, page, pageSize);
+  }
+
+  async postQuestion(body: HotTopicRequestDto): Promise<void> {
+    const entity = this.hotTopicRepository.create({
+      question: body.question,
+      createdBy: body.createdBy,
+    });
+    await this.hotTopicRepository.save(entity);
+  }
+
+  async postAnswer(
+    body: HotTopicAnswerRequestDto,
+    userId: number,
+  ): Promise<void> {
+    const entity = this.hotTopicAnswerRepository.create({
+      answer: body.content,
+      parentId: body.parentId ?? null,
+      userId: userId,
+      questionId: body.topicId,
+    });
+    await this.hotTopicAnswerRepository.save(entity);
+    if (body.parentId) {
+      const participants = await this.hotTopicAnswerRepository.find({
+        where: { parentId: body.parentId },
+        select: ['userId'],
+      });
+
+      participants.forEach((p) => {
+        if (p.userId !== userId) {
+          this.fcmService.sendPush(
+            p.userId,
+            '핫 토픽 답변에 답글이 달렸습니다.',
+            'hotTopicAnswer',
+          );
+        }
+      });
+    }
+  }
+
+  async postLike(userId: number, id: number): Promise<boolean> {
+    const exists = await this.hotTopicLikeRepository.findOne({
+      where: { hotTopicId: id, userId },
+    });
+    if (exists) {
+      await this.hotTopicLikeRepository.remove(exists);
+      return false;
+    }
+
+    const entity = this.hotTopicLikeRepository.create({
+      hotTopicId: id,
+      userId,
+    });
+    await this.hotTopicLikeRepository.save(entity);
+    return true;
+  }
+
+  async postAnswerLike(userId: number, id: number): Promise<boolean> {
+    const exists = await this.hotTopicAnswerLikeRepository.findOne({
+      where: { answerId: id, userId },
+    });
+    if (exists) {
+      await this.hotTopicAnswerLikeRepository.remove(exists);
+      return false;
+    }
+
+    const entity = this.hotTopicAnswerLikeRepository.create({
+      answerId: id,
+      userId,
+    });
+    await this.hotTopicAnswerLikeRepository.save(entity);
+
+    const answer = await this.hotTopicAnswerRepository.findOne({
+      where: { id },
+      select: ['userId'],
+    });
+    this.fcmService.sendPush(
+      answer.userId,
+      '누군가가 당신의 핫 토픽 답변에 좋아요를 눌렀습니다.',
+      'hotTopicAnswerLike',
+    );
+
+    return true;
+  }
+}

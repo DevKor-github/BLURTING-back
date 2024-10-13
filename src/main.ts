@@ -2,8 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common/pipes';
-import { IoAdapter } from '@nestjs/platform-socket.io';
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
@@ -25,10 +23,16 @@ async function bootstrap() {
       },
     }),
   );
+  console.log(process.env.MONGO_URI);
+  console.log(
+    process.env.DB_HOST,
+    process.env.DB_PORT,
+    process.env.DB_USERNAME,
+    process.env.DB_PASSWORD,
+    process.env.DB_DATABASE,
+  );
 
-  app.useWebSocketAdapter(new IoAdapter(app));
-
-  await app.listen(3080);
+  await app.listen(3081);
 }
 
 bootstrap();
