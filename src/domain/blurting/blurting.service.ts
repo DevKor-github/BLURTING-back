@@ -275,13 +275,13 @@ export class BlurtingService {
     if (groupQueue.includes(user.id)) {
       return State.Matching;
     }
-    if (user.group && (await this.checkPartOver(user.group.id))) {
+    if (user.group != null && (await this.checkPartOver(user.group.id))) {
       return State.Arrowing;
     }
-    if (user.group && this.checkGroupOver(user.group.id)) {
+    if (user.group != null && (await this.checkGroupOver(user.group.id))) {
       return State.Blurting;
     }
-    if (user.group) {
+    if (user.group != null) {
       return State.End;
     }
     return State.Start;
