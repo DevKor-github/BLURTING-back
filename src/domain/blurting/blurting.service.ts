@@ -271,6 +271,7 @@ export class BlurtingService {
     if (!groupQueue) {
       await this.cacheManager.set(qName, []);
     }
+    console.log(user.group);
 
     if (user.group && (await this.checkPartOver(user.group.id))) {
       return State.Arrowing;
@@ -465,7 +466,7 @@ export class BlurtingService {
       answer,
       userSex: user.userInfo.sex,
     });
-    if (this.checkAllAnswered(questionId) && question.no % 3 !== 0) {
+    if ((await this.checkAllAnswered(questionId)) && question.no % 3 !== 0) {
       const preQuestion = await this.blurtingPreQuestionRepository.findOne(
         question.group.id,
         question.no + 1,
