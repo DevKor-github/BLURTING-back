@@ -111,7 +111,7 @@ export class BlurtingService {
       new Date().getHours() + 9 >= 24
         ? new Date().getHours() + 9 - 24
         : new Date().getHours() + 9;
-    if (hour >= 1 && hour <= 8) {
+    if (hour >= 1 && hour <= 8 && no !== 1) {
       const DNDEndsAt = new Date().setHours(23);
       const preQuestion = await this.blurtingPreQuestionRepository.findOne(
         group.id,
