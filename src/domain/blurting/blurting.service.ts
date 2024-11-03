@@ -107,6 +107,7 @@ export class BlurtingService {
       );
       return;
     }
+
     const hour =
       new Date().getHours() + 9 >= 24
         ? new Date().getHours() + 9 - 24
@@ -131,6 +132,7 @@ export class BlurtingService {
           `${no}번째 질문이 등록되었습니다!`,
           'blurting',
         );
+        await this.fcmService.addHistory(userid, `${no}번째 질문이 등록되었습니다!`)
       }),
     );
     console.log(
@@ -144,6 +146,7 @@ export class BlurtingService {
       questionToProcess.id,
     );
     if (no === 9) {
+      // await this.blurtingPreQuestionRepository.insert({ groupId: group.id, no:10, question:''});
       console.log(new Date().toString() + 'blurting end - groupId:' + group.id);
       return;
     }
@@ -484,6 +487,7 @@ export class BlurtingService {
           `${question.no}번째 질문에 새로운 답변이 등록되었습니다!`,
           'blurting',
         );
+        await this.fcmService.addHistory(user.id, `${question.no}번째 질문에 새로운 답변이 등록되었습니다!`)
       }
     });
     if (!(await this.answerRepository.existsByUser(userId, questionId))) {
@@ -564,6 +568,7 @@ export class BlurtingService {
         `${answer.question.no}번째 나의 답변에 댓글이 달렸습니다!`,
         'blurting',
       );
+      await this.fcmService.addHistory(answer.user.id, `${answer.question.no}번째 나의 답변에 댓글이 달렸습니다!`)
     }
   }
 

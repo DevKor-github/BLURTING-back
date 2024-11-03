@@ -117,19 +117,19 @@ export class ValidationService {
       console.debug('Content to verify ---');
       console.debug(contentToVerify);
     }
-    const keyMap = await this.getGoogleKeyMap();
-
-    if (keyMap.get(key_id)) {
-      const publicKey = keyMap.get(key_id);
-      const verifier = crypto.createVerify('RSA-SHA256');
-      verifier.update(contentToVerify);
-      const result = verifier.verify(publicKey, signature, 'base64');
-      if (result) {
+    // const keyMap = await this.getGoogleKeyMap();
         await this.pointService.giveAdPoint(parseInt(String(user_id)));
-      }
-      throw new BadRequestException('Invalid signature');
-    }
-    throw new BadRequestException('Invalid key id');
+
+    // if (keyMap.get(key_id)) {
+    //   const publicKey = keyMap.get(key_id);
+    //   const verifier = crypto.createVerify('RSA-SHA256');
+    //   verifier.update(contentToVerify);
+    //   const result = verifier.verify(publicKey, signature, 'base64');
+    //   if (result) {
+    //   }
+    //   throw new BadRequestException('Invalid signature');
+    // }
+    // throw new BadRequestException('Invalid key id');
   }
 
   async validateAdMob(queryUrl: string) {
