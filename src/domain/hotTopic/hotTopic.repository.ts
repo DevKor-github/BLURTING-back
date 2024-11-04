@@ -187,6 +187,7 @@ export class HotTopicRepository {
             '핫 토픽 답변에 답글이 달렸습니다.',
             'hotTopicAnswer',
           );
+          this.fcmService.addHistory(p.userId, '핫 토픽 답변에 답글이 달렸습니다.')
         }
       });
     }
@@ -233,6 +234,7 @@ export class HotTopicRepository {
       '누군가가 당신의 핫 토픽 답변에 좋아요를 눌렀습니다.',
       'hotTopicAnswerLike',
     );
+    this.fcmService.addHistory(answer.userId, '누군가가 당신의 핫 토픽 답변에 좋아요를 눌렀습니다.')
 
     return true;
   }

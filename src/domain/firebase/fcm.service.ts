@@ -84,6 +84,14 @@ export class FcmService {
     }
   }
 
+  async addHistory(userId:number, body: string) : Promise<void>{
+        const newEntity = this.notificationRepository.create({
+      user: { id: userId },
+      body,
+    });
+    await this.notificationRepository.insert(newEntity);
+  }
+
   async getNotificationList(userId: number): Promise<NotificationListDto[]> {
     const result = await this.notificationRepository.find({
       where: { user: { id: userId } },
