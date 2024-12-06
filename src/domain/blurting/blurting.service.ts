@@ -88,7 +88,7 @@ export class BlurtingService {
       group.id,
       no,
     );
-    if (!questionToProcess || no > 9) {
+    if (!questionToProcess || no > 10) {
       console.log(
         new Date().toString() +
           'blurting question process exception no exceed:' +
@@ -96,6 +96,7 @@ export class BlurtingService {
       );
       return;
     }
+
 
     if (questionToProcess.isUploaded) {
       console.log(
@@ -124,6 +125,15 @@ export class BlurtingService {
       console.log(new Date().toString() + 'no:' + no + ' groupId:' + group.id);
       return;
     }
+
+    if(questionToProcess.no == 10) {
+      questionToProcess.isUploaded = true;
+
+      this.blurtingPreQuestionRepository.save([questionToProcess]);
+      return;
+    }
+
+
     await this.insertQuestionToGroup(questionToProcess.question, group, no);
     await Promise.all(
       users.map(async (userid) => {
@@ -145,12 +155,6 @@ export class BlurtingService {
     await this.blurtingPreQuestionRepository.updateToUpload(
       questionToProcess.id,
     );
-    if (no === 9) {
-      // await this.blurtingPreQuestionRepository.insert({ groupId: group.id, no:10, question:''});
-      console.log(new Date().toString() + 'blurting end - groupId:' + group.id);
-      return;
-    }
-
     if (no % 3 === 0) {
       console.log(new Date().toString() + 'part end - groupId:' + group.id);
       const nextPartStartsAt = new Date(
@@ -223,6 +227,12 @@ export class BlurtingService {
         question: QUESTION3[rand],
       });
     }
+    await this.blurtingPreQuestionRepository.insert({
+      groupId: group.id,
+      no: 10,
+      question: "BLURTING END"
+    })
+    
     console.log(
       new Date().toString() + 'pre questions added, groupId:',
       group.id,
@@ -293,7 +303,7 @@ export class BlurtingService {
 
   async registerGroupQueue(id: number): Promise<State> {
     const state = await this.getBlurtingState(id);
-    if (state == State.Matching || state == State.Blurting) {
+    if (state == State.Matching || state == State.Blurting || state == State.Arrowing) {
       return state;
     }
 
@@ -445,11 +455,8 @@ export class BlurtingService {
   }
 
   async checkGroupOver(groupId: number): Promise<boolean> {
-    const question = await this.questionRepository.findLatestByGroup(groupId);
-    if (question.no === 9) {
-      return await this.checkAllAnswered(question.id);
-    }
-    return false;
+    const question = await this.blurtingPreQuestionRepository.findOne(groupId, 10);
+    return question.isUploaded;
   }
 
   async postAnswer(

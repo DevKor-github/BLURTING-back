@@ -142,11 +142,12 @@ export class BlurtingController {
     return this.blurtingService.getGroupInfo(id);
   }
 
-  @UseGuards(AuthGuard('access'))
+  // @UseGuards(AuthGuard('access'))
   @Get()
   @BlurtingStateDocs()
   async getBlurtingState(@User() userPayload: JwtPayload): Promise<State> {
-    const { id } = userPayload;
+    // const { id } = userPayload;
+    const id = 169;
     return this.blurtingService.getBlurtingState(id);
   }
 
