@@ -147,6 +147,7 @@ export class BlurtingController {
   @BlurtingStateDocs()
   async getBlurtingState(@User() userPayload: JwtPayload): Promise<State> {
     const { id } = userPayload;
+
     return this.blurtingService.getBlurtingState(id);
   }
 
