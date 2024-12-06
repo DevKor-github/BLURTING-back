@@ -109,11 +109,12 @@ export class BlurtingService {
       return;
     }
 
+    // 방해금지모드
     const hour =
       new Date().getHours() + 9 >= 24
         ? new Date().getHours() + 9 - 24
         : new Date().getHours() + 9;
-    if (hour >= 1 && hour <= 8) {
+    if (hour >= 1 && hour <= 8 && no !== 1) {
       const DNDEndsAt = new Date().setHours(23);
       const preQuestion = await this.blurtingPreQuestionRepository.findOne(
         group.id,
@@ -132,8 +133,6 @@ export class BlurtingService {
       this.blurtingPreQuestionRepository.save([questionToProcess]);
       return;
     }
-
-
     await this.insertQuestionToGroup(questionToProcess.question, group, no);
     await Promise.all(
       users.map(async (userid) => {
@@ -157,9 +156,16 @@ export class BlurtingService {
     );
     if (no % 3 === 0) {
       console.log(new Date().toString() + 'part end - groupId:' + group.id);
-      const nextPartStartsAt = new Date(
+      let nextPartStartsAt = new Date(
         group.createdAt.getTime() + (no / 3) * (3 * 60 * 60 * 1000),
       );
+      const hour =
+        nextPartStartsAt.getHours() + 9 >= 24
+          ? nextPartStartsAt.getHours() + 9 - 24
+          : nextPartStartsAt.getHours() + 9;
+      if (hour >= 1 && hour <= 8) {
+        nextPartStartsAt = new Date(new Date().setHours(23));
+      }
       const preQuestion = await this.blurtingPreQuestionRepository.findOne(
         group.id,
         no + 1,
