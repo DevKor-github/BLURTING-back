@@ -462,7 +462,7 @@ export class BlurtingService {
 
   async checkGroupOver(groupId: number): Promise<boolean> {
     const question = await this.blurtingPreQuestionRepository.findOne(groupId, 10);
-    return question.isUploaded;
+    return question && question.isUploaded;
   }
 
   async postAnswer(
