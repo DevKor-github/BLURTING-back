@@ -3,20 +3,22 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { UserModule } from './user/user.module';
-import { AuthModule } from './auth/auth.module';
+import { UserModule } from './domain/user/user.module';
+import { AuthModule } from './domain/auth/auth.module';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { S3Module } from './s3/s3.module';
-import { GeocodingModule } from './geocoding/geocoding.module';
-import { ChatModule } from './chat/chat.module';
+import { S3Module } from './domain/s3/s3.module';
+import { GeocodingModule } from './domain/geocoding/geocoding.module';
+import { ChatModule } from './domain/chat/chat.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { FcmModule } from './firebase/fcm.module';
-import { BlurtingModule } from './blurting/blurting.module';
-import { PointModule } from './point/point.module';
+import { FcmModule } from './domain/firebase/fcm.module';
+import { BlurtingModule } from './domain/blurting/blurting.module';
+import { PointModule } from './domain/point/point.module';
 import { BullModule } from '@nestjs/bull';
-import { HomeModule } from './home/home.module';
-import { ReportModule } from './report/report.module';
-import { EventModule } from './event/event.module';
+import { HomeModule } from './domain/home/home.module';
+import { ReportModule } from './domain/report/report.module';
+import { ValidationModule } from './domain/validation/validation.module';
+import { HotTopicModule } from './domain/hotTopic/hotTopic.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -34,6 +36,7 @@ import { EventModule } from './event/event.module';
     MongooseModule.forRoot(process.env.MONGO_URI),
     UserModule,
     AuthModule,
+    ScheduleModule.forRoot(),
     S3Module,
     MailerModule.forRoot({
       transport: {
@@ -50,6 +53,7 @@ import { EventModule } from './event/event.module';
     ChatModule,
     FcmModule,
     PointModule,
+    HotTopicModule,
     BullModule.forRoot({
       redis: {
         host: 'localhost',
@@ -58,7 +62,7 @@ import { EventModule } from './event/event.module';
     }),
     HomeModule,
     ReportModule,
-    EventModule,
+    ValidationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
